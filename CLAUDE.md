@@ -7,6 +7,7 @@ Chuck's monorepo of small interactive experiments. Owner: Chuck (product designe
 - `<lab-name>/index.html`: one folder per lab, each a self-contained static page. Link back to the index with `<a href="../">`.
 - No build step, no dependencies. Vanilla HTML/CSS/JS. Use relative paths only (labs are served from subpaths).
 - Style: dark void `#07070a`, ink `#e8e6df`, dim `#8b8a93`; Instrument Serif (italic for titles), JetBrains Mono for UI. Sparse background dots. Keep the Google Fonts `<link>` pattern, or self-host.
+- `404.html` at the root is served by DO for unknown paths from any URL depth, so it is the one file that must use absolute paths (`/`) and inline styles.
 - Adding a lab: create folder + `index.html`, include the doctype/viewport/theme-color head and a "← Labs" back link, then add it to `LABS`.
 
 ## Hosting
