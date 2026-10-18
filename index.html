@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="description" content="Chuck's labs: small interactive experiments in design and engineering.">
+<title>Labs · chuckwired</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M12 6h8v6l5 11a3 3 0 0 1-3 4H10a3 3 0 0 1-3-4l5-11z' fill='none' stroke='%23e8e6df' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07070a;
+  --ink: #e8e6df;
+  --dim: #8b8a93;
+  --line: rgba(255,255,255,0.10);
+  --serif: 'Instrument Serif', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh;
+  background: var(--bg); color: var(--ink);
+  font: 400 14px/1.5 var(--mono);
+  -webkit-font-smoothing: antialiased;
+}
+#dots { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+a { color: inherit; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+
+.nav {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
+  max-width: 1120px; margin: 0 auto;
+}
+.mark { text-decoration: none; font: 500 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+.mark span { color: var(--dim); }
+.links { display: flex; gap: 22px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+.links a { color: var(--dim); text-decoration: none; transition: color .2s; }
+.links a:hover { color: var(--ink); }
+.links a[aria-current] { color: var(--ink); }
+
+main { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 0 max(20px, env(safe-area-inset-left, 0px)) 80px; }
+
+.hero { padding: clamp(56px, 12vw, 120px) 0 clamp(36px, 7vw, 72px); }
+.hero h1 {
+  margin: 0; font: italic 400 clamp(48px, 9vw, 104px)/0.95 var(--serif);
+  letter-spacing: -0.01em; text-wrap: balance;
+}
+.hero p { margin: 22px 0 0; max-width: 46ch; color: var(--dim); font-size: 13px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; padding: 0; margin: 0; list-style: none; }
+.card {
+  position: relative; display: flex; flex-direction: column; min-height: 300px;
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  background: rgba(14,14,19,0.6); text-decoration: none;
+  transition: border-color .25s, transform .25s;
+  isolation: isolate;
+}
+a.card:hover, a.card:focus-visible { border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+.card .art { position: relative; flex: 1; min-height: 170px; overflow: hidden; }
+/* soft colour glows, same idea as the capes in the void */
+.card .art i {
+  position: absolute; width: 150px; height: 150px; border-radius: 50%;
+  filter: blur(34px); opacity: .55; transition: opacity .4s, transform .6s;
+  left: var(--x); top: var(--y); background: var(--c); transform: translate(-50%, -50%);
+}
+a.card:hover .art i { opacity: .8; transform: translate(-50%, -54%) scale(1.08); }
+.card .meta { padding: 16px 18px 18px; border-top: 1px solid var(--line); background: rgba(7,7,10,0.5); }
+.card h2 { margin: 0 0 6px; font: italic 400 28px/1.1 var(--serif); }
+.card p { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags span { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px; }
+.tags .live { color: #9fd8a6; border-color: rgba(159,216,166,0.35); }
+.card.next { border-style: dashed; background: transparent; align-items: center; justify-content: center; color: var(--dim); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+
+footer { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 28px); color: var(--dim); font-size: 11px; letter-spacing: 0.08em; }
+footer a { color: var(--dim); }
+footer a:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) { .card, .card .art i { transition: none; } }
+</style>
+</head>
+<body>
+<canvas id="dots" aria-hidden="true"></canvas>
+
+<nav class="nav" aria-label="Primary">
+  <a class="mark" href="/">chuckwired <span>/ labs</span></a>
+  <div class="links">
+    <a href="/" aria-current="page">Labs</a>
+    <a href="https://chuckwired.com">Portfolio ↗</a>
+    <a href="https://chuckwired.medium.com">Writing ↗</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Small experiments, left running.</h1>
+    <p>Interactive pieces where design and engineering meet. Each one is a single static page, no build, built to be poked at.</p>
+  </header>
+
+  <ul class="grid" id="grid"></ul>
+</main>
+
+<footer>Fan projects are non-commercial. RuneScape is a trademark of Jagex Ltd.</footer>
+
+<script>
+/* ---- add a lab: append an entry here and create a folder with an index.html ---- */
+var LABS = [
+  {
+    path: 'rs2-capes/',
+    title: "Chuck's Capes of Accomplishment",
+    blurb: 'RuneScape skill capes floating in a void. Click one to inspect it in 3D.',
+    tags: ['SVG', 'CSS 3D', 'Canvas'],
+    status: 'live',
+    glows: [['#4f9dbd', '28%', '38%'], ['#2f3fb0', '72%', '30%'], ['#3f8f3a', '52%', '72%']]
+  }
+];
+
+(function () {
+  var grid = document.getElementById('grid');
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
+
+  LABS.forEach(function (l) {
+    var li = el('li');
+    var a = el('a', 'card'); a.href = l.path;
+    var art = el('div', 'art');
+    (l.glows || []).forEach(function (g) {
+      var i = el('i'); i.style.setProperty('--c', g[0]); i.style.setProperty('--x', g[1]); i.style.setProperty('--y', g[2]); art.appendChild(i);
+    });
+    var meta = el('div', 'meta');
+    meta.appendChild(el('h2', '', l.title));
+    meta.appendChild(el('p', '', l.blurb));
+    var tags = el('div', 'tags');
+    if (l.status) tags.appendChild(el('span', l.status === 'live' ? 'live' : '', l.status));
+    (l.tags || []).forEach(function (t) { tags.appendChild(el('span', '', t)); });
+    meta.appendChild(tags);
+    a.appendChild(art); a.appendChild(meta); li.appendChild(a); grid.appendChild(li);
+  });
+  var next = el('li'); next.appendChild(el('div', 'card next', 'Next experiment')); grid.appendChild(next);
+
+  /* sparse dot field, matches the capes page */
+  var cv = document.getElementById('dots'), cx = cv.getContext('2d');
+  function dots() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), w = innerWidth, h = innerHeight;
+    cv.width = w * dpr; cv.height = h * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, w, h);
+    var n = Math.round(w * h / 9000), seed = 7;
+    function r() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    for (var i = 0; i < n; i++) {
+      cx.globalAlpha = 0.05 + r() * 0.3; cx.fillStyle = '#e8e6df';
+      cx.fillRect(r() * w, r() * h, r() < 0.15 ? 1.6 : 1, r() < 0.15 ? 1.6 : 1);
+    }
+  }
+  var t; dots(); var lw = innerWidth;
+  addEventListener('resize', function () { if (innerWidth === lw) return; lw = innerWidth; clearTimeout(t); t = setTimeout(dots, 150); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04050a">
+<meta name="description" content="Interactive showcase of RuneScape skill capes floating in a void. Click a cape to inspect it in 3D.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 260'%3E%3Cpolygon points='32,22 88,22 110,236 60,256 10,236' fill='%234a5cd0'/%3E%3Cpolygon points='40,22 80,22 98,240 60,256 22,240' fill='%23d6d0c0'/%3E%3C/svg%3E">
+<title>Cape Void</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Jersey+10&display=swap">
+<style>
+/* Layout: one full-bleed void. Capes float as DOM objects with stacked SVG layers (real Z depth).
+   UI is a single quiet picker top-right and a caption bottom-centre. Single dark look by choice. */
+:root {
+  color-scheme: dark;
+  --void: #04050a;
+  --void-lift: #0a0d17;
+  --ink: #dde1ee;
+  --dim: #7a8196;
+  --line: rgba(255, 255, 255, 0.13);
+  --panel: rgba(9, 11, 19, 0.82);
+  --accent: #9db4ff;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --osrs: 'Jersey 10', 'Pixelify Sans', ui-monospace, Menlo, Consolas, monospace;
+  --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--ink);
+  font: 12px/1.4 var(--mono);
+  overflow: hidden;
+}
+#stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse 80% 70% at 50% 42%, var(--void-lift) 0%, var(--void) 72%);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#dots, #stars { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+.cape {
+  --lx: 0;
+  position: absolute;
+  left: 0; top: 0;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.cape.off { pointer-events: none; }
+.is-focus .cape.front { cursor: default; }
+.cape:focus-visible .tilt { filter: drop-shadow(0 0 2px #fff); }
+.glow {
+  position: absolute;
+  left: -45%; top: -15%;
+  width: 190%; height: 130%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--g0) 0%, var(--g1) 45%, rgba(0,0,0,0) 100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  transform: translateZ(calc(var(--z) * var(--u)));
+  pointer-events: none;
+}
+.sheen {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(calc(1.3 * var(--u)));
+  -webkit-mask: var(--cape-mask) 0 0 / 100% 100% no-repeat;
+  mask: var(--cape-mask) 0 0 / 100% 100% no-repeat;
+  background: radial-gradient(circle at var(--sx, 50%) var(--sy, 30%), rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 58%);
+  pointer-events: none;
+}
+
+/* in-game style title: pixel face at 2x its 10px grid, OSRS interface orange, hard 1-grid-unit black shadow */
+.brand {
+  position: fixed;
+  left: calc(env(safe-area-inset-left, 0px) + 16px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 20;
+  margin: 0;
+  max-width: calc(100vw - 32px);
+  font: 400 20px/1.05 var(--osrs);
+  letter-spacing: 0.02em;
+  color: #ff981f;
+  text-shadow: 2px 2px 0 #000;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: none;
+  pointer-events: none;
+}
+
+/* back to labs index */
+.back {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  left: calc(env(safe-area-inset-left, 0px) + 16px);
+  z-index: 50;
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  background: rgba(10,10,14,0.55);
+  transition: color .2s, border-color .2s;
+}
+.back:hover, .back:focus-visible { color: var(--ink); border-color: rgba(255,255,255,0.35); outline: none; }
+.caption {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
+  text-align: center;
+  pointer-events: none;
+  z-index: 20;
+}
+.hint, .name { transition: opacity 0.6s ease; }
+.hint {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.name {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  font: italic 400 32px/1.1 var(--serif);
+  color: var(--ink);
+  text-wrap: balance;
+  opacity: 0;
+}
+.name small {
+  display: block;
+  margin-top: 6px;
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.is-focus .name { opacity: 1; }
+.is-focus .hint, .seen .hint { opacity: 0; }
+
+#picker {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: 16px;
+  z-index: 50;
+  font-family: var(--mono);
+}
+#pickerBtn {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 13px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+#pickerBtn:hover, #pickerBtn[aria-expanded="true"] { color: var(--ink); border-color: rgba(255,255,255,0.3); }
+#pickerBtn:focus-visible, .row:focus-within, #allBtn:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+#panel {
+  position: absolute;
+  right: 0; top: 40px;
+  width: 220px;
+  max-width: calc(100vw - 32px);
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.row:hover { background: rgba(255,255,255,0.05); }
+.row input { accent-color: var(--accent); margin: 0; }
+.sw {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+}
+.panel-foot { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 2px; color: var(--dim); font-size: 11px; }
+#allBtn { font: inherit; color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+@media (max-width: 480px) { .name { font-size: 26px; } }
+@media (max-width: 640px) { .caption { bottom: calc(env(safe-area-inset-bottom, 0px) + 62px); } }
+.flat { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; }
+.cape.gone { display: none; }
+.glow { will-change: opacity; }
+</style>
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div id="stage" aria-label="Skill cape showcase">
+  <canvas id="dots" aria-hidden="true"></canvas>
+  <canvas id="stars" aria-hidden="true"></canvas>
+</div>
+
+<a class="back" href="../">&larr; Labs</a>
+<h1 class="brand">Chuck's Capes of Accomplishment</h1>
+
+<div class="caption" aria-live="polite">
+  <div class="hint" id="hint">Click a cape</div>
+  <div class="name" id="name"></div>
+</div>
+
+<div id="picker">
+  <button id="pickerBtn" type="button" aria-expanded="false" aria-controls="panel">Capes <span id="count"></span></button>
+  <div id="panel" hidden>
+    <div id="rows"></div>
+    <div class="panel-foot"><span>Shown on the canvas</span><button id="allBtn" type="button">All</button></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- tunables ---------- */
+const CONFIG = {
+  focusHeight: 0.82,      // focused cape height as a fraction of the viewport
+  idleMaxHeight: 0.40,    // largest idle cape height as a fraction of the viewport
+  tiltY: 25,              // max degrees left/right when focused
+  tiltX: 15,              // max degrees up/down when focused
+  tiltSmooth: 6,          // higher = snappier tilt
+  drift: 0.025,
+  capeStyle: { herblore: 'rs3' },   // per-cape art style: 'rs3' | 'osrs' (no UI yet)
+  idleSpeed: 0.62,        // time scale for the idle float; lower = slower           // idle drift amplitude, fraction of idle cape height
+  spring: { k: 70, c: 13 },
+  blurPx: 14,             // visual blur on the background capes while one is focused
+  dimOpacity: 0.4,
+  glowIdle: 0.38,
+  glowHover: 0.6,
+  glowFocus: 0.8,
+  starGap: [6, 15],       // seconds between shooting stars
+  defaultShown: ['herblore', 'mining', 'magic'],   // capes shown on first visit
+  storageKey: 'cape-void:shown:v2'
+};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// coarse pointer, few cores or little memory: build a lighter 3D stack. A frame-rate governor can also drop effects at runtime.
+const LOWPOWER = matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+let lite = false;
+
+/* ---------- colour helpers ---------- */
+const hex2rgb = h => { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); };
+const rgb2hex = a => '#' + a.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+const shade = (h, a) => { const t = a < 0 ? 0 : 255, p = Math.abs(a); return rgb2hex(hex2rgb(h).map(v => v + (t - v) * p)); };
+const rgba = (h, a) => { const [r, g, b] = hex2rgb(h); return `rgba(${r},${g},${b},${a})`; };
+
+/* ---------- cape geometry (viewBox 120 x 260, flat-shaded low poly) ---------- */
+// OUT = outer trim silhouette, MID = inner trim band edge, INN = body panel. Hem is a shallow point with chamfered corners,
+// so the side trim runs straight down and ends flush with the hem (no band across the bottom).
+const OUT = '32,22 88,22 110,236 60,256 10,236';
+const MID = '36,22 84,22 104,238.4 60,256 16,238.4';
+const INN = '40,22 80,22 98,240.8 60,256 22,240.8';
+// back plate hangs a few units below the body's hem so the trim colour pokes out at the bottom
+const OUTB = '32,22 88,22 110.4,239.5 60,259.5 9.6,239.5';
+const MIDB = '36,22 84,22 104.3,241.9 60,259.5 15.7,241.9';
+const COLLAR = '29,24 34,21 60,29 86,21 91,24 92,50 60,82 28,50';
+const PAD = { edge: '1,6 5,4.5 29.5,37 28,41', face: '5,4.5 14,1 33,28 29.5,37', thick: '14,1 17.5,3 36,30 33,28' };
+const stripTop = i => 40 + i * (40 / 6);
+const stripBot = i => 14 + i * (92 / 6);
+const stripX = (i, y) => stripTop(i) + (stripBot(i) - stripTop(i)) * (y - 22) / 228;
+const LIGHT = 0.15;
+// organic section boundaries: the straight line plus a gentle S-curve per boundary (outer edges stay straight)
+const WOB = [0, 2.3, -2.0, 2.6, -2.2, 1.9, 0];
+const bx = (i, y) => stripX(i, y) + WOB[i] * (0.35 + 0.65 * (y - 22) / 228) * Math.sin((y - 22) / 228 * Math.PI * (1.6 + 0.25 * i) + i * 1.7);
+const bline = (i, dx = 0) => Array.from({ length: 25 }, (_, k) => { const y = 22 + 240 * k / 24; return `${(bx(i, y) + dx).toFixed(2)},${y.toFixed(1)}`; }); // how strongly the lit-to-shaded gradient shows across the body
+// white and black overlays whose opacity follows a CSS expression; only one of them is ever visible
+const ov = (pts, e) => `<polygon points="${pts}" fill="#fff" style="opacity:max(0,calc(${e}))"/><polygon points="${pts}" fill="#000" style="opacity:max(0,calc(-1 * (${e})))"/>`;
+
+/* emblems, centred around (60,135) */
+function emHerbRs3() {
+  const leaf = (a, c) => `<g transform="rotate(${a} 60 162)"><polygon points="60,162 53,144 60,120 67,144" fill="${c}"/><polygon points="60,162 60,120 67,144" fill="rgba(0,0,0,.2)"/></g>`;
+  return leaf(-45, '#4fb862') + leaf(45, '#4fb862') + leaf(-22, '#76d882') + leaf(22, '#76d882') + leaf(0, '#9af0a2');
+}
+function emHerbOsrs() {
+  // traced from the OSRS item sprite (px coords), mapped to cape units around (60,128)
+  const T = pts => pts.map(([x, y]) => `${(60 + (x - 215) * 0.24).toFixed(1)},${(130 + (y - 410) * 0.24).toFixed(1)}`).join(' ');
+  const P = (pts, fill) => `<polygon points="${T(pts)}" fill="${fill}"/>`;
+  const outline = [[215,303],[233,340],[256,346],[288,350],[295,378],[312,372],[314,432],[278,492],[215,516],[152,492],[116,432],[118,372],[135,378],[142,350],[174,346],[197,340]];
+  return P(outline, '#3a3126') +
+    P([[152,352],[182,356],[186,384],[158,378]], '#16a550') + P([[278,352],[248,356],[244,384],[272,378]], '#16a550') +
+    P([[125,385],[172,396],[215,430],[190,448],[140,432]], '#2fbf5d') + P([[140,432],[190,448],[215,430],[212,498],[152,480],[128,440]], '#16a14e') +
+    P([[305,385],[258,396],[215,430],[240,448],[290,432]], '#2fbf5d') + P([[290,432],[240,448],[215,430],[218,498],[278,480],[302,440]], '#12994a') +
+    P([[215,318],[236,392],[241,432],[215,502],[189,432],[194,392]], '#0e8f20') + P([[215,318],[236,392],[241,432],[215,502]], '#0a7a18');
+}
+function emMine() {
+  return `<g transform="translate(5,12) rotate(-35 60 122)">
+    <rect x="57" y="92" width="6" height="62" fill="#a9742a"/><rect x="57" y="92" width="2.5" height="62" fill="#cf9a46"/>
+    <polygon points="28,98 60,88 92,98 86,105 60,97 34,105" fill="#d7dbde"/>
+    <polygon points="34,105 60,97 86,105 60,101" fill="#8b9197"/></g>`;
+}
+function emCook(u = '') {
+  const k = '#16110f';
+  // smoke wisps: a base segment plus a tip segment bent at a "finger joint". All outlines are drawn first (dilated dark copies),
+  // then all fills, so neighbouring wisps share one continuous outline.
+  const wisp = (x, yb, hb, ht, lean, bend, w = 2.9) => {
+    const yj = yb - hb;
+    const base = `<polygon points="${x - w},${yb} ${x - w},${yj} ${x + w},${yj} ${x + w},${yb}"/><circle cx="${x}" cy="${yj}" r="${w}"/>`;
+    const tip = `<polygon points="${x - w},${yj} ${x - w},${yj - ht + 1.5} ${x - w + 1.2},${yj - ht} ${x + w - 1.2},${yj - ht} ${x + w},${yj - ht + 1.5} ${x + w},${yj}"/>`;
+    return st => `<g transform="rotate(${lean} ${x} ${yb})" ${st}>${base}<g transform="rotate(${bend} ${x} ${yj})">${tip}</g></g>`;
+  };
+  const wisps = [wisp(51, 111, 8, 6, -12, -24), wisp(60, 111, 6, 5, 7, -26), wisp(69, 111, 8, 6, 12, 24)];
+  const smoke = wisps.map(w => w(`fill="${k}" stroke="${k}" stroke-width="5.2" stroke-linejoin="round"`)).join('') + wisps.map(w => w('fill="#d9d4da"')).join('');
+  const pot = '44,109 76,109 72,116 69,121 82,127 85,138 78,149 66,153 46,152 37,146 34,137 37,128 50,121 47,116';
+  // radial shading (lit upper-left, shaded lower-right) makes the pot read as round; the outline is drawn last so it runs unbroken all the way round
+  return `<g transform="translate(60 131) scale(.88) translate(-60 -131)">
+    <defs><radialGradient id="pot-shade-${u}" cx=".36" cy=".34" r=".78">
+      <stop offset="0" stop-color="#bdb36a"/><stop offset=".45" stop-color="#8f8744"/><stop offset=".8" stop-color="#6a6538"/><stop offset="1" stop-color="#4f4b2b"/>
+    </radialGradient></defs>
+    ${smoke}
+    <polygon points="${pot}" fill="url(#pot-shade-${u})"/>
+    <ellipse cx="46" cy="133" rx="5" ry="8" fill="#fff" opacity=".13" transform="rotate(25 46 133)"/>
+    <polygon points="44,109 76,109 75,112.5 45,112.5" fill="#b8ae66"/>
+    <polygon points="${pot}" fill="none" stroke="${k}" stroke-width="2.6" stroke-linejoin="round"/>
+  </g>`;
+}
+function emMagic() {
+  return `<circle cx="62" cy="136" r="21" fill="#f1b928"/>
+    <polygon points="58,108 67,112 77,140 49,142 46,131 39,129 52,120" fill="#1b2aa5"/>
+    <polygon points="58,108 52,120 39,129 46,131 49,142 62,141 60,120" fill="#2c3dc0"/>
+    <polygon points="67,112 77,140 62,141 60,120" fill="#121c85"/>
+    <polygon points="35,150 50,147 76,147 90,152 86,161 52,169 40,160" fill="#1b2aa5"/>
+    <polygon points="35,150 50,147 76,147 90,152 60,155" fill="#2c3dc0"/>
+    <polygon points="50,138 75,139 76,147 50,147" fill="#8a5b2a"/>
+    <rect x="61" y="139" width="6" height="8" fill="#e8e22a"/>`;
+}
+
+const CAPE_STYLES = {
+  herblore: {
+    rs3:  { body: '#1d5a2e', collar: '#246a37', trim: '#a8891f', trim2: '#d2b233', pad: '#d2b233', padEdge: '#9a7d1a', emblem: emHerbRs3 },
+    osrs: { body: '#129a1d', collar: '#0b7a14', trim: '#b8960f', trim2: '#e6c51c', pad: '#d9b814', padEdge: '#8c7410', emblem: emHerbOsrs }
+  }
+};
+
+const CAPES = [
+  { id: 'herblore', name: 'Herblore', glow: '#3fbf5a', ...CAPE_STYLES.herblore[CONFIG.capeStyle.herblore] },
+  { id: 'mining',   name: 'Mining',   glow: '#a39f5c', body: '#5f5d42', collar: '#6d6b4c', trim: '#4f9dbd', trim2: '#7cc7e6', pad: '#7cc7e6', padEdge: '#7a7a7a', emblem: emMine },
+  { id: 'cooking',  name: 'Cooking',  glow: '#a25be0', body: '#582a78', collar: '#6a3a8c', trim: '#5a0f0f', trim2: '#7b1717', pad: '#7b1717', padEdge: '#6b6b72', emblem: emCook },
+  { id: 'magic',    name: 'Magic',    glow: '#4a6bff', body: '#d6d0c0', collar: '#e6e1d3', trim: '#26359c', trim2: '#4a5cd0', pad: '#2f3fb0', padEdge: '#e8a823', emblem: emMagic }
+];
+
+function buildLayers(d, id) {
+  // returns [{ z, inner, flat }]. The idle view merges the flat ones into a single SVG; the focused 3D stack uses all of them.
+  const layers = [];
+  const L = (z, inner, flat = true) => { layers.push({ z, inner, flat }); };
+  const cid = `clip-${id}`, gid = `grad-${id}`, clo = `clipo-${id}`;
+  const Z = { plate: -2.2, body: 1.2 };
+  const SLICES = LOWPOWER ? 3 : 6, WALLS = LOWPOWER ? 2 : 3;
+  // BACK PLATE: the trim colour is the back of the cape, sitting deeper than the body, with extrusion slices behind it for thickness.
+  for (let k = SLICES; k >= 1; k--) L(Z.plate - (6 / SLICES) * 0.7 * k, `<polygon points="${OUTB}" fill="${shade(d.trim, -0.62 + k * 0.03 * (6 / SLICES))}"/>`, false);
+  L(Z.plate, `<polygon points="${OUTB}" fill="${d.trim}"/>`);
+  L(Z.plate + 0.3, `<polygon points="${MIDB}" fill="${d.trim2}"/>`);
+  // contact shadow the body casts onto the back plate
+  L(Z.plate + 0.6, `<clipPath id="${clo}"><polygon points="${OUTB}"/></clipPath><g clip-path="url(#${clo})" fill="none" stroke-linejoin="round"><polygon points="${INN}" stroke="rgba(0,0,0,.10)" stroke-width="8"/><polygon points="${INN}" stroke="rgba(0,0,0,.14)" stroke-width="4.5"/><polygon points="${INN}" stroke="rgba(0,0,0,.2)" stroke-width="2"/></g>`);
+  // side walls of the body panel, so it reads as a thick sheet floating above the plate (hidden behind the body when flat)
+  for (let k = WALLS; k >= 1; k--) L(Z.body - (3 / WALLS) * 0.7 * k, `<polygon points="${INN}" fill="${shade(d.body, -0.55 + (WALLS - k) * 0.03)}"/>`, false);
+  // body panel: base colour plus six sections. Each section's light/shade is driven by --lx (the cape's position
+  // relative to screen centre), stepping steadily from the edge facing the centre to the far edge. A faint falloff keeps the middle brightest.
+  let strips = '', folds = '';
+  for (let i = 0; i < 6; i++) {
+    const t = (i - 2.5) / 2.5;
+    const e = `var(--lx) * ${(-t * LIGHT).toFixed(3)} + ${((0.45 - Math.abs(t)) * 0.07).toFixed(3)}`;
+    strips += ov(bline(i).concat(bline(i + 1, 0.3).reverse()).join(' '), e);
+    if (i) folds += `<polyline points="${bline(i).join(' ')}" fill="none" stroke="rgba(255,255,255,.022)" stroke-width=".9"/>`;
+  }
+  L(Z.body, `<clipPath id="${cid}"><polygon points="${INN}"/></clipPath>
+    <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/></linearGradient>
+    <g clip-path="url(#${cid})"><polygon points="${INN}" fill="${d.body}"/>${strips}${folds}<polygon points="${INN}" fill="url(#${gid})"/></g>`);
+  // optional coloured hem band along the bottom edge
+  if (d.hem) L(Z.body + 0.4, `<polygon points="10,236 60,256 110,236 109.2,228 60,248 10.8,228" fill="${d.hem}"/><polyline points="10.8,228 60,248 109.2,228" fill="none" stroke="${shade(d.hem, 0.22)}" stroke-width="1"/>`);
+  L(Z.body + 0.6, d.emblem(id));
+  // shoulder pads: slanted slabs flaring out from behind the collar
+  const pad = `<polygon points="${PAD.thick}" fill="${shade(d.pad, -0.4)}"/><polygon points="${PAD.face}" fill="${d.pad}"/><polygon points="${PAD.edge}" fill="${d.padEdge}"/>`;
+  L(4, pad + `<g transform="translate(120,0) scale(-1,1)">${pad}</g>`);
+  // V collar
+  L(5.8, `<polygon points="${COLLAR}" fill="${d.collar}"/>
+    ${ov('29,24 34,21 60,29 60,82 28,50', 'var(--lx) * 0.09 + 0.05')}
+    ${ov('86,21 91,24 92,50 60,82 60,29', 'var(--lx) * -0.09 + -0.05')}
+    <polyline points="28,50 60,82 92,50" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="1.1"/>`);
+  return layers;
+}
+
+/* ---------- build DOM ---------- */
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+const dotsCv = document.getElementById('dots');
+const nameEl = document.getElementById('name');
+const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 260" preserveAspectRatio="none"><polygon points="${INN}" fill="#000"/></svg>`;
+stage.style.setProperty('--cape-mask', `url("data:image/svg+xml,${encodeURIComponent(maskSvg)}")`);
+
+let saved = null;
+try { saved = JSON.parse(localStorage.getItem(CONFIG.storageKey)); } catch (e) { saved = null; }
+if (!Array.isArray(saved) || !saved.some(id => CAPES.some(c => c.id === id))) saved = null;
+
+const rnd = (a, b) => a + Math.random() * (b - a);
+const capes = CAPES.map((d, i) => {
+  const el = document.createElement('div');
+  el.className = 'cape';
+  el.tabIndex = 0;
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', d.name + ' cape');
+  el.style.setProperty('--g0', rgba(d.glow, 0.55));
+  el.style.setProperty('--g1', rgba(d.glow, 0.16));
+  // idle: ONE merged SVG per cape (one compositing layer). Focus: the full depth stack, shown only for the focused cape.
+  const stackLayers = buildLayers(d, d.id), flatLayers = buildLayers(d, d.id + '-f');
+  el.innerHTML = `<div class="glow"></div>
+    <svg class="flat" viewBox="0 0 120 260" aria-hidden="true">${flatLayers.filter(l => l.flat).map(l => l.inner).join('')}</svg>
+    <div class="tilt" style="display:none;opacity:0">${stackLayers.map(l => `<svg class="layer" viewBox="0 0 120 260" style="--z:${l.z}" aria-hidden="true">${l.inner}</svg>`).join('')}<div class="sheen"></div></div>`;
+  stage.appendChild(el);
+  const c = {
+    def: d, el, i,
+    glowEl: el.querySelector('.glow'), flatEl: el.querySelector('.flat'), tiltEl: el.querySelector('.tilt'), sheenEl: el.querySelector('.sheen'),
+    enabled: saved ? saved.includes(d.id) : CONFIG.defaultShown.includes(d.id),
+    x: 0, y: 0, s: 0.3, r: 0, vx: 0, vy: 0, vs: 0, vr: 0,
+    home: { x: 0, y: 0, s: 0.3 },
+    mix: 0, op: 0, rx: 0, ry: 0, hover: false, born: 0.4 + i * 0.22,
+    ph: Array.from({ length: 8 }, () => rnd(0, Math.PI * 2)),
+    jx: rnd(-1, 1), jy: rnd(-1, 1),
+    mode: 'flat', stackVisible: false, gone: false, lx: 0
+  };
+  el.classList.toggle('off', !c.enabled);
+  if (!c.enabled) { c.gone = true; el.classList.add('gone'); }
+  el.addEventListener('pointerenter', () => { c.hover = true; });
+  el.addEventListener('pointerleave', () => { c.hover = false; });
+  return c;
+});
+
+/* ---------- layout ---------- */
+let vw = 0, vh = 0, focusH = 0, boxW = 0, dpr = 1;
+const state = { focus: null };
+const mouse = { nx: 0, ny: 0 };
+
+function layout() {
+  const on = capes.filter(c => c.enabled);
+  const n = Math.max(on.length, 1);
+  let best = { h: -1, cols: 1 };
+  for (let cols = 1; cols <= n; cols++) {
+    const rows = Math.ceil(n / cols);
+    const cw = vw * 0.88 / cols, ch = vh * 0.82 / rows;
+    const h = Math.min(ch * 0.8, cw * 0.8 * 260 / 120, vh * CONFIG.idleMaxHeight);
+    if (h > best.h + 0.5) best = { h, cols, rows, cw, ch };
+  }
+  const { cols, rows, cw, ch, h } = best;
+  on.forEach((c, k) => {
+    const row = Math.floor(k / cols), col = k % cols;
+    const inRow = Math.min(cols, on.length - row * cols);
+    const x0 = (vw - inRow * cw) / 2;
+    c.home.x = x0 + (col + 0.5) * cw + c.jx * cw * 0.04;
+    c.home.y = vh * 0.09 + (row + 0.5) * ch + ((k % 2) ? 1 : -1) * ch * 0.06 + c.jy * ch * 0.03;
+    c.home.s = h / focusH;
+    c.idleH = h;
+  });
+}
+
+/* sparse static dots of varied size and opacity, seeded so the field is stable across resizes */
+function drawDots() {
+  dotsCv.width = vw * dpr; dotsCv.height = vh * dpr;
+  const g = dotsCv.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  let seed = 7;
+  const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const n = Math.round(vw * vh / 5200);
+  for (let i = 0; i < n; i++) {
+    const big = r() < 0.08;
+    const a = big ? 0.28 + r() * 0.3 : 0.05 + r() * 0.2;
+    g.fillStyle = `rgba(${r() < 0.2 ? '170,190,255' : '225,230,245'},${a.toFixed(3)})`;
+    g.beginPath(); g.arc(r() * vw, r() * vh, big ? 0.9 + r() * 0.5 : 0.35 + r() * 0.5, 0, Math.PI * 2); g.fill();
+  }
+}
+
+function measure() {
+  vw = innerWidth; vh = innerHeight;
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = vw * dpr; canvas.height = vh * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  focusH = Math.min(vh * CONFIG.focusHeight, vw * 0.92 * 260 / 120);
+  boxW = focusH * 120 / 260;
+  capes.forEach(c => {
+    c.el.style.width = boxW + 'px';
+    c.el.style.height = focusH + 'px';
+    c.el.style.setProperty('--u', (focusH / 100) + 'px');
+    c.persp = focusH * 1.7;
+  });
+  drawDots();
+  layout();
+}
+
+function seedIntro(c) {
+  c.x = c.home.x + rnd(-0.08, 0.08) * vw;
+  c.y = c.home.y + vh * 0.16;
+  c.s = c.home.s * 0.6;
+  c.r = rnd(-8, 8);
+  c.vx = c.vy = c.vs = c.vr = 0;
+  c.op = 0;
+}
+
+/* ---------- focus ---------- */
+// swap between the single flat layer (idle) and the 18-layer depth stack (focused). The incoming view appears underneath; the outgoing one fades on top.
+function setMode(c, m) {
+  if (c.mode === m) return;
+  c.mode = m; clearTimeout(c.modeT);
+  const show = m === 'stack' ? c.tiltEl : c.flatEl, hide = m === 'stack' ? c.flatEl : c.tiltEl;
+  show.style.display = ''; show.style.transition = 'none'; show.style.opacity = 1; show.style.zIndex = 1;
+  hide.style.zIndex = 2; hide.style.transition = 'opacity .25s ease'; hide.style.opacity = 0;
+  if (m === 'stack') c.stackVisible = true;
+  c.modeT = setTimeout(() => { hide.style.display = 'none'; if (m === 'flat') c.stackVisible = false; }, 300);
+}
+function focusCape(c) {
+  state.focus = c;
+  clearTimeout(c.backT); setMode(c, 'stack');
+  document.body.classList.add('is-focus', 'seen');
+  nameEl.innerHTML = `${c.def.name} cape<small>Click anywhere to return</small>`;
+  capes.forEach(o => { o.el.style.zIndex = o === c ? 10 : 1; o.el.classList.toggle('front', o === c); });
+}
+function unfocus() {
+  const c = state.focus;
+  if (!c) return;
+  state.focus = null;
+  document.body.classList.remove('is-focus');
+  c.el.style.zIndex = 5;
+  clearTimeout(c.backT); c.backT = setTimeout(() => { if (state.focus !== c) setMode(c, 'flat'); }, 950);
+  setTimeout(() => { if (state.focus !== c) c.el.style.zIndex = 1; }, 1000);
+  c.el.classList.remove('front');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#picker') && !panel.hidden) setPanel(false);
+  if (e.target.closest('#picker')) return;
+  const el = e.target.closest('.cape');
+  const hit = el && capes.find(c => c.el === el);
+  if (state.focus) { if (!(hit && hit === state.focus)) unfocus(); return; }
+  if (hit && hit.enabled) focusCape(hit);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (!panel.hidden) setPanel(false); else unfocus(); }
+  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.classList.contains('cape') && !state.focus) {
+    const hit = capes.find(c => c.el === document.activeElement);
+    if (hit && hit.enabled) { e.preventDefault(); focusCape(hit); }
+  }
+});
+addEventListener('pointermove', e => {
+  mouse.nx = Math.max(-1, Math.min(1, (e.clientX - vw / 2) / (vw / 2)));
+  mouse.ny = Math.max(-1, Math.min(1, (e.clientY - vh / 2) / (vh / 2)));
+});
+let resizeT = 0;
+addEventListener('resize', () => {
+  clearTimeout(resizeT);
+  resizeT = setTimeout(() => {
+    // phones fire resize when the address bar shows/hides; a small height-only change isn't worth a relayout
+    if (Math.abs(innerWidth - vw) < 2 && Math.abs(innerHeight - vh) < vh * 0.15) return;
+    measure();
+  }, 160);
+});
+
+/* ---------- picker ---------- */
+const panel = document.getElementById('panel');
+const pickerBtn = document.getElementById('pickerBtn');
+const rowsEl = document.getElementById('rows');
+const countEl = document.getElementById('count');
+function setPanel(open) { panel.hidden = !open; pickerBtn.setAttribute('aria-expanded', String(open)); }
+pickerBtn.addEventListener('click', e => { e.stopPropagation(); setPanel(panel.hidden); });
+function persist() {
+  try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(capes.filter(c => c.enabled).map(c => c.def.id))); } catch (e) { /* storage unavailable */ }
+  const on = capes.filter(c => c.enabled).length;
+  countEl.textContent = `${on}/${capes.length}`;
+}
+function setEnabled(c, on) {
+  if (c.enabled === on) return;
+  c.enabled = on;
+  c.el.classList.toggle('off', !on);
+  if (!on) c.exitR = rnd(-8, 8);
+  if (!on && state.focus === c) unfocus();
+  if (on) { c.gone = false; c.el.classList.remove('gone'); layout(); seedIntro(c); }
+}
+capes.forEach(c => {
+  const row = document.createElement('label');
+  row.className = 'row';
+  row.htmlFor = 'cape-' + c.def.id;
+  row.innerHTML = `<input type="checkbox" id="cape-${c.def.id}"${c.enabled ? ' checked' : ''}><i class="sw" style="--c:${c.def.glow}"></i><span>${c.def.name}</span>`;
+  row.querySelector('input').addEventListener('change', e => {
+    setEnabled(c, e.target.checked);
+    if (!capes.some(o => o.enabled)) { setEnabled(c, true); e.target.checked = true; }
+    layout(); persist();
+  });
+  rowsEl.appendChild(row);
+});
+document.getElementById('allBtn').addEventListener('click', () => {
+  capes.forEach(c => { setEnabled(c, true); document.getElementById('cape-' + c.def.id).checked = true; });
+  layout(); persist();
+});
+
+/* ---------- shooting stars ---------- */
+const stars = [];
+let nextStar = 2.5;
+function spawnStar() {
+  const sx = Math.random() < 0.5 ? 1 : -1;
+  const a = rnd(15, 40) * Math.PI / 180;
+  stars.push({
+    x: sx > 0 ? rnd(0, vw * 0.65) : rnd(vw * 0.35, vw),
+    y: rnd(0, vh * 0.5),
+    dx: sx * Math.cos(a), dy: Math.sin(a),
+    speed: rnd(700, 1100), len: rnd(120, 220), life: rnd(0.8, 1.3), age: 0
+  });
+}
+function drawStars(dt) {
+  ctx.clearRect(0, 0, vw, vh);
+  for (let i = stars.length - 1; i >= 0; i--) {
+    const s = stars[i];
+    s.age += dt;
+    const u = s.age / s.life;
+    if (u >= 1) { stars.splice(i, 1); continue; }
+    const hx = s.x + s.dx * s.speed * s.age, hy = s.y + s.dy * s.speed * s.age;
+    const tx = hx - s.dx * s.len, ty = hy - s.dy * s.len;
+    const a = Math.sin(Math.PI * u) * 0.85;
+    const g = ctx.createLinearGradient(tx, ty, hx, hy);
+    g.addColorStop(0, 'rgba(190,210,255,0)');
+    g.addColorStop(1, `rgba(235,242,255,${a})`);
+    ctx.strokeStyle = g; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(hx, hy); ctx.stroke();
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.beginPath(); ctx.arc(hx, hy, 1.4, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+/* ---------- main loop ---------- */
+const { k: SK, c: SC } = CONFIG.spring;
+const spr = (c, key, target, dt) => { const v = 'v' + key, k = c.enabled ? SK : 150, d = c.enabled ? SC : 19; c[v] += (k * (target - c[key]) - d * c[v]) * dt; c[key] += c[v] * dt; }; // leaving capes use a stiffer, quicker spring
+const ease = (rate, dt) => 1 - Math.exp(-rate * dt);
+let T0 = 0, last = 0, clearedStars = true, raf = 0, prevTs = 0, fpsSum = 0, fpsN = 0, slow = 0;
+
+// frame-rate governor: if ~3s of frames average slower than ~38fps, drop the costly extras (blur, shooting stars, glow pulse) for good
+function goLite() {
+  lite = true; CONFIG.blurPx = 0; CONFIG.dimOpacity = Math.min(CONFIG.dimOpacity, 0.3);
+  stars.length = 0; ctx.clearRect(0, 0, vw, vh);
+  document.body.classList.add('lite');
+}
+
+function frame(ts) {
+  if (!T0) { T0 = ts; last = ts; }
+  if (prevTs) {
+    fpsSum += ts - prevTs;
+    if (++fpsN === 90) { slow = fpsSum / 90 > 26 ? slow + 1 : 0; fpsSum = fpsN = 0; if (slow >= 2 && !lite) goLite(); }
+  }
+  prevTs = ts;
+  const t = (ts - T0) / 1000;
+  const dt = Math.min((ts - last) / 1000, 1 / 30) || 1 / 60;
+  last = ts;
+  const f = state.focus;
+  const amp = reduce ? 0 : CONFIG.drift;
+  const ti = t * CONFIG.idleSpeed;
+
+  for (const c of capes) {
+    if (c.gone) continue;          // fully faded out / never shown: no work, no layers (display:none)
+    const isF = c === f;
+    const p = c.ph;
+    if (t < c.born) continue;
+
+    // targets
+    let tx, ty, ts_, tr;
+    if (isF) {
+      tx = vw / 2; ty = vh * 0.46 + (reduce ? 0 : Math.sin(t * 0.6 + p[0]) * 4); ts_ = 1; tr = 0;
+    } else if (!c.enabled) {
+      // leaving: mirror of the intro (sink a little, shrink to 60%, turn slightly) while fading out
+      tx = c.home.x; ty = c.home.y + vh * 0.16; ts_ = c.home.s * 0.6; tr = c.exitR || 0;
+    } else {
+      const a = (c.idleH || 200) * amp;
+      tx = c.home.x + a * (Math.sin(ti * 0.23 + p[0]) + 0.6 * Math.sin(ti * 0.41 + p[1]));
+      ty = c.home.y + a * 1.1 * (Math.sin(ti * 0.19 + p[2]) + 0.6 * Math.sin(ti * 0.37 + p[3]));
+      ts_ = c.home.s * (1 + (reduce ? 0 : 0.01 * Math.sin(ti * 0.21 + p[4])));
+      tr = reduce ? 0 : 1.2 * Math.sin(ti * 0.17 + p[5]) + 0.6 * Math.sin(ti * 0.31 + p[6]);
+    }
+    spr(c, 'x', tx, dt); spr(c, 'y', ty, dt); spr(c, 's', ts_, dt); spr(c, 'r', tr, dt);
+
+    // blur / dim
+    c.mix += ((f && !isF ? 1 : 0) - c.mix) * ease(6, dt);
+    const opTarget = !c.enabled ? 0 : (isF ? 1 : 1 - (1 - CONFIG.dimOpacity) * c.mix);
+    c.op += (opTarget - c.op) * ease(c.enabled ? 3.2 : 10, dt);
+    if (!c.enabled && c.op < 0.004) { c.gone = true; c.el.classList.add('gone'); setMode(c, 'flat'); continue; }
+    const sc = Math.max(c.s, 0.05);
+
+    // tilt
+    let ryT, rxT;
+    if (isF) { ryT = mouse.nx * CONFIG.tiltY; rxT = -mouse.ny * CONFIG.tiltX; }
+    else if (reduce) { ryT = 0; rxT = 0; }
+    else { ryT = 3.5 * Math.sin(ti * 0.5 + p[7]); rxT = 1.2 * Math.sin(ti * 0.37 + p[1]); }
+    const te = ease(isF ? CONFIG.tiltSmooth : 3, dt);
+    c.ry += (ryT - c.ry) * te; c.rx += (rxT - c.rx) * te;
+
+    // glow (style writes are skipped when the value hasn't changed)
+    const gBase = isF ? CONFIG.glowFocus : (c.hover && !f ? CONFIG.glowHover : CONFIG.glowIdle);
+    const pulse = (reduce || lite) ? 1 : 1 + 0.22 * Math.sin(t * 0.6 + p[2] * 2);
+    const go = (gBase * pulse).toFixed(2);
+    if (go !== c.go) { c.go = go; c.glowEl.style.opacity = go; }
+    const gt = `translate(${(-c.ry * 0.5).toFixed(1)}px,${(c.rx * 0.5).toFixed(1)}px)`;
+    if (gt !== c.gt) { c.gt = gt; c.glowEl.style.transform = gt; }
+
+    // apply. --lx is quantised, so the shaded SVG only repaints on a visible change, not on every drift frame
+    const el = c.el;
+    const lx = Math.round(Math.max(-1, Math.min(1, (c.x - vw / 2) / (vw * 0.38))) * 50) / 50;
+    if (lx !== c.lx) { c.lx = lx; el.style.setProperty('--lx', lx); }
+    el.style.transform = `translate(${(c.x - boxW / 2).toFixed(2)}px,${(c.y - focusH / 2).toFixed(2)}px) rotate(${c.r.toFixed(3)}deg) scale(${c.s.toFixed(4)})`;
+    const os = c.op.toFixed(3);
+    if (os !== c.os) { c.os = os; el.style.opacity = os; }
+    const fs = c.mix > 0.01 && CONFIG.blurPx ? `blur(${(CONFIG.blurPx * c.mix / sc).toFixed(2)}px)` : '';
+    if (fs !== c.fs) { c.fs = fs; el.style.filter = fs; }
+    const tf = `perspective(${c.persp}px) rotateX(${c.rx.toFixed(2)}deg) rotateY(${c.ry.toFixed(2)}deg)`;
+    c.flatEl.style.transform = tf;
+    if (c.stackVisible) {
+      c.tiltEl.style.transform = tf;
+      c.sheenEl.style.setProperty('--sx', (50 + c.ry * 1.9).toFixed(1) + '%');
+      c.sheenEl.style.setProperty('--sy', (32 - c.rx * 2.4).toFixed(1) + '%');
+    }
+  }
+
+  // shooting stars
+  if (!reduce && !lite) {
+    if (t >= nextStar) { spawnStar(); nextStar = t + rnd(CONFIG.starGap[0], CONFIG.starGap[1]); }
+    if (stars.length) { drawStars(dt); clearedStars = false; }
+    else if (!clearedStars) { ctx.clearRect(0, 0, vw, vh); clearedStars = true; }
+  }
+  raf = requestAnimationFrame(frame);
+}
+
+// stop the loop entirely while the tab / app is in the background
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) cancelAnimationFrame(raf);
+  else { prevTs = 0; raf = requestAnimationFrame(frame); }
+});
+
+measure();
+capes.forEach(seedIntro);
+persist();
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
