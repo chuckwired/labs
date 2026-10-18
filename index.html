@@ -70,6 +70,8 @@ a.card:hover, a.card:focus-visible { border-color: rgba(255,255,255,0.3); transf
   left: var(--x); top: var(--y); background: var(--c); transform: translate(-50%, -50%);
 }
 a.card:hover .art i { opacity: .8; transform: translate(-50%, -54%) scale(1.08); }
+.card .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px 0; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+a.card:hover .art img, a.card:focus-visible .art img { transform: translateY(-3px) scale(1.02); }
 .card .meta { padding: 16px 18px 18px; border-top: 1px solid var(--line); background: rgba(7,7,10,0.5); }
 .card h2 { margin: 0 0 6px; font: italic 400 28px/1.1 var(--serif); }
 .card p { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
@@ -82,8 +84,23 @@ footer { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padd
 footer a { color: var(--dim); }
 footer a:hover { color: var(--ink); }
 
-@media (prefers-reduced-motion: reduce) { .card, .card .art i { transition: none; } }
+/* smooth hand-off to and from a lab: the card art and the lab stage share the name "lab-art" (set in script / on the lab's #stage) */
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+
+@media (prefers-reduced-motion: reduce) { .card, .card .art i, .card .art img { transition: none; } }
+
+/* phones: one tidy row. "Labs" is where you already are, so it drops out. */
+@media (max-width: 560px) {
+  .nav { gap: 12px; }
+  .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
+  .links { gap: 16px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }
+  .links a[aria-current] { display: none; }
+}
+@media (max-width: 340px) { .mark span { display: none; } }
 </style>
+<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":"a.card"},"eagerness":"moderate"}]}</script>
 </head>
 <body>
 <canvas id="dots" aria-hidden="true"></canvas>
@@ -117,6 +134,7 @@ var LABS = [
     blurb: 'RuneScape skill capes floating in a void. Click one to inspect it in 3D.',
     tags: ['SVG', 'CSS 3D', 'Canvas', 'Made with Claude'],
     status: 'live',
+    cover: 'rs2-capes/cover.svg',
     glows: [['#4f9dbd', '28%', '38%'], ['#2f3fb0', '72%', '30%'], ['#3f8f3a', '52%', '72%']]
   }
 ];
@@ -132,6 +150,10 @@ var LABS = [
     (l.glows || []).forEach(function (g) {
       var i = el('i'); i.style.setProperty('--c', g[0]); i.style.setProperty('--x', g[1]); i.style.setProperty('--y', g[2]); art.appendChild(i);
     });
+    if (l.cover) {
+      var img = el('img'); img.src = l.cover; img.alt = ''; img.width = 400; img.height = 190; img.decoding = 'async';
+      art.appendChild(img);
+    }
     var meta = el('div', 'meta');
     meta.appendChild(el('h2', '', l.title));
     meta.appendChild(el('p', '', l.blurb));
@@ -142,6 +164,22 @@ var LABS = [
     a.appendChild(art); a.appendChild(meta); li.appendChild(a); grid.appendChild(li);
   });
   var next = el('li'); next.appendChild(el('div', 'card next', 'Next experiment')); grid.appendChild(next);
+
+  /* name the card art that matches the lab we are leaving for / returning from, only for the length of the transition */
+  function artFor(path) {
+    var cards = grid.querySelectorAll('a.card');
+    for (var i = 0; i < cards.length; i++) if (new URL(cards[i].href).pathname.replace(/\/$/, '') === path.replace(/\/$/, '')) return cards[i].querySelector('.art');
+  }
+  function nameArt(path, vt) {
+    var art = artFor(path); if (!art) return;
+    art.style.viewTransitionName = 'lab-art';
+    if (vt) { var clear = function () { art.style.viewTransitionName = ''; }; vt.finished.then(clear, clear); }
+  }
+  addEventListener('pageswap', function (e) { if (e.viewTransition && e.activation) nameArt(new URL(e.activation.entry.url).pathname, e.viewTransition); });
+  addEventListener('pagereveal', function (e) {
+    var from = window.navigation && navigation.activation && navigation.activation.from;
+    if (e.viewTransition && from) nameArt(new URL(from.url).pathname, e.viewTransition);
+  });
 
   /* sparse dot field, matches the capes page */
   var cv = document.getElementById('dots'), cx = cv.getContext('2d');

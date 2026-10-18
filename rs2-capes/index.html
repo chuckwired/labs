@@ -35,6 +35,7 @@ body {
   overflow: hidden;
 }
 #stage {
+  view-transition-name: lab-art;
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -107,6 +108,11 @@ body {
   -webkit-font-smoothing: none;
   pointer-events: none;
 }
+
+/* smooth hand-off with the landing page (card art <-> stage) */
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
 
 /* back to labs index */
 .back {
@@ -220,6 +226,7 @@ body {
 .glow { will-change: opacity; }
 </style>
 <style>[hidden]{display:none!important}</style>
+<script type="speculationrules">{"prefetch":[{"urls":["../"],"eagerness":"moderate"}]}</script>
 </head>
 <body>
 
