@@ -33,7 +33,7 @@ p { margin: 0 0 12px; max-width: 62ch; }
 .actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
 .go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
 .go:hover { border-color: var(--ink); }
-footer { margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
 @media (max-width: 560px) { .lede { font-size: 15px; } }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
@@ -95,7 +95,7 @@ footer { margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .
   </section>
 
   <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
-  <footer>Fan project, non-commercial. RuneScape is a trademark of Jagex Ltd.</footer>
+  <footer><span>Fan project, non-commercial. RuneScape is a trademark of Jagex Ltd.</span><span>&copy; 2026 Chuck Rice</span></footer>
 </div>
 </body>
 </html>
