@@ -270,6 +270,8 @@ const CONFIG = {
   dimOpacity: 0.4,
   glowIdle: 0.38,
   glowHover: 0.6,
+  hoverScale: 1.06,       // idle cape grows this much under the pointer
+  gyroRange: 30,          // degrees of phone tilt that reach full cape tilt (mobile, while a cape is focused)
   glowFocus: 0.8,
   starGap: [6, 15],       // seconds between shooting stars
   defaultShown: ['herblore', 'mining', 'magic'],   // capes shown on first visit
@@ -471,6 +473,26 @@ const capes = CAPES.map((d, i) => {
 let vw = 0, vh = 0, focusH = 0, boxW = 0, dpr = 1;
 const state = { focus: null };
 const mouse = { nx: 0, ny: 0 };
+/* gyroscope tilt for phones. iOS only grants it from a tap, so it is requested when a cape is first focused.
+   The pose you are holding when you focus becomes neutral; tilting the phone then turns the cape the way a held object would. */
+const gyro = { asked: false, nx: 0, ny: 0, b0: null, last: -1e9 };
+const clamp1 = v => Math.max(-1, Math.min(1, v));
+function onOrient(e) {
+  if (e.gamma == null || e.beta == null) return;
+  if (gyro.b0 === null) gyro.b0 = e.beta;
+  gyro.nx = clamp1(-e.gamma / CONFIG.gyroRange);
+  gyro.ny = clamp1((e.beta - gyro.b0) / CONFIG.gyroRange);
+  gyro.last = performance.now();
+}
+function enableGyro() {
+  gyro.b0 = null;
+  if (gyro.asked || reduce || !matchMedia('(pointer: coarse)').matches || !('DeviceOrientationEvent' in window)) return;
+  gyro.asked = true;
+  const start = () => addEventListener('deviceorientation', onOrient);
+  const D = window.DeviceOrientationEvent;
+  if (typeof D.requestPermission === 'function') D.requestPermission().then(r => { if (r === 'granted') start(); }).catch(() => { gyro.asked = false; });
+  else start();
+}
 
 function layout() {
   const on = capes.filter(c => c.enabled);
@@ -549,6 +571,7 @@ function setMode(c, m) {
 }
 function focusCape(c) {
   state.focus = c;
+  enableGyro();
   clearTimeout(c.backT); setMode(c, 'stack');
   document.body.classList.add('is-focus', 'seen');
   nameEl.innerHTML = `${c.def.name} cape<small>Click anywhere to return</small>`;
@@ -708,7 +731,7 @@ function frame(ts) {
       const a = (c.idleH || 200) * amp;
       tx = c.home.x + a * (Math.sin(ti * 0.23 + p[0]) + 0.6 * Math.sin(ti * 0.41 + p[1]));
       ty = c.home.y + a * 1.1 * (Math.sin(ti * 0.19 + p[2]) + 0.6 * Math.sin(ti * 0.37 + p[3]));
-      ts_ = c.home.s * (1 + (reduce ? 0 : 0.01 * Math.sin(ti * 0.21 + p[4])));
+      ts_ = c.home.s * (1 + (reduce ? 0 : 0.01 * Math.sin(ti * 0.21 + p[4]))) * (c.hover && !f ? CONFIG.hoverScale : 1);
       tr = reduce ? 0 : 1.2 * Math.sin(ti * 0.17 + p[5]) + 0.6 * Math.sin(ti * 0.31 + p[6]);
     }
     spr(c, 'x', tx, dt); spr(c, 'y', ty, dt); spr(c, 's', ts_, dt); spr(c, 'r', tr, dt);
@@ -722,7 +745,10 @@ function frame(ts) {
 
     // tilt
     let ryT, rxT;
-    if (isF) { ryT = mouse.nx * CONFIG.tiltY; rxT = -mouse.ny * CONFIG.tiltX; }
+    if (isF) {
+      const g = performance.now() - gyro.last < 500;   // phone motion wins over touch while it is reporting
+      ryT = (g ? gyro.nx : mouse.nx) * CONFIG.tiltY; rxT = -(g ? gyro.ny : mouse.ny) * CONFIG.tiltX;
+    }
     else if (reduce) { ryT = 0; rxT = 0; }
     else { ryT = 3.5 * Math.sin(ti * 0.5 + p[7]); rxT = 1.2 * Math.sin(ti * 0.37 + p[1]); }
     const te = ease(isF ? CONFIG.tiltSmooth : 3, dt);
