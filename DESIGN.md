@@ -39,7 +39,7 @@ Rule of thumb: if you add a text style, it must fit one row above. If it doesn't
 
 ## Links and buttons
 - **Nav / quiet link:** label style, `--dim`, no underline; hover goes to `--ink`.
-- **Call-to-action link** ("View source", "Open the capes", "Labs" on 404): label style, `--ink`, 1px bottom border at 25% white, `padding-bottom: 3px`; hover border becomes `--ink`. At least ~26px of air above it.
+- **Call-to-action link** ("View source", "Behind the design", "Open the capes", "Labs" on 404): label style, `--ink`, 1px bottom border at 25% white, `padding-bottom: 3px`; hover border becomes `--ink`. At least ~26px of air above it.
 - **Pill** (tags, back link on a lab): 999px radius, 1px `--line` border, label/tag type.
 - Focus: `1px solid --ink`, 3px offset, via `:focus-visible`.
 

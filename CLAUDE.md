@@ -29,7 +29,7 @@ Interactive RuneScape skill capes (herblore, mining, cooking, magic) drawn as la
 - Open: mobile used to force-restart (suspected memory pressure); perf work done but untested on a real phone. Test from the deployed URL.
 
 ## Design decisions (Chuck's directions: do not regress)
-Public write-up lives at `rs2-capes/direction/index.html`, linked from the index card via the `notes` field. Keep it in step with this list when decisions change.
+Public write-up lives at `rs2-capes/direction/index.html`, linked from the index card via the `notes` field (link text "Behind the design"). Keep it in step with this list when decisions change.
 
 **Concept and engine**
 - Capes float in a dark void, each with a faint glow in its main colour. Click one to bring it to full height with mouse-driven 3D tilt. No back view. Others blur but stay faintly visible; click away or Esc returns it.
