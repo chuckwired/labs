@@ -11,3 +11,4 @@ Each lab is a folder with its own `index.html`. Register it in the `LABS` array 
 | Lab | Path |
 | --- | --- |
 | Chuck's Capes of Accomplishment | `/rs2-capes/` |
+| Pipes (Windows XP screensaver) | `/windows-pipes/` |

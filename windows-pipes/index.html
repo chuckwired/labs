@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04050a">
+<meta name="description" content="The Windows XP 3D Pipes screensaver, rebuilt in WebGL. Pipes grow, turn and fill the void.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2304050a'/%3E%3Cpath d='M6 24V12h10v10h10' fill='none' stroke='%23c98a4e' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M6 8h14v8' fill='none' stroke='%2328d0e6' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Pipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --void: #04050a;
+  --void-lift: #0a0d17;
+  --ink: #dde1ee;
+  --dim: #7a8196;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--void); color: var(--ink); font: 12px/1.4 var(--mono); overflow: hidden; }
+#stage {
+  view-transition-name: lab-art;
+  position: fixed; inset: 0; overflow: hidden;
+  background: radial-gradient(ellipse 80% 70% at 50% 42%, var(--void-lift) 0%, var(--void) 72%);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  cursor: grab;
+}
+#stage:active { cursor: grabbing; }
+#dots, #gl { position: absolute; inset: 0; width: 100%; height: 100%; }
+#dots { pointer-events: none; }
+#gl { transition: opacity .9s ease; }
+#gl.out { opacity: 0; }
+
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+
+.back {
+  position: fixed; z-index: 50;
+  top: calc(env(safe-area-inset-top, 0px) + 14px); left: calc(env(safe-area-inset-left, 0px) + 16px);
+  font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--dim); text-decoration: none; padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(10,10,14,.55);
+  transition: color .2s, border-color .2s;
+}
+.back:hover, .back:focus-visible { color: var(--ink); border-color: rgba(255,255,255,.35); outline: none; }
+.caption {
+  position: fixed; z-index: 40; pointer-events: none;
+  left: calc(env(safe-area-inset-left, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+}
+.caption h1 { margin: 0; font: italic 400 28px/1.1 var(--serif); color: var(--ink); }
+.caption p { margin: 6px 0 0; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.bar {
+  position: fixed; z-index: 50; display: flex; align-items: center; gap: 8px;
+  right: calc(env(safe-area-inset-right, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+.bar button, .fps {
+  font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--dim); padding: 9px 12px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(10,10,14,.55);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  transition: color .2s, border-color .2s;
+}
+.bar button:hover, .bar button:focus-visible, .bar button[aria-pressed="true"].txt { color: var(--ink); border-color: rgba(255,255,255,.35); outline: none; }
+.sw { display: flex; gap: 6px; padding-right: 6px; }
+.bar .sw button { width: 28px; height: 28px; padding: 0; background-clip: padding-box; }
+.bar .sw button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px rgba(10,10,14,.8) inset; }
+.fps {
+  position: fixed; z-index: 50; cursor: default; white-space: pre; line-height: 1.5; color: var(--ink);
+  top: calc(env(safe-area-inset-top, 0px) + 14px); right: calc(env(safe-area-inset-right, 0px) + 16px); border-radius: 12px; text-transform: none; letter-spacing: .04em;
+}
+.fps[hidden] { display: none; }
+@media (max-width: 560px) {
+  .caption p { font-size: 10px; letter-spacing: .12em; }
+  .bar { left: calc(env(safe-area-inset-left, 0px) + 16px); justify-content: space-between; }
+  .caption { bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); }
+  .bar button { letter-spacing: .1em; }
+}
+</style>
+<script type="speculationrules">{"prefetch":[{"urls":["../"],"eagerness":"moderate"}]}</script>
+</head>
+<body>
+<div id="stage" aria-label="Growing 3D pipes">
+  <canvas id="dots" aria-hidden="true"></canvas>
+  <canvas id="gl"></canvas>
+</div>
+<a class="back" href="../">&larr; Labs</a>
+<div class="fps" id="fps" hidden></div>
+<div class="bar" role="toolbar" aria-label="Controls">
+  <div class="sw" id="sw" role="group" aria-label="Colours"></div>
+  <button class="txt" id="next" type="button">Next</button>
+  <button class="txt" id="fpsBtn" type="button" aria-pressed="false">FPS</button>
+  <button class="txt" id="fsBtn" type="button" aria-label="Full screen">Full screen</button>
+</div>
+<div class="caption"><h1>Pipes</h1><p>Drag to orbit &middot; click to restart</p></div>
+
+<script>
+'use strict';
+/* Everything tunable lives here. Colours are linear-ish RGB 0..1; add entries to `palette` for more pipe colours. */
+const CONFIG = {
+  grid: 16,                 // cells per side (cube)
+  palettes: [   // pipes pick a random colour from the set; swatches are generated from these
+    { name: 'Copper & cyan', colors: [[0.86, 0.56, 0.30], [0.10, 0.86, 0.96]] },
+    { name: 'Classic',       colors: [[0.90, 0.16, 0.14], [0.16, 0.78, 0.22], [0.16, 0.34, 0.95], [0.96, 0.84, 0.12], [0.85, 0.20, 0.85], [0.12, 0.85, 0.85]] },
+    { name: 'Ember',         colors: [[0.95, 0.25, 0.12], [0.98, 0.55, 0.10], [0.95, 0.80, 0.30]] },
+    { name: 'Ice',           colors: [[0.55, 0.80, 1.00], [0.85, 0.92, 1.00], [0.35, 0.55, 0.95]] },
+    { name: 'Mono',          colors: [[0.86, 0.86, 0.88]] },
+  ],
+  active: 4,                // pipes growing at once
+  speed: [3.2, 5.5],        // cells per second, per pipe
+  turnChance: 0.28,         // chance to turn at each cell
+  length: [25, 80],         // max cells per pipe
+  radius: [[0.11, 0.7], [0.17, 0.22], [0.27, 0.05]],  // [radius, weight]; cell spacing is 1
+  jointScale: 1.28,         // elbow ball vs pipe radius
+  fillLimit: 0.30,          // fraction of cells filled before the scene resets
+  orbit: 0.045,             // rad/s camera drift
+  dist: 12,                 // camera distance
+  fog: [18, 52],
+};
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const N = CONFIG.grid, HALF = (N - 1) / 2;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ---------- stars (same sparse dot field as the capes lab, no shooting stars) ---------- */
+const dotsCv = document.getElementById('dots');
+function drawDots() {
+  const dpr = Math.min(devicePixelRatio || 1, 2), vw = innerWidth, vh = innerHeight;
+  dotsCv.width = vw * dpr; dotsCv.height = vh * dpr;
+  const g = dotsCv.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  let seed = 7;
+  const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const n = Math.round(vw * vh / 5200);
+  for (let i = 0; i < n; i++) {
+    const big = r() < 0.08;
+    const a = big ? 0.28 + r() * 0.3 : 0.05 + r() * 0.2;
+    g.fillStyle = `rgba(${r() < 0.2 ? '170,190,255' : '225,230,245'},${a.toFixed(3)})`;
+    g.beginPath(); g.arc(r() * vw, r() * vh, big ? 0.9 + r() * 0.5 : 0.35 + r() * 0.5, 0, Math.PI * 2); g.fill();
+  }
+}
+
+/* ---------- tiny mat4 / vec3 (column-major) ---------- */
+const M = {
+  persp(fy, a, n, f) {
+    const t = 1 / Math.tan(fy / 2), nf = 1 / (n - f);
+    return [t / a, 0, 0, 0, 0, t, 0, 0, 0, 0, (f + n) * nf, -1, 0, 0, 2 * f * n * nf, 0];
+  },
+  look(e, c, u) {
+    let zx = e[0] - c[0], zy = e[1] - c[1], zz = e[2] - c[2], l = Math.hypot(zx, zy, zz); zx /= l; zy /= l; zz /= l;
+    let xx = u[1] * zz - u[2] * zy, xy = u[2] * zx - u[0] * zz, xz = u[0] * zy - u[1] * zx; l = Math.hypot(xx, xy, xz); xx /= l; xy /= l; xz /= l;
+    const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+    return [xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0,
+      -(xx * e[0] + xy * e[1] + xz * e[2]), -(yx * e[0] + yy * e[1] + yz * e[2]), -(zx * e[0] + zy * e[1] + zz * e[2]), 1];
+  },
+  mul(a, b) {
+    const o = new Array(16);
+    for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+      o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+    }
+    return o;
+  },
+};
+
+/* ---------- WebGL ---------- */
+const canvas = document.getElementById('gl');
+const gl = canvas.getContext('webgl2', { antialias: true, alpha: true, premultipliedAlpha: true });
+if (!gl) {
+  document.querySelector('.caption p').textContent = 'WebGL 2 is not available in this browser';
+  throw new Error('no webgl2');
+}
+
+const FRAG = `#version 300 es
+precision highp float;
+in vec3 v_n; in vec3 v_w; in vec3 v_c;
+uniform vec3 u_eye, u_light, u_bg; uniform vec2 u_fog;
+out vec4 o;
+void main() {
+  vec3 N = normalize(v_n), L = normalize(u_light), V = normalize(u_eye - v_w);
+  float d = max(dot(N, L), 0.0);
+  float s = pow(max(dot(N, normalize(L + V)), 0.0), 38.0);
+  float fill = max(dot(N, -L), 0.0) * 0.10;
+  vec3 c = v_c * (0.36 + 0.9 * d + fill) + vec3(1.0) * s * 0.85;
+  c = mix(c, u_bg, smoothstep(u_fog.x, u_fog.y, length(u_eye - v_w)));
+  o = vec4(c, 1.0);
+}`;
+const VERT_CYL = `#version 300 es
+in vec3 a_m;                     // unit cylinder: (cos, y 0..1, sin)
+in vec3 a_p0; in vec3 a_d; in vec2 a_lr; in vec3 a_col;   // start, unit axis, (length, radius), colour
+uniform mat4 u_vp;
+out vec3 v_n; out vec3 v_w; out vec3 v_c;
+void main() {
+  vec3 h = abs(a_d.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+  vec3 u = normalize(cross(a_d, h)), v = cross(a_d, u);
+  vec3 radial = u * a_m.x + v * a_m.z;
+  vec3 w = a_p0 + a_d * (a_m.y * a_lr.x) + radial * a_lr.y;
+  v_n = radial; v_w = w; v_c = a_col;
+  gl_Position = u_vp * vec4(w, 1.0);
+}`;
+const VERT_SPH = `#version 300 es
+in vec3 a_m;                     // unit sphere
+in vec3 a_p0; in float a_r; in vec3 a_col;
+uniform mat4 u_vp;
+out vec3 v_n; out vec3 v_w; out vec3 v_c;
+void main() {
+  vec3 w = a_p0 + a_m * a_r;
+  v_n = a_m; v_w = w; v_c = a_col;
+  gl_Position = u_vp * vec4(w, 1.0);
+}`;
+
+function program(vs, fs) {
+  const p = gl.createProgram();
+  for (const [t, src] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
+    const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    gl.attachShader(p, s);
+  }
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+const progCyl = program(VERT_CYL, FRAG), progSph = program(VERT_SPH, FRAG);
+
+function meshCyl(seg) {
+  const v = [], idx = [];
+  for (let i = 0; i <= seg; i++) { const a = i / seg * Math.PI * 2, c = Math.cos(a), s = Math.sin(a); v.push(c, 0, s, c, 1, s); }
+  for (let i = 0; i < seg; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  return { v: new Float32Array(v), idx: new Uint16Array(idx) };
+}
+function meshSph(lat, lon) {
+  const v = [], idx = [];
+  for (let i = 0; i <= lat; i++) {
+    const t = i / lat * Math.PI, y = Math.cos(t), r = Math.sin(t);
+    for (let j = 0; j <= lon; j++) { const p = j / lon * Math.PI * 2; v.push(r * Math.cos(p), y, r * Math.sin(p)); }
+  }
+  for (let i = 0; i < lat; i++) for (let j = 0; j < lon; j++) {
+    const a = i * (lon + 1) + j, b = a + lon + 1;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  return { v: new Float32Array(v), idx: new Uint16Array(idx) };
+}
+
+const CAP = N * N * N * 2;
+const CYL_F = 11, SPH_F = 7;     // floats per instance
+const cylData = new Float32Array(CAP * CYL_F), sphData = new Float32Array(CAP * SPH_F);
+let cylN = 0, sphN = 0;
+
+function setup(prog, mesh, layout, stride, data) {
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  const mb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, mb); gl.bufferData(gl.ARRAY_BUFFER, mesh.v, gl.STATIC_DRAW);
+  const ml = gl.getAttribLocation(prog, 'a_m'); gl.enableVertexAttribArray(ml); gl.vertexAttribPointer(ml, 3, gl.FLOAT, false, 0, 0);
+  const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.idx, gl.STATIC_DRAW);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.DYNAMIC_DRAW);
+  let off = 0;
+  for (const [name, size] of layout) {
+    const l = gl.getAttribLocation(prog, name);
+    gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, size, gl.FLOAT, false, stride * 4, off * 4); gl.vertexAttribDivisor(l, 1);
+    off += size;
+  }
+  gl.bindVertexArray(null);
+  return { vao, buf, count: mesh.idx.length };
+}
+const cylGL = setup(progCyl, meshCyl(24), [['a_p0', 3], ['a_d', 3], ['a_lr', 2], ['a_col', 3]], CYL_F, cylData);
+const sphGL = setup(progSph, meshSph(24, 32), [['a_p0', 3], ['a_r', 1], ['a_col', 3]], SPH_F, sphData);
+
+const upCyl = i => { gl.bindBuffer(gl.ARRAY_BUFFER, cylGL.buf); gl.bufferSubData(gl.ARRAY_BUFFER, i * CYL_F * 4, cylData, i * CYL_F, CYL_F); };
+const upSph = i => { gl.bindBuffer(gl.ARRAY_BUFFER, sphGL.buf); gl.bufferSubData(gl.ARRAY_BUFFER, i * SPH_F * 4, sphData, i * SPH_F, SPH_F); };
+
+/* ---------- the pipes ---------- */
+const DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+let occ = new Uint8Array(N * N * N), filled = 0;
+const cell = (x, y, z) => (x * N + y) * N + z;
+const inb = (x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < N && y < N && z < N;
+const free = (x, y, z) => inb(x, y, z) && !occ[cell(x, y, z)];
+const world = c => c - HALF;
+
+let pipes = [], pops = [];
+
+function weightedRadius() {
+  let t = Math.random() * CONFIG.radius.reduce((s, r) => s + r[1], 0);
+  for (const [r, w] of CONFIG.radius) if ((t -= w) <= 0) return r;
+  return CONFIG.radius[0][0];
+}
+
+function addSphere(x, y, z, r, col, pop) {
+  const i = sphN++, o = i * SPH_F;
+  sphData.set([world(x), world(y), world(z), pop ? 0 : r, col[0], col[1], col[2]], o);
+  upSph(i);
+  if (pop) pops.push({ i, r, t: 0 });
+}
+function addSegment(p) {
+  const i = cylN++, o = i * CYL_F;
+  cylData.set([world(p.x), world(p.y), world(p.z), p.dx, p.dy, p.dz, 0, p.rad, p.col[0], p.col[1], p.col[2]], o);
+  p.seg = i; upCyl(i);
+}
+
+function spawn() {
+  for (let tries = 0; tries < 40; tries++) {
+    const x = Math.floor(Math.random() * N), y = Math.floor(Math.random() * N), z = Math.floor(Math.random() * N);
+    if (!free(x, y, z)) continue;
+    const opts = DIRS.filter(d => free(x + d[0], y + d[1], z + d[2]));
+    if (!opts.length) continue;
+    const d = pick(opts), rad = weightedRadius();
+    const p = { x, y, z, dx: d[0], dy: d[1], dz: d[2], t: 0, rad, col: pick(CONFIG.palette.colors),
+                speed: rnd(...CONFIG.speed), left: Math.round(rnd(...CONFIG.length)), seg: 0 };
+    occ[cell(x, y, z)] = 1; occ[cell(x + d[0], y + d[1], z + d[2])] = 1; filled += 2;
+    addSphere(x, y, z, rad * CONFIG.jointScale, p.col, true);
+    addSegment(p);
+    pipes.push(p);
+    return;
+  }
+}
+
+function advance(p, dt) {
+  p.t += dt * p.speed;
+  while (p.t >= 1) {
+    p.t -= 1;
+    cylData[p.seg * CYL_F + 6] = 1; upCyl(p.seg);
+    p.x += p.dx; p.y += p.dy; p.z += p.dz; p.left--;
+    // choose where to go next: keep straight unless the dice say turn (or straight is blocked)
+    const straight = free(p.x + p.dx, p.y + p.dy, p.z + p.dz);
+    const turns = DIRS.filter(d => (d[0] !== p.dx || d[1] !== p.dy || d[2] !== p.dz) && (d[0] !== -p.dx || d[1] !== -p.dy || d[2] !== -p.dz) && free(p.x + d[0], p.y + d[1], p.z + d[2]));
+    let next = null;
+    if (p.left > 0) {
+      if (straight && (!turns.length || Math.random() > CONFIG.turnChance)) next = [p.dx, p.dy, p.dz];
+      else if (turns.length) next = pick(turns);
+    }
+    if (!next) { addSphere(p.x, p.y, p.z, p.rad * CONFIG.jointScale, p.col, true); p.done = true; return; }
+    if (next[0] !== p.dx || next[1] !== p.dy || next[2] !== p.dz) addSphere(p.x, p.y, p.z, p.rad * CONFIG.jointScale, p.col, true);
+    p.dx = next[0]; p.dy = next[1]; p.dz = next[2];
+    occ[cell(p.x + p.dx, p.y + p.dy, p.z + p.dz)] = 1; filled++;
+    addSegment(p);
+  }
+  cylData[p.seg * CYL_F + 6] = p.t; upCyl(p.seg);
+}
+
+function reset() {
+  occ.fill(0); filled = 0; cylN = 0; sphN = 0; pipes = []; pops = [];
+}
+
+/* ---------- camera + interaction ---------- */
+let W = 1, H = 1, dpr = 1;
+function measure() {
+  dpr = Math.min(devicePixelRatio || 1, quality);
+  W = innerWidth; H = innerHeight;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  drawDots();
+}
+let quality = 2;
+
+const cam = { target: [0, 0, 0], yaw: rnd(0, 6.28), pitch: 0.25, dragYaw: 0, dragPitch: 0, zoom: 1 };
+let down = null, moved = 0;
+const stage = document.getElementById('stage');
+stage.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; moved = 0; stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointermove', e => {
+  if (!down) return;
+  const dx = e.clientX - down.x, dy = e.clientY - down.y; down.x = e.clientX; down.y = e.clientY;
+  moved += Math.abs(dx) + Math.abs(dy);
+  cam.dragYaw -= dx * 0.006; cam.dragPitch = Math.max(-1.2, Math.min(1.2, cam.dragPitch + dy * 0.006));
+});
+stage.addEventListener('pointerup', () => { if (down && moved < 6) restart(); down = null; });
+stage.addEventListener('pointercancel', () => { down = null; });
+stage.addEventListener('wheel', e => { e.preventDefault(); cam.zoom = Math.max(0.45, Math.min(1.6, cam.zoom * Math.exp(e.deltaY * 0.001))); }, { passive: false });
+addEventListener('keydown', e => { if (e.target.closest && e.target.closest('button')) return; if (e.key === ' ' || e.key === 'Enter' || e.key === 'r') restart(); });
+
+let phase = 'run', phaseUntil = 0;
+function restart() { if (phase === 'run') { phase = 'out'; canvas.classList.add('out'); phaseUntil = T + 0.9; } }
+
+/* ---------- loop ---------- */
+const BG = [0.016, 0.02, 0.04];
+let T = 0, last = 0, raf = 0, fpsSum = 0, fpsN = 0;
+
+function frame(ts) {
+  raf = requestAnimationFrame(frame);
+  const raw = (ts - last) / 1000 || 0.016, dt = Math.min(raw, 0.05); last = ts; T += dt;
+
+  fpsTick(raw);
+  // frame governor: drop to 1x pixel ratio if we are persistently slow
+  fpsSum += dt; fpsN++;
+  if (fpsN === 180) { if (fpsSum / fpsN > 0.026 && quality > 1) { quality = 1; measure(); } fpsSum = 0; fpsN = 0; }
+
+  if (phase === 'out' && T >= phaseUntil) { reset(); phase = 'in'; canvas.classList.remove('out'); phaseUntil = T + 0.6; }
+  else if (phase === 'in' && T >= phaseUntil) phase = 'run';
+
+  if (phase !== 'out') {
+    if (phase === 'run' || phase === 'in') {
+      pipes = pipes.filter(p => !p.done || p.t < 1);
+      for (const p of pipes) if (!p.done) advance(p, dt);
+      pipes = pipes.filter(p => !p.done);
+      while (pipes.length < CONFIG.active) { const n = pipes.length; spawn(); if (pipes.length === n) break; }
+      if (filled > N * N * N * CONFIG.fillLimit) restart();
+    }
+    // pop-in for new joint balls
+    for (let k = pops.length - 1; k >= 0; k--) {
+      const s = pops[k]; s.t += dt / 0.22;
+      const u = Math.min(s.t, 1), e = 1 - Math.pow(1 - u, 3);
+      sphData[s.i * SPH_F + 3] = s.r * e * (1 + 0.12 * Math.sin(u * Math.PI)); upSph(s.i);
+      if (u >= 1) pops.splice(k, 1);
+    }
+  }
+
+  // camera: drift around the action, easing the target toward the growing heads
+  let tx = 0, ty = 0, tz = 0;
+  if (pipes.length) {
+    for (const p of pipes) { tx += world(p.x + p.dx * p.t); ty += world(p.y + p.dy * p.t); tz += world(p.z + p.dz * p.t); }
+    tx /= pipes.length; ty /= pipes.length; tz /= pipes.length;
+  }
+  const k = 1 - Math.exp(-dt * 0.5);
+  cam.target[0] += (tx * 0.55 - cam.target[0]) * k; cam.target[1] += (ty * 0.55 - cam.target[1]) * k; cam.target[2] += (tz * 0.55 - cam.target[2]) * k;
+  if (!REDUCED) cam.yaw += dt * CONFIG.orbit;
+  const yaw = cam.yaw + cam.dragYaw, pitch = cam.pitch + 0.3 * Math.sin(T * 0.07) + cam.dragPitch;
+  const dist = (CONFIG.dist + 2.5 * Math.sin(T * 0.05)) * cam.zoom;
+  const eye = [cam.target[0] + dist * Math.cos(pitch) * Math.sin(yaw), cam.target[1] + dist * Math.sin(pitch), cam.target[2] + dist * Math.cos(pitch) * Math.cos(yaw)];
+  const view = M.look(eye, cam.target, [0, 1, 0]);
+  const vp = M.mul(M.persp(1.0, W / H, 0.08, 80), view);
+  // light is fixed relative to the camera (up, left, behind the viewer), like the original
+  const light = [-0.55 * view[0] + 0.75 * view[1] + 0.7 * view[2], -0.55 * view[4] + 0.75 * view[5] + 0.7 * view[6], -0.55 * view[8] + 0.75 * view[9] + 0.7 * view[10]];
+
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
+  for (const [prog, g, n] of [[progCyl, cylGL, cylN], [progSph, sphGL, sphN]]) {
+    if (!n) continue;
+    gl.useProgram(prog);
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, 'u_vp'), false, vp);
+    gl.uniform3fv(gl.getUniformLocation(prog, 'u_eye'), eye);
+    gl.uniform3fv(gl.getUniformLocation(prog, 'u_light'), light);
+    gl.uniform3fv(gl.getUniformLocation(prog, 'u_bg'), BG);
+    gl.uniform2fv(gl.getUniformLocation(prog, 'u_fog'), CONFIG.fog);
+    gl.bindVertexArray(g.vao);
+    gl.drawElementsInstanced(gl.TRIANGLES, g.count, gl.UNSIGNED_SHORT, 0, n);
+  }
+}
+
+function start() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
+function stop() { cancelAnimationFrame(raf); raf = 0; }
+document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+let lw = innerWidth, rt;
+addEventListener('resize', () => { if (innerWidth === lw && Math.abs(innerHeight - H) < 120) { return; } lw = innerWidth; clearTimeout(rt); rt = setTimeout(measure, 120); });
+
+/* ---------- controls ---------- */
+const hex = c => '#' + c.map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+const swEl = document.getElementById('sw');
+function swatchBg(cols) {
+  if (cols.length === 1) return hex(cols[0]);
+  const step = 100 / cols.length;
+  return 'conic-gradient(' + cols.map((c, i) => `${hex(c)} ${i * step}% ${(i + 1) * step}%`).join(',') + ')';
+}
+function setPalette(i, andRestart) {
+  CONFIG.palette = CONFIG.palettes[i];
+  [...swEl.children].forEach((b, j) => b.setAttribute('aria-pressed', j === i));
+  store.set('pipes:palette', i);
+  if (andRestart) restart();
+}
+CONFIG.palettes.forEach((p, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.title = p.name; b.setAttribute('aria-label', p.name); b.style.background = swatchBg(p.colors);
+  b.addEventListener('click', () => setPalette(i, true));
+  swEl.appendChild(b);
+});
+setPalette(Math.min(+store.get('pipes:palette') || 0, CONFIG.palettes.length - 1), false);
+document.getElementById('next').addEventListener('click', restart);
+
+const fsBtn = document.getElementById('fsBtn'), root = document.documentElement;
+const fsSupported = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+function toggleFs() {
+  const on = document.fullscreenElement || document.webkitFullscreenElement;
+  if (on) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  else (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+}
+if (fsSupported) {
+  fsBtn.addEventListener('click', toggleFs);
+  const sync = () => { fsBtn.textContent = (document.fullscreenElement || document.webkitFullscreenElement) ? 'Exit full screen' : 'Full screen'; };
+  document.addEventListener('fullscreenchange', sync); document.addEventListener('webkitfullscreenchange', sync);
+} else fsBtn.hidden = true;   // iPhone Safari has no element fullscreen
+addEventListener('keydown', e => { if (e.key === 'f' && fsSupported) toggleFs(); if (e.key === 'p') toggleFps(); });
+
+/* FPS readout: rolling average over ~0.5s, plus the worst frame in that window */
+const fpsEl = document.getElementById('fps'), fpsBtn = document.getElementById('fpsBtn');
+let fpsOn = false, fAcc = 0, fN = 0, fMax = 0;
+function toggleFps() {
+  fpsOn = !fpsOn; fpsEl.hidden = !fpsOn; fpsBtn.setAttribute('aria-pressed', fpsOn); fAcc = fN = fMax = 0;
+}
+fpsBtn.addEventListener('click', toggleFps);
+function fpsTick(dt) {
+  if (!fpsOn) return;
+  fAcc += dt; fN++; fMax = Math.max(fMax, dt);
+  if (fAcc >= 0.5) {
+    fpsEl.textContent = `${Math.round(fN / fAcc)} fps · worst ${Math.round(fMax * 1000)} ms\n${canvas.width}×${canvas.height} @ ${dpr}x · ${cylN + sphN} meshes`;
+    fAcc = fN = fMax = 0;
+  }
+}
+
+measure();
+start();
+</script>
+</body>
+</html>

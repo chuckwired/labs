@@ -28,6 +28,9 @@ Interactive RuneScape skill capes (herblore, mining, cooking, magic) drawn as la
 - Decisions Chuck made: shoulder pads and the large focused view are approved, do not change. Shading approved. Disappear transition mirrors the intro but shorter. Title bottom-left uses Jersey 10 (closest free match to the in-game font), orange `#ff981f`, 2px hard black shadow.
 - Open: mobile used to force-restart (suspected memory pressure); perf work done but untested on a real phone. Test from the deployed URL.
 
+## windows-pipes lab
+Windows XP 3D Pipes screensaver in raw WebGL2, no dependencies. Instanced cylinders and spheres (two draw calls), pipes grow on a 16^3 grid, camera drifts toward the growing tips. Same dot-field background as capes, no shooting stars. Bottom-right controls: palette swatches (restart on change, stored in localStorage `pipes:palette`), Next, FPS readout (also `P`), Full screen (also `F`; hidden where unsupported). Tunables in `CONFIG`. Chuck's framing: an experiment in performance and nostalgia, "not much to write yet"; notes page at `windows-pipes/direction/`. Untested on real phones: use the FPS readout.
+
 ## Design decisions (Chuck's directions: do not regress)
 Public write-up lives at `rs2-capes/direction/index.html`, linked from the index card via the `notes` field (link text "Behind the design"). Keep it in step with this list when decisions change.
 
