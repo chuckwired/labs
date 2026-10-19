@@ -17,7 +17,6 @@ No build step and no shared stylesheet yet, so each page repeats these tokens in
 | `--ink` | `#e8e6df` | primary text, hover/active |
 | `--dim` | `#8b8a93` | secondary text, nav, captions |
 | `--line` | `rgba(255,255,255,.10)` | borders, dividers |
-| live green | `#9fd8a6` | the `live` status pill only |
 
 Single dark look by choice (`color-scheme: dark`). Background dots: sparse, `#e8e6df` at 5 to 35% alpha, 1 to 1.6px.
 
@@ -45,7 +44,7 @@ Rule of thumb: if you add a text style, it must fit one row above. If it doesn't
 
 ## Layout
 - Content column max 1120px (index) or 720px (text pages); side gutters at least 20px plus safe-area insets.
-- Cards: 7px radius (sharper, half the original 14px), 1px `--line`, `rgba(14,14,19,.6)` fill; art on top, meta below separated by a `--line` rule. Hover lifts 2px and brightens the border.
+- Index labs: one row each. Text on the left (date, title, blurb, tags, then "Dive in" and "Behind the design" inline as call-to-action links with no indent), a single credit-card-shaped plate on the right (credit-card corner, `border-radius: 3.7% / 5.9%`, 1px `--line`, turns (max 24deg across, 13deg up/down, eased on scroll) to face the middle of the viewport, the cover over the lab's glow colours; hover lifts it). Card goes above the text under 760px.
 - Sections on text pages: 44px apart, separated by a `--line` rule with a small numbered label.
 - Mobile: no horizontal scroll, one-row nav (drop the current-page link), type steps down per the table.
 

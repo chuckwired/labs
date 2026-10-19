@@ -480,7 +480,7 @@ const clamp1 = v => Math.max(-1, Math.min(1, v));
 function onOrient(e) {
   if (e.gamma == null || e.beta == null) return;
   if (gyro.b0 === null) gyro.b0 = e.beta;
-  gyro.nx = clamp1(-e.gamma / CONFIG.gyroRange);
+  gyro.nx = clamp1(e.gamma / CONFIG.gyroRange);
   gyro.ny = clamp1((e.beta - gyro.b0) / CONFIG.gyroRange);
   gyro.last = performance.now();
 }
