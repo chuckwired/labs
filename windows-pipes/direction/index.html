@@ -30,7 +30,8 @@ h2 { margin: 6px 0 12px; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif
 p { margin: 0 0 12px; max-width: 62ch; }
 .say { color: var(--dim); font-size: 12px; }
 .say b { color: var(--ink); font-weight: 500; }
-.go { display: inline-block; margin-top: 44px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
+.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
+.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
 .go:hover { border-color: var(--ink); }
 footer { margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
 @media (max-width: 560px) { .lede { font-size: 15px; } }
@@ -42,7 +43,7 @@ footer { margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .
 <div class="wrap">
   <nav class="top" aria-label="Primary">
     <a href="../../">&larr; Labs</a>
-    <a href="../">Open the pipes &rarr;</a>
+    <a href="../">Dive in &rarr;</a>
   </nav>
 
   <h1>Behind the design.</h1>
@@ -94,7 +95,7 @@ footer { margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .
     <p class="say"><b>Rule:</b> if you can't notice an effect, it isn't doing anything yet.</p>
   </section>
 
-  <a class="go" href="../">Open the pipes &rarr;</a>
+  <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
 </div>
 </body>
 </html>
