@@ -20,7 +20,7 @@
   --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); color-scheme: dark; }
+html { background: var(--bg); color-scheme: dark; overflow-x: clip; }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh;
   background: var(--bg); color: var(--ink);
@@ -59,6 +59,12 @@ main { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; paddin
 .grid { display: flex; flex-direction: column; gap: clamp(56px, 9vw, 96px); padding: 0; margin: 0; list-style: none; }
 .lab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 6vw, 72px); align-items: center; }
 
+/* click-to-enter: the plate breaks into squares (a nod to the NT logo) that drift apart before the page changes */
+.plate.breaking { overflow: visible; background: transparent; border-color: transparent; box-shadow: none; }
+.plate.breaking::after { display: none; }
+.tile { position: absolute; overflow: hidden; will-change: transform, opacity; backface-visibility: hidden; }
+.tile > div { position: absolute; }
+.tile i { filter: none; }
 /* the cover as a credit-card-shaped plate, tilted in 3D to face the middle of the viewport; it lifts a little on hover. Text left, card right (card first on phones) */
 a.card { order: 2; display: block; text-decoration: none; color: inherit; border-radius: 7px; }
 .art { position: relative; aspect-ratio: 1.45; perspective: 1100px; }
@@ -159,7 +165,8 @@ var LABS = [
     blurb: 'The Windows XP screensaver I could have watched for hours. Copper and cyan pipes grow, turn and fill the void.',
     tags: ['WebGL', 'Instancing', 'Made with Sonnet 5.5'],
     date: '2026-10-19',
-    cover: 'windows-pipes/cover.svg',
+    cover: 'windows-pipes/cover.png',
+    shatter: true,
     notes: 'windows-pipes/direction/',
     glows: [['#c98a4e', '30%', '40%'], ['#28d0e6', '70%', '62%']]
   }
@@ -205,7 +212,7 @@ var LABS = [
     art.style.viewTransitionName = 'lab-art';
     if (vt) { var clear = function () { art.style.viewTransitionName = ''; }; vt.finished.then(clear, clear); }
   }
-  addEventListener('pageswap', function (e) { if (e.viewTransition && e.activation) nameArt(new URL(e.activation.entry.url).pathname, e.viewTransition); });
+  addEventListener('pageswap', function (e) { if (e.viewTransition && e.activation && !window.__shattering) nameArt(new URL(e.activation.entry.url).pathname, e.viewTransition); });
   addEventListener('pagereveal', function (e) {
     var from = window.navigation && navigation.activation && navigation.activation.from;
     if (e.viewTransition && from) nameArt(new URL(from.url).pathname, e.viewTransition);
@@ -235,6 +242,44 @@ var LABS = [
     if (busy) rafT = requestAnimationFrame(step);
   }
   addEventListener('scroll', aim, { passive: true }); addEventListener('resize', aim); aim();
+
+  /* ---- break-apart on enter (labs with shatter: true) ---- */
+  var COLS = 8, ROWS = 5;
+  function shatter(plate, go) {
+    var w = plate.offsetWidth, h = plate.offsetHeight, tw = w / COLS, th = h / ROWS;
+    var kids = [].slice.call(plate.children), frag = document.createDocumentFragment();
+    for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) {
+      var t = el('div', 'tile');
+      t.style.cssText = 'left:' + (c * tw).toFixed(2) + 'px;top:' + (r * th).toFixed(2) + 'px;width:' + (tw + 0.6).toFixed(2) + 'px;height:' + (th + 0.6).toFixed(2) + 'px';
+      var inner = el('div'); inner.style.cssText = 'left:' + (-c * tw).toFixed(2) + 'px;top:' + (-r * th).toFixed(2) + 'px;width:' + w + 'px;height:' + h + 'px';
+      kids.forEach(function (k) { inner.appendChild(k.cloneNode(true)); });
+      t.appendChild(inner); t._c = c; t._r = r; frag.appendChild(t);
+    }
+    plate.classList.add('breaking');
+    kids.forEach(function (k) { k.style.visibility = 'hidden'; });
+    plate.appendChild(frag);
+    var tiles = [].slice.call(plate.querySelectorAll('.tile')), last = 0;
+    tiles.forEach(function (t) {
+      var dx = (t._c - (COLS - 1) / 2) / COLS, dy = (t._r - (ROWS - 1) / 2) / ROWS;
+      var delay = t._c * 38 + Math.random() * 60, dur = 620 + Math.random() * 160;
+      last = Math.max(last, delay + dur);
+      t.animate([
+        { transform: 'translate3d(0,0,0) rotate3d(0,0,1,0deg)', opacity: 1 },
+        { transform: 'translate3d(' + (dx * w * 1.1 + 40) + 'px,' + (dy * h * 1.6 - 20 - Math.random() * 40) + 'px,' + (60 + Math.random() * 160) + 'px) rotate3d(' + (Math.random() - .5) + ',' + (Math.random() - .5) + ',1,' + ((Math.random() - .5) * 50) + 'deg) scale(.7)', opacity: 0 }
+      ], { duration: dur, delay: delay, easing: 'cubic-bezier(.45,.05,.75,.4)', fill: 'forwards' });
+    });
+    setTimeout(go, Math.min(last, 760));
+  }
+  var leaving = false;
+  grid.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a'); if (!a || leaving || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var lab = LABS.filter(function (l) { return l.shatter && new URL(a.href).pathname.replace(/\/$/, '') === new URL(l.path, location.href).pathname.replace(/\/$/, ''); })[0];
+    if (!lab || a.getAttribute('href') !== lab.path) return;      // only the card and "Dive in"; notes links go straight through
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    e.preventDefault(); leaving = true; window.__shattering = true;
+    shatter(a.closest('.lab').querySelector('.plate'), function () { location.href = a.href; });
+  });
+  addEventListener('pageshow', function (e) { if (e.persisted && window.__shattering) location.reload(); });
 
   /* sparse dot field, matches the capes page */
   var cv = document.getElementById('dots'), cx = cv.getContext('2d');

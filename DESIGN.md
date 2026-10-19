@@ -56,4 +56,4 @@ Rule of thumb: if you add a text style, it must fit one row above. If it doesn't
 First person, plain, a bit wry. No "leverage", no "passionate". Claims should be things the page can show. (Chuck's own voice skill is the reference; AI-drafted copy gets passed through it.)
 
 ## Cover art
-Each lab can supply `cover.svg` (400x190 viewBox, flat, no CSS variables). The capes cover is generated: `node tools/make-cover.mjs`.
+Each lab supplies a cover at 400x190 ratio: `cover.svg` (flat, no CSS variables) or a PNG with alpha (Pipes: rendered from the lab's own WebGL scene with a hand-placed set of pipes, 1000x475). A `LABS` entry can set `shatter: true`: clicking the card or "Dive in" breaks the plate into an 8x5 grid of squares that drift apart (NT-logo nod, ~0.75s) before navigating; skipped under reduced motion, and the lab-art view transition is skipped for it. The capes cover is generated: `node tools/make-cover.mjs`.
