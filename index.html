@@ -355,7 +355,9 @@ var LABS = [
   addEventListener('pagehide', function () { try { sessionStorage.setItem('labs:scroll', String(scrollY)); } catch (e) {} });
   try {
     var nav = performance.getEntriesByType('navigation')[0], y = +sessionStorage.getItem('labs:scroll');
-    if (nav && nav.type === 'back_forward' && y) { scrollTo(0, y); requestAnimationFrame(function () { scrollTo(0, y); }); addEventListener('load', function () { scrollTo(0, y); }); }
+    /* back/forward, or arriving from one of our own pages via a "← Labs" / "Back to labs" link (a fresh navigation, so the browser will not restore anything) */
+    var ref = document.referrer && new URL(document.referrer), fromOurs = ref && ref.origin === location.origin && ref.pathname.replace(/\/$/, '') !== location.pathname.replace(/\/$/, '');
+    if (nav && (nav.type === 'back_forward' || (nav.type === 'navigate' && fromOurs)) && y) { scrollTo(0, y); requestAnimationFrame(function () { scrollTo(0, y); }); addEventListener('load', function () { scrollTo(0, y); }); }
   } catch (e) {}
 
 
