@@ -22,7 +22,7 @@ a { color: inherit; }
 .top a { color: var(--dim); text-decoration: none; transition: color .2s; }
 .top a:hover { color: var(--ink); }
 h1 { margin: clamp(48px, 10vw, 96px) 0 0; font: italic 400 clamp(44px, 9vw, 84px)/0.95 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
-.lede { margin: 24px 0 0; max-width: 52ch; color: var(--dim); font-size: 13px; }
+.lede { margin: 24px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
 .cover { display: block; width: 100%; height: auto; margin: 40px 0 8px; border: 1px solid var(--line); border-radius: 14px; background: rgba(14,14,19,.6); padding: 14px 0; }
 section { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
 .n { font-size: 11px; letter-spacing: .16em; color: var(--dim); }
@@ -33,6 +33,7 @@ p { margin: 0 0 12px; max-width: 62ch; }
 .go { display: inline-block; margin-top: 44px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
 .go:hover { border-color: var(--ink); }
 footer { margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+@media (max-width: 560px) { .lede { font-size: 15px; } }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
 </style>

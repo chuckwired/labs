@@ -6,6 +6,7 @@ Chuck's monorepo of small interactive experiments. Owner: Chuck (product designe
 - `index.html`: landing page and nav. Labs are listed in the `LABS` array in its script; add an entry per lab.
 - `<lab-name>/index.html`: one folder per lab, each a self-contained static page. Link back to the index with `<a href="../">`.
 - No build step, no dependencies. Vanilla HTML/CSS/JS. Use relative paths only (labs are served from subpaths).
+- Visual system (colour, type scale, links, motion, voice) lives in `DESIGN.md`: read it before adding or restyling anything on the index or a text page, and update it when a token changes.
 - Style: dark void `#07070a`, ink `#e8e6df`, dim `#8b8a93`; Instrument Serif (italic for titles), JetBrains Mono for UI. Sparse background dots. Keep the Google Fonts `<link>` pattern, or self-host.
 - `404.html` at the root is served by DO for unknown paths from any URL depth, so it is the one file that must use absolute paths (`/`) and inline styles.
 - Cover art: each `LABS` entry can set `cover: '<lab>/cover.svg'` (400x190 viewBox, flat art). The capes cover is generated from the lab's own cape code: run `node tools/make-cover.mjs` after changing cape art.
