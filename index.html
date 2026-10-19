@@ -255,6 +255,7 @@ var LABS = [
       kids.forEach(function (k) { inner.appendChild(k.cloneNode(true)); });
       t.appendChild(inner); t._c = c; t._r = r; frag.appendChild(t);
     }
+    brokenPlate = plate;
     plate.classList.add('breaking');
     kids.forEach(function (k) { k.style.visibility = 'hidden'; });
     plate.appendChild(frag);
@@ -270,7 +271,7 @@ var LABS = [
     });
     setTimeout(go, Math.min(last, 760));
   }
-  var leaving = false;
+  var leaving = false, brokenPlate = null;
   grid.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a'); if (!a || leaving || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var lab = LABS.filter(function (l) { return l.shatter && new URL(a.href).pathname.replace(/\/$/, '') === new URL(l.path, location.href).pathname.replace(/\/$/, ''); })[0];
@@ -279,7 +280,21 @@ var LABS = [
     e.preventDefault(); leaving = true; window.__shattering = true;
     shatter(a.closest('.lab').querySelector('.plate'), function () { location.href = a.href; });
   });
-  addEventListener('pageshow', function (e) { if (e.persisted && window.__shattering) location.reload(); });
+  /* coming back (bfcache keeps the scroll position; we just put the card back together) */
+  addEventListener('pageshow', function (e) {
+    if (!e.persisted || !brokenPlate) return;
+    [].slice.call(brokenPlate.querySelectorAll('.tile')).forEach(function (t) { t.remove(); });
+    [].slice.call(brokenPlate.children).forEach(function (k) { k.style.visibility = ''; });
+    brokenPlate.classList.remove('breaking'); brokenPlate = null; leaving = false; window.__shattering = false;
+  });
+  /* fallback when the browser reloads the index instead of restoring it: remember and reapply the scroll position */
+  try { history.scrollRestoration = 'manual'; } catch (e) {}
+  addEventListener('pagehide', function () { try { sessionStorage.setItem('labs:scroll', String(scrollY)); } catch (e) {} });
+  try {
+    var nav = performance.getEntriesByType('navigation')[0], y = +sessionStorage.getItem('labs:scroll');
+    if (nav && nav.type === 'back_forward' && y) { scrollTo(0, y); requestAnimationFrame(function () { scrollTo(0, y); }); addEventListener('load', function () { scrollTo(0, y); }); }
+  } catch (e) {}
+
 
   /* sparse dot field, matches the capes page */
   var cv = document.getElementById('dots'), cx = cv.getContext('2d');
