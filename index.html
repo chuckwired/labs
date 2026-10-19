@@ -57,6 +57,11 @@ main { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; paddin
 .hero .src:hover { border-color: var(--ink); }
 
 .grid { display: flex; flex-direction: column; gap: clamp(56px, 9vw, 96px); padding: 0; margin: 0; list-style: none; }
+.lab[hidden] { display: none; }
+.lab.found { animation: found .7s steps(1, end) both, foundIn .7s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes foundIn { from { transform: translateY(28px); } to { transform: none; } }
+@keyframes found { 0% { opacity: 0; } 20% { opacity: .9; } 32% { opacity: .2; } 48% { opacity: 1; } 60% { opacity: .5; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lab.found { animation: none; } }
 .lab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 6vw, 72px); align-items: center; }
 
 /* click-to-enter: the plate breaks into squares (a nod to the NT logo) that drift apart before the page changes */
@@ -85,6 +90,8 @@ a.card:hover .deck, a.card:focus-visible .deck { translate: 0 -2.5%; }
 
 .info { min-width: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 26px; }
+.actions button { font: inherit; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); background: none; border: 0; border-bottom: 1px solid transparent; padding: 0 0 3px; cursor: pointer; transition: color .2s, border-color .2s; }
+.actions button:hover { color: var(--ink); border-color: rgba(255,255,255,.25); }
 .actions a { display: inline-block; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
 .actions a:hover { border-color: var(--ink); }
 .date { display: block; margin: 0 0 10px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
@@ -169,6 +176,17 @@ var LABS = [
     shatter: true,
     notes: 'windows-pipes/direction/',
     glows: [['#c98a4e', '30%', '40%'], ['#28d0e6', '70%', '62%']]
+  },
+  {
+    path: 'hackers-delight/',
+    title: 'Hacker\'s Delight',
+    blurb: 'A hidden one, for anyone who kept scrolling. For now it is just the 404 page, which feels about right.',
+    tags: ['Easter egg', 'Security', 'Made with Sonnet 5.5'],
+    date: '2026-10-19',
+    cover: 'hackers-delight/cover.svg',
+    notes: 'hackers-delight/direction/',
+    secret: true,
+    glows: [['#9fd8a6', '28%', '40%'], ['#28d0e6', '72%', '34%'], ['#e0489c', '56%', '76%']]
   }
 ];
 
@@ -178,7 +196,7 @@ var LABS = [
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
 
   LABS.forEach(function (l) {
-    var li = el('li', 'lab');
+    var li = el('li', 'lab'); if (l.secret) { li.hidden = true; li.id = 'secret'; }
     var a = el('a', 'card'); a.href = l.path; a.setAttribute('aria-label', l.title);
     var art = el('div', 'art'), deck = el('div', 'deck');
     var g = l.glows || [];
@@ -197,6 +215,7 @@ var LABS = [
     var acts = el('div', 'actions');
     var go = el('a', '', 'Dive in \u2192'); go.href = l.path; acts.appendChild(go);
     if (l.notes) { var n = el('a', '', 'Behind the design \u2192'); n.href = l.notes; acts.appendChild(n); }
+    if (l.secret) { var hb = el('button', '', 'Hide again'); hb.type = 'button'; hb.id = 'hideSecret'; acts.appendChild(hb); }
     info.appendChild(acts);
     li.appendChild(info);
     grid.appendChild(li);
@@ -242,6 +261,50 @@ var LABS = [
     if (busy) rafT = requestAnimationFrame(step);
   }
   addEventListener('scroll', aim, { passive: true }); addEventListener('resize', aim); aim();
+
+  /* ---- the hidden entry: at the bottom of the page, keep scrolling (3 separate pushes) to reveal it ---- */
+  var secret = document.getElementById('secret'), foundNow = false, tries = 0, tryT = 0, lastEv = 0;
+  function reveal(animate) {
+    if (!secret || foundNow) return; foundNow = true;
+    secret.hidden = false;
+    try { localStorage.setItem('labs:found', '1'); } catch (e) {}
+    if (decks) aim();
+    if (animate) {
+      secret.classList.add('found');
+      requestAnimationFrame(function () { secret.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); });
+    }
+  }
+  function hideAgain() {
+    if (!secret || !foundNow) return;
+    var done = function () {
+      secret.hidden = true; secret.classList.remove('found'); foundNow = false; tries = 0;
+      try { localStorage.removeItem('labs:found'); } catch (e) {}
+      if (decks) aim();
+    };
+    if (secret.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      var a = secret.animate([{ opacity: 1 }, { opacity: .2 }, { opacity: .9 }, { opacity: .1 }, { opacity: 0 }], { duration: 420, easing: 'steps(5, end)', fill: 'forwards' });
+      a.onfinish = function () { a.cancel(); done(); };   // cancel, or the held opacity:0 keeps the card invisible when it is found again
+    } else done();
+  }
+  document.getElementById('hideSecret').addEventListener('click', hideAgain);
+  var wasFound = false; try { wasFound = localStorage.getItem('labs:found') === '1'; } catch (e) {}
+  if (wasFound) reveal(false);
+  function atBottom() { return innerHeight + scrollY >= document.documentElement.scrollHeight - 2; }
+  function push() {
+    if (foundNow || !atBottom()) { tries = 0; return; }
+    tries++; clearTimeout(tryT); tryT = setTimeout(function () { tries = 0; }, 4000);
+    var f = document.querySelector('footer');
+    if (f && f.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) f.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-5 * tries) + 'px)' }, { transform: 'translateY(0)' }], { duration: 260, easing: 'ease-out' });
+    if (tries >= 3) reveal(true);
+  }
+  addEventListener('wheel', function (e) {
+    var now = performance.now(), fresh = now - lastEv > 140; lastEv = now;
+    if (fresh && e.deltaY > 0) push();          // a new gesture that begins at the bottom; the scroll that got you there does not count
+  }, { passive: true });
+  var ty0 = null;
+  addEventListener('touchstart', function (e) { ty0 = atBottom() ? e.touches[0].clientY : null; }, { passive: true });
+  addEventListener('touchmove', function (e) { if (ty0 !== null && ty0 - e.touches[0].clientY > 24) { ty0 = null; push(); } }, { passive: true });
+  addEventListener('keydown', function (e) { if (!e.repeat && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'End' || (e.key === ' ' && !e.shiftKey)) && !/^(INPUT|TEXTAREA|BUTTON|A)$/.test(document.activeElement.tagName)) push(); });
 
   /* ---- break-apart on enter (labs with shatter: true) ---- */
   var COLS = 8, ROWS = 5;
