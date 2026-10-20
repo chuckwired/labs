@@ -297,9 +297,17 @@ var LABS = [
     if (f && f.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) f.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-5 * tries) + 'px)' }, { transform: 'translateY(0)' }], { duration: 260, easing: 'ease-out' });
     if (tries >= 3) reveal(true);
   }
+  /* wheel: a trackpad flick is a stream of events with momentum, so a pause is not a reliable gesture boundary.
+     A new push is a pause, or a fresh surge in speed (momentum only ever decays), with a short cooldown. The scroll that
+     carried you to the bottom does not count: the previous event must already have been at the bottom. */
+  var lastAbs = 0, lastCount = 0, prevBottom = false;
   addEventListener('wheel', function (e) {
-    var now = performance.now(), fresh = now - lastEv > 140; lastEv = now;
-    if (fresh && e.deltaY > 0) push();          // a new gesture that begins at the bottom; the scroll that got you there does not count
+    var now = performance.now(), bottom = atBottom(), abs = Math.abs(e.deltaY);
+    var gap = now - lastEv, surge = abs > lastAbs + 6;
+    lastEv = now; lastAbs = e.deltaY > 0 ? abs : 0;
+    var ready = prevBottom; prevBottom = bottom;
+    if (e.deltaY <= 0 || !bottom || !ready) { if (!bottom) tries = 0; return; }
+    if ((gap > 140 || surge) && now - lastCount > 220) { lastCount = now; push(); }
   }, { passive: true });
   var ty0 = null;
   addEventListener('touchstart', function (e) { ty0 = atBottom() ? e.touches[0].clientY : null; }, { passive: true });
