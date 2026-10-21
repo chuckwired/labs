@@ -167,13 +167,14 @@ body {
 .is-focus .hint, .seen .hint { opacity: 0; }
 
 #picker {
+  display: flex; gap: 8px; align-items: flex-start; justify-content: flex-end;
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 14px);
   right: 16px;
   z-index: 50;
   font-family: var(--mono);
 }
-#pickerBtn {
+#pickerBtn, #trimBtn {
   font: 500 11px/1 var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -185,8 +186,9 @@ body {
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
 }
-#pickerBtn:hover, #pickerBtn[aria-expanded="true"] { color: var(--ink); border-color: rgba(255,255,255,0.3); }
-#pickerBtn:focus-visible, .row:focus-within, #allBtn:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+#trimBtn[aria-pressed="true"] #trimState { color: var(--ink); }
+#pickerBtn:hover, #trimBtn:hover, #pickerBtn[aria-expanded="true"] { color: var(--ink); border-color: rgba(255,255,255,0.3); }
+#pickerBtn:focus-visible, #trimBtn:focus-visible, .row:focus-within, #allBtn:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 #panel {
   position: absolute;
   right: 0; top: 40px;
@@ -247,6 +249,7 @@ body {
 </div>
 
 <div id="picker">
+  <button id="trimBtn" type="button" aria-pressed="true" title="Coloured edges on or off">Trim <span id="trimState">On</span></button>
   <button id="pickerBtn" type="button" aria-expanded="false" aria-controls="panel">Capes <span id="count"></span></button>
   <div id="panel" hidden>
     <div id="rows"></div>
@@ -406,20 +409,22 @@ const CAPE_STYLES = {
   }
 };
 
+/* Trim off = the edges take the body's own colour (like an untrimmed skill cape); trim on = the coloured edges. Capes without an explicit `plain` derive it. */
 const CAPES = [
   { id: 'herblore', name: 'Herblore', glow: '#3fbf5a', ...CAPE_STYLES.herblore[CONFIG.capeStyle.herblore] },
   { id: 'mining',   name: 'Mining',   glow: '#a39f5c', body: '#5f5d42', collar: '#6d6b4c', trim: '#4f9dbd', trim2: '#7cc7e6', pad: '#7cc7e6', padEdge: '#7a7a7a', emblem: emMine },
   { id: 'cooking',  name: 'Cooking',  glow: '#a25be0', body: '#582a78', collar: '#6a3a8c', trim: '#5a0f0f', trim2: '#7b1717', pad: '#7b1717', padEdge: '#6b6b72', emblem: emCook },
   { id: 'magic',    name: 'Magic',    glow: '#4a6bff', body: '#d6d0c0', collar: '#e6e1d3', trim: '#26359c', trim2: '#4a5cd0', pad: '#2f3fb0', padEdge: '#e8a823', emblem: emMagic },
-  { id: 'agility', name: 'Agility', glow: '#4a55e6', body: '#30307a', collar: '#393b82', trim: '#4e51a0', trim2: '#3639a8', pad: '#a8271a', padEdge: '#8f8a8a', emblem: emAgility },
-  { id: 'thieving', name: 'Thieving', glow: '#b0589a', body: '#5c2f54', collar: '#5e3758', trim: '#6e4666', trim2: '#82547a', pad: '#1f1a22', padEdge: '#76716f', emblem: emThieving },
-  { id: 'fletching', name: 'Fletching', glow: '#18b0a0', body: '#03474a', collar: '#2b5e60', trim: '#3a7679', trim2: '#0a6266', pad: '#c79a16', padEdge: '#8a8281', emblem: emFletching },
-  { id: 'smithing', name: 'Smithing', glow: '#b4b49a', body: '#53523f', collar: '#5d5d49', trim: '#66644a', trim2: '#4e4e2c', pad: '#c79a16', padEdge: '#8a8281', emblem: emSmithing },
-  { id: 'fishing', name: 'Fishing', glow: '#5cb4ff', body: '#7d9dba', collar: '#83a4c2', trim: '#b4c8da', trim2: '#6fb4f2', pad: '#c4a026', padEdge: '#8a8281', emblem: emFishing },
-  { id: 'firemaking', name: 'Firemaking', glow: '#ff8a1c', body: '#d56e1a', collar: '#da7e1a', trim: '#e8982a', trim2: '#f0a838', pad: '#bba51c', padEdge: '#8a8281', emblem: emFiremaking },
-  { id: 'woodcutting', name: 'Woodcutting', glow: '#5fb82a', body: '#94793f', collar: '#9a7f4a', trim: '#a99262', trim2: '#a07f38', pad: '#0f6a40', padEdge: '#8a8281', emblem: emWoodcutting },
-  { id: 'farming', name: 'Farming', glow: '#4fc760', body: '#265626', collar: '#2f5e30', trim: '#3f7140', trim2: '#0a6a18', pad: '#879d58', padEdge: '#8a8281', emblem: emFarming }
+  { id: 'agility', name: 'Agility', glow: '#4a55e6', body: '#30307a', collar: '#393b82', trim: '#7e1d14', trim2: '#a8271a', plain: { trim: '#4e51a0', trim2: '#3639a8' }, pad: '#a8271a', padEdge: '#8f8a8a', emblem: emAgility },
+  { id: 'thieving', name: 'Thieving', glow: '#b0589a', body: '#5c2f54', collar: '#5e3758', trim: '#241c29', trim2: '#34283a', plain: { trim: '#6e4666', trim2: '#82547a' }, pad: '#1f1a22', padEdge: '#76716f', emblem: emThieving },
+  { id: 'fletching', name: 'Fletching', glow: '#18b0a0', body: '#03474a', collar: '#2b5e60', trim: '#957410', trim2: '#c79a16', plain: { trim: '#3a7679', trim2: '#0a6266' }, pad: '#c79a16', padEdge: '#8a8281', emblem: emFletching },
+  { id: 'smithing', name: 'Smithing', glow: '#b4b49a', body: '#53523f', collar: '#5d5d49', trim: '#957410', trim2: '#c79a16', plain: { trim: '#66644a', trim2: '#4e4e2c' }, pad: '#c79a16', padEdge: '#8a8281', emblem: emSmithing },
+  { id: 'fishing', name: 'Fishing', glow: '#5cb4ff', body: '#7d9dba', collar: '#83a4c2', trim: '#93781c', trim2: '#c4a026', plain: { trim: '#b4c8da', trim2: '#6fb4f2' }, pad: '#c4a026', padEdge: '#8a8281', emblem: emFishing },
+  { id: 'firemaking', name: 'Firemaking', glow: '#ff8a1c', body: '#d56e1a', collar: '#da7e1a', trim: '#8c7c15', trim2: '#bba51c', plain: { trim: '#e8982a', trim2: '#f0a838' }, pad: '#bba51c', padEdge: '#8a8281', emblem: emFiremaking },
+  { id: 'woodcutting', name: 'Woodcutting', glow: '#5fb82a', body: '#94793f', collar: '#9a7f4a', trim: '#0b5030', trim2: '#0f6a40', plain: { trim: '#a99262', trim2: '#a07f38' }, pad: '#0f6a40', padEdge: '#8a8281', emblem: emWoodcutting },
+  { id: 'farming', name: 'Farming', glow: '#4fc760', body: '#265626', collar: '#2f5e30', trim: '#657642', trim2: '#879d58', plain: { trim: '#3f7140', trim2: '#0a6a18' }, pad: '#879d58', padEdge: '#8a8281', emblem: emFarming }
 ];
+CAPES.forEach(d => { if (!d.plain) d.plain = { trim: shade(d.body, 0.12), trim2: shade(d.body, -0.14) }; });
 
 // dev-only: recoloured copies of the real capes, to test crowded scenes before the art exists. ?stress=N shows N at load; the "Max" button
 // in the picker (temporary) adds up to 29 at runtime. Test capes are never saved to localStorage.
@@ -439,7 +444,7 @@ function testDefs(from, to) {
   const out = [];
   for (let i = from; i < to; i++) {
     const b = REAL[i % REAL.length], deg = (i * 41) % 360;
-    out.push({ ...b, id: 'test-' + i, name: 'Test ' + (i + 1), glow: hueShift(b.glow, deg), body: hueShift(b.body, deg), collar: hueShift(b.collar, deg), trim: hueShift(b.trim, deg + 90), trim2: hueShift(b.trim2, deg + 90), pad: hueShift(b.pad, deg + 90) });
+    out.push({ ...b, id: 'test-' + i, name: 'Test ' + (i + 1), glow: hueShift(b.glow, deg), body: hueShift(b.body, deg), collar: hueShift(b.collar, deg), trim: hueShift(b.trim, deg + 90), trim2: hueShift(b.trim2, deg + 90), pad: hueShift(b.pad, deg + 90), plain: { trim: hueShift(b.plain.trim, deg), trim2: hueShift(b.plain.trim2, deg) } });
   }
   return out;
 }
@@ -507,14 +512,17 @@ try { saved = JSON.parse(localStorage.getItem(CONFIG.storageKey)); } catch (e) {
 if (!Array.isArray(saved) || !saved.some(id => CAPES.some(c => c.id === id))) saved = null;
 
 const rnd = (a, b) => a + Math.random() * (b - a);
+let trimOn = true;
+try { trimOn = localStorage.getItem('cape-void:trim') !== '0'; } catch (e) { /* storage unavailable */ }
+const look = c => trimOn ? c.def : { ...c.def, ...c.def.plain };
 function ensureFlat(c) {
   if (c.flatBuilt) return;
-  c.flatEl.innerHTML = buildLayers(c.def, c.def.id + '-f').filter(l => l.flat).map(l => l.inner).join('');
+  c.flatEl.innerHTML = buildLayers(look(c), c.def.id + '-f').filter(l => l.flat).map(l => l.inner).join('');
   c.flatBuilt = true;
 }
 function ensureStack(c) {
   if (c.stackBuilt) return;
-  c.tiltEl.innerHTML = buildLayers(c.def, c.def.id).map(l => `<svg class="layer" viewBox="0 0 120 260" style="--z:${l.z}" aria-hidden="true">${l.inner}</svg>`).join('') + '<div class="sheen"></div>';
+  c.tiltEl.innerHTML = buildLayers(look(c), c.def.id).map(l => `<svg class="layer" viewBox="0 0 120 260" style="--z:${l.z}" aria-hidden="true">${l.inner}</svg>`).join('') + '<div class="sheen"></div>';
   c.sheenEl = c.tiltEl.querySelector('.sheen'); c.stackBuilt = true;
 }
 function dropStack(c) { if (!c.stackBuilt) return; c.tiltEl.innerHTML = ''; c.sheenEl = null; c.stackBuilt = false; }
@@ -760,6 +768,19 @@ maxBtn.addEventListener('click', () => {
   }
   layout(); persist();
 });
+/* Trim on/off: rebuild the artwork of every built cape with the other edge colours */
+const trimBtn = document.getElementById('trimBtn'), trimState = document.getElementById('trimState');
+function syncTrimBtn() { trimBtn.setAttribute('aria-pressed', String(trimOn)); trimState.textContent = trimOn ? 'On' : 'Off'; }
+trimBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  trimOn = !trimOn; syncTrimBtn();
+  try { localStorage.setItem('cape-void:trim', trimOn ? '1' : '0'); } catch (err) { /* storage unavailable */ }
+  capes.forEach(c => {
+    if (c.flatBuilt) { dropFlat(c); ensureFlat(c); }
+    if (c.stackBuilt) { dropStack(c); ensureStack(c); }
+  });
+});
+syncTrimBtn();
 document.getElementById('allBtn').addEventListener('click', () => {
   capes.forEach(c => { setEnabled(c, true); document.getElementById('cape-' + c.def.id).checked = true; });
   layout(); persist();
