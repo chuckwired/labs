@@ -5,50 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07070a">
 <meta name="robots" content="noindex">
-<title>Hacker's Delight</title>
+<title>Lost in the void · Labs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M12 6h8v6l5 11a3 3 0 0 1-3 4H10a3 3 0 0 1-3-4l5-11z' fill='none' stroke='%23e8e6df' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* A lab: relative paths. For now it is the 404 page. */
+/* Served from any URL depth: use absolute paths only, inline styles. */
 :root { --bg:#07070a; --ink:#e8e6df; --dim:#8b8a93; }
 * { box-sizing: border-box; }
 html { background: var(--bg); color-scheme: dark; }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh;
+  display: grid; align-items: center;
   padding: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
-  background:
-    radial-gradient(1px 1px at 12% 22%, rgba(232,230,223,.35), transparent),
-    radial-gradient(1px 1px at 78% 14%, rgba(232,230,223,.25), transparent),
-    radial-gradient(1px 1px at 64% 78%, rgba(232,230,223,.3), transparent),
-    radial-gradient(1px 1px at 22% 86%, rgba(232,230,223,.2), transparent),
-    var(--bg);
+  background: var(--bg);
   color: var(--ink); font: 400 14px/1.5 'JetBrains Mono', ui-monospace, Menlo, monospace;
   -webkit-font-smoothing: antialiased;
 }
-#stage { view-transition-name: lab-art; position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; }
-main { max-width: 560px; }
-@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
-::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+main { position: relative; z-index: 1; max-width: 560px; }
 .code { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
 h1 { margin: 14px 0 0; font: italic 400 clamp(48px, 11vw, 96px)/0.95 'Instrument Serif', Georgia, serif; letter-spacing: -0.01em; text-wrap: balance; }
 p { margin: 20px 0 0; color: var(--dim); font-size: 17px; line-height: 1.55; }
-@media (max-width: 560px) { p { font-size: 15px; } }
-a { display: inline-block; margin-top: 28px; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
+a { display: inline-block; margin-top: 28px; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
 a:hover { border-color: var(--ink); }
 :focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (min-width: 761px) { body { padding-left: max(20px, 7vw); } }
+@media (max-width: 760px) {
+  body { align-items: end; padding-bottom: max(32px, env(safe-area-inset-bottom, 0px)); }
+  p { font-size: 15px; }
+}
 </style>
 </head>
 <body>
-<div id="stage">
+<canvas id="sky" aria-hidden="true"></canvas>
 <main>
   <div class="code">404</div>
   <h1>Lost in the void.</h1>
-  <p>Nothing lives at this address. Try the lab index.</p>
-  <a href="../">&larr; Labs</a>
+  <p>Nothing lives at this address. I looked. Try the lab index.</p>
+  <a href="/">&larr; Labs</a>
+  <span class="sr">The night sky, its stars drifting together into a man holding a coat, palm out, looking for something that isn't there.</span>
 </main>
-</div>
+<script>
+/* Night sky that assembles a figure out of its own dots (1,921 of them, traced from a still).
+   Hover the figure and it scatters, rolls away, then reforms. Static page, no dependencies.
+   Points are base-36, 5 chars each: head<<24 | brightness<<20 | y<<10 | x, y/x on a 0-1023 grid of the figure's height. */
+(function () {
+  var ASPECT = 0.7465, DATA = '5jcs6jp0pcduvrq9nrxhd80in5g8oo78oja9kocndvinq4roj6d4i2mdvh5m61wfkdsgwxeid5i9mflpj1ku02hbeudsk26ig2hkif63n8y04xdr27xhu218fodhgf140idqucy2u36ffpxlz2pbuo5edl74q8bz2ssfzgamochj1x2i74oh2xal5itdvs4t4o53f3cgdw0uadvlw2jpiub60nfz9lb9y5fo0ids6js5j5nejdyyy3ikzc3p7l1f29v2jpbqihkl89f3iwi5cu4yjpe3f3lrl7314ukd977l5ila1fc9n83dfa8gagcbfnvar9jot59pnny9lzs08d1162uust2s9st4rgo83jh9vdv7lm2sy563mlkjhixz9du8s5j1gw95izguf217a9onec5y8jmgao8x4u83z2tdskhj2oa9j0cv5eoo7gwqbe2v6mr5bnhof1zjk7bxjditff8jpa5x6ll9d9jg2ih0ezj9jvyn9nu536mr484tp309k8k6fwvl7eh85b5hels4v2yu48jdk2ogwteg9ej2s5gc5ffbhi5npzifum3fnoz73ci4ddsztt3c8gq3wsuk2w8l2chvg5cjjdwdh5fgj1vvl2of7p3l4icitca94xd2odtxrk2wlcz3ed6b64oujegir0dgwro9j48kduomj494s4du78idqwoxgaiqx9ityhd6sx2dqo1949rpo80j4930h765xsq23daegdtvd9f3ck2f51ffdv59t9ned5gbhjyi5nqx9l3cy9l4zmi50twdsso93egee8b2hhj2nki3d6hsfacxc5fh3w7txcyjdy6fi5m5odt3qfjp31t9lu8l5dxmvfo9jld76cochkbj715mx4uzpj5f6102x3eqdrwcz3c2dtdrp5hfot9u6ms723fbezhtu5t4wm5o7cjijdtkax4uzusepu4vdri3i9phaw2wfrn9mszw4qbuz9njvq4seid77uf86099o4v6vmdvatp31j4766ukg5dz8b8h4q65h7bz6nerm4qv8v9qhnj6sif0e1lsu4iwn65i8j3gwig88xjjyhttcm8l548fom7o4jqnz7ca1cf25vhj1vvf3l8a4dvmku78ftc4upf0drw9s2stiqhj2nsf2udxd6va99j87d4x1an781mdhirn5fp93i4s88c7vdhq4w7yljfb7w2xz518a2xv3f4p89m9924vh6l5ii3vdw4q2ckgkl2q7593g5yu3f38fj2a434ubew7xfnjdtxps9olnh5g8ka6kx2ddubxtjovyygcdxuhkbqa3fadn42xcxdr5f95unp74rcmujowr2ducr3duskc78t7bdrb0f4upmu8x8hm8x7ob5f90edvlu43d208e1h2zh6zkz2y2ttgyctmdgzx23blijjf4vxepuwsehguj5d23a3mds1fp49w9pp9ij2e2wig6h03kqer4vgfi9n6goeihw24vtxz6k0mw4wq9o64ymddra7tduwhmdtqnidrggs9lnxfcjz6o5eq3j6lixb9pmwf5f5vw2qmey62uem9o5dcgygsy1uwj87de7li55k8fnjg63dfg13jt1l9l2kw9ngplfwqui3banmdrt496l8jpegw8z66erj478879kjl0j1tijj2l6yfclhr9jhog4veyajfibe6s2m54un722qzke2v6s39lk00fnd4af2ug127qzx5kpc05enr2hkkg1d52mm55ljd2q7g09osx19o4f19mlwr4tynafprac8f399gafl92pzi6f0toai5dfndsvu59ln5i8x5d8du04i5j8uu3lgku3e4csj1ubofq73ajgccfh7ao920yrf5gkeldu8wmh5l16eh7bnhkkf49kvfwf40aqgjbvr4329y5fuiuhixxx3e8editwtzdtdyr2vpn9dvswu2xvx23b8wjdum9h64b9ndt65k5fqg0fn98o5d2ub5sru27aym26kp7advqio5f9uxh5qkcd5crtdvh51hkay1gdrlc78b3h9r1ecdrdc32wxzc9jz3bjost27pnja1vboo2xxbx78z07dw4s34ta983nr4b5ybo162tp2f0gapgabnn92c0i946yxdvqmpjdy6w32r5o5yqoq4v4kj4vnfhdt3rlduj2i5heo9gkycm78yq2dvt0rdtcf79p5pjitaoi4vqq1glcikfpo4ahsptz5gwhsfnpu5939s88xcfk600n7eicg89n427dshlachl56dr1idfpv6n3lx2p8ilg6jfedlje1c62t6l1jogya2o4379l5pmdw0tj9jz1b8y0xtdsmctf2bfc3c70zgxttx9ma1u3y50r3oopjh6wf4fodh8ef915ducuw6ii6zhiohh9otjncmqqw5bbop4jiosit218dts7t66mck6ql9ygkxju4vaqs9m25j7q6iddssnyirh43foyt45hf868xobvje1ce3ojlvcmfotj2dab9l2k79lxdq3lfprclzvyi5t93hl5rpdre2vj2uog5gabsdt99ahj5vj3by674uvsvfc9nu9pp5a6ne2aht4tbfc81rdw0wjgbjuu2tgcv477lx4vdcw78t7rh7je091oxl9kvgzhkggc327ll9mxrudt2w94wbz1dqry96khoncj3ky3k2mc9kha149ea75clj45eib0drexm9o6sv3clxlf2zx64x4cg8dcw13efsh2xgz9fapjhj1vx1722nt8gnwbhkm0c5h45ce1lt4ds2lj5hl0b9nfxr31yv33bg1yjfr0t5ekk2gwdq05g1mjhj5tudtmowirp0a22d1w5i5gygbm8beh1tq9qczqdsdno5c4y6fpugseo99455lfu9oz8v4vccm3dwnnitxmr63zuv9omrlj1g363d4zt4xbl1egp4q92itte3kwt2vox42v3puierwudvzznhtdig4weds9jaml5fkx89mfkufo038gy4wqdsxht9ma0z8mgl5d7aaygbpfj3asjp3065odsv3i71gkzh5rdj3ea41itsvu41ympjor8d4nc5ifx5uy8y81k3o4khdw1ke9kh95j2xtpfmzqddr66b2vhiqj20n6jp8kn5e2ha4nbkf9jk255e3y1drm05dqsqy9kghw790c97ep0xfpmge9lnw65gbridunsg2x6lr4uc58ifzchig1q4d4pv7dvh4ueh45m93th8fpg82fosicdu42k8b38pfo8qc74uj75uanj3j5mq9l46t3lt70f2z41dvzbxf2z4degvfc7adc38yvqugx66763osmh0ftv786c7je4i05fn9qjfn2mehai963491gjf1e9lbb27u3vyjfompefzs14w38henb8x9j48vdtaw82ypyv5zneghj7f1dvzaaegfpqeo3qc3kuuidw1nzh7c9sgwz0r2surshses2dvtosi6xjxdv7mh1tlt9i6kxxd542tdrh7tepx9udsg3sdqosy9ow872v43de1jg3jomhl5g0ng9j8yd9nrsn4u1q2f0nesgbrs1fwcky3c1dzfc81k76qx99kup45frzmdv2xg73xbxhj9tedvwvm5yeuo31tatdui9ggyf7qjp3vsclpr72tiny9mw6mfx2oq9p8y84rsdd7tm99dqot87b0cb4vblrdv57rfc7a0dr8mpit9wb3dlhw8j5ysdv1b8e1epcd585z4ti3si5xztdrdci3l2c95hsu6fyrhhi5uu9jp0ps5dk7ad4uq1j1nzzht8rg4u6lddtbm54wfzc9ldnrjov6udek6m5vvxu5zj5jgw8zigage4637u43m4s381vauhiiyj5hd0a338ns49ogf7nen39r9ao9ltgrfn0j1e196bjokwedqvyi2uizugb8si3bc9yfc1rr6mo0fi59hgjpdb5618pmhl094fojvk4pgn74r7ug9lsnxht76zdvfgdduaha6t47d4uwrxifirf333y8eptbg4shpw4tke5ef89hdrjni8xfna5y4w84vxtd3alenfoabvgcdwu3mifggc0h36fc5hdh1hqhtj1k9o6xw3phy4joc71h6rojfrdp97pd99jozx86mktc2xdkwds8wlgc4fehj1x9fp5x85ei5uhl47b3n2u43e9ww4xl33dvcb4duf7wdu1ps5xv5tj2rjddv5727ap9xdrbs59mvdiirpsh486za4mtek9pyrwdh9dh33semjp7sh4xs5jdvlwvduwi25w67m2s2cadvqif9nzu2eg8lm2xxfz9lf8dif0mpdw0wdhiq0vd83omhsmnb9n4v28mfqdjflhu5wrjj78kjr30rcmeq4dhjozxndrp8q2q4bdd97u7itcb7f1m444r5m5dszs0eo1dhcjc9ucuze9igj3o9m8hq5t0052s9o92uq2zisxa46l4zr80vujdvo70dsjxydvdzn5iw8kht41ej1nzodt9apefryidu77y4wldu780bbcjs2phk9emit56q5etef8iee2dsegb30fnk55xbg4pdjudr0nq4wvs37uar49pnp4dtboh4ntlsdtw6idvqj9it6rsjp7rzdr9brciqxx9n04ldrhal9lphg55r45it6ra419i73fy3d4vzax5i22v5f4h32xzvxgwdpnefkuce1tp9du10e6mbe4f4j9odv58s3fvrue3fewf36896rsy9jdxe7dr6634xbh82wkgi9lu9nd7q8z4u3jqgwsozcmkfidtx1f4mbw831u5ddsspy4x0hgdvo8tiggrmht2gdi5lctit9xh9k7s13mwm57bjb52o2ix5h9pp9rl6m6j7995eon66f46x9m3prdr9e35i6a09okvp777tj2pndo78jry8ibxbfarwydtgd2chkc5egpw35gj0bf2r7phtr06499gc5cb6z2t7ch5jq8b428ue5izj732pjtduj379oh7o77zfs7y90ojfrtj565e645na5foebd4ugyz5toih8bebtchsa3jofd34reaii5buxfaktp7v6bkd44lc9pkjz4xqlh658hij1spw4wi98fptkeedrzgd578rjf6h0i7iwue1oyt9kaw2drl8660yfu3bls15s79cj2t3232kab2xfsxjfvrh9knm2dvo7w9k4n8irjhpf3i4m4uma7i6bgf2tobfjfnve9kx27dsv4a9op463cx44dvfkedsfbo5zzr1chhz2f1tawhszbh7dhm14b9jn58wu29kyo98n7dv7uyg932uio9jrzcdsvvcd45cyck9gigywijedv8yf2alneik854sz672rt1v322px60klc6ks1kdvwxl60ipu5csmnega7adu1t17bick3btnh7u9y5egwar5fsqtdur2xcm0tf9nb6n9mjindu81ejor7y9jloq78p9ygj0s8fn0i1cm5f29ofhl9oaqr5w9t04vasneehe7gcd4ngvyoqifxrr8xcf9fpwt94smj9hiez98es71dt4hq9kp6of2otx8j2se4vrda5kar49mhxff3muk4ja2c6rvi88isjr1vd839oiis8fh7giggrb9ks9vis6ec5k2vsj2pyldunwr485y4d44k7d44jydsn7pf0ppy3h1fbi6mibjp5ek32s4o5zwk89mp33d4jn9dtuoj2rnjv5gpwe8x9bucj8h0dgv6lef15hhiuskj2tvs2vaodfcn2h2vlnz5dxm59nzp3duiae8xt15cuvgc8mpte3crfj9l46ceemxm3fbd732r8x1tjf5eggibdulhb6490g2xz48e16sl99fp17zxxydsqdmepx9iig2ip2r2r0dtp5gdusl75sn7fdt3skf2uaudta3eifoaodw3649jej99olt6duuysh5rdegdzj3dt6y72z8o73ewef21s1af1m5g2r1ethkghnh5qlc93r2ddw2d7j2mrhi4w3h9mp26ee2bn3dr0b9prmfdts6n63bqudrgirhjfbkchlxx72hxs3a2g3dhbq73bnb974ioa7uwbx9ljym7oj29hix5r5y7q64kbbj7801048umzgyg0c60p4k311nvhia9ldtka33ed5l8xx0uclvxndqz4m6eh9132osvcuxtiduqyyjpbqnigj3f2han733mu87w4b47uf0rdv9y3jp2afdrgizf1m6z8xmpy4vgeo5xxit4qsumjp4mgjnxyzdvw2w9p34m2voyoje2504x8g7fxcwqe3jdl9lah55hafq41pre6saikfpjbrgc9635id52f3nmmif5d2jo4bhehdom9kms0jnt8h9q8789oekx4rgn53fybc2qq4ojo5uzj1hnw4w864du0whhkt4mdqtkugbb5n6q0zxf368h938dp3liu9dv0gn5karg9lljueh78ogwubcclhuu7a6x5if1fbgcelqfapk3j2zeq30t2p5whpp21c7k2u5nh4moj7j2xt9f0o5b5jmak4s9vwj1c5ndqsr431u7odtw59jp67qitzzs9nz1w61glxjph9i62elihk330dvesmfc2k04uk2aciy1udsyzq3oh7vjiejq2gkdwdvxqpcmcoe4v1hndu8x55dzcp92w8u9nntpd4hyrdu41dd5hnidre2a3l28mit0fzgwgvj9uuy09mts45hncui5glq5cdkphl10v9kodd4wpfkdr67af334t56i0sh5o71dw2i74waaujff659ofhuiswhujfafa4w2kl31cto2wm412s9p52sp9e3orj8duvtf78y1dchobicm7xn5j0a43k10f71mw3jopmx4u3crh5syk3g8ed3d2ez2u40ggwcxuchhycedpm82r28i1vasr2or9x5h16c7wbjbjpkezifiqi7sw6ki6xk8fynkv3kztk2r2a3i57xe30qn77wc7xj1igxdrze8iev202u8oq4om0w4aas99m2wyjozvkdvatdifgdid504t5fre79nu5e5zb7oehcvt32lp666ngce36r8dsuan778cogwxflfwp9g5dw7aj27s22upd0dvjfldrjlfgdvjb5j44ngalveh0cmaf26o5j24lh9m268gjxzj45ln3dtnl5ifet39olyv5ufsthix4shl4zn31zld2tvcc7pw8e3feb8cv2jpgwo065h9qwgwg3viszo1d7vrz3ccfm9lcvmfoldg6ftlchie7of4ru34xhw2fq0oadv63je3pnv9kvi0fydbv9qqde3dc5m5ia22dvbl1dukrccv4x82xv7p8mlz3dth619l461dw4unier489jssngw51cd4d8842o3v33q356j5tb5wfowef52wdsn51fz07mfwogrfcpfnfpfc9gixmf4vcjz6ewbp3d4cddrnlc97zmx4qse8du806936316mmcm4u5p76lwl16ndzz334u35beta9omrxifmpmenu9jf1m67f2ii65hil9ds6jmfo4t8d4mtb4wdixeo7oe3mho82poh6e3ow33o6csedtk7jfpg3irhwee10hf9n5nwjp5erd8c8g4tdg9dvoz2h70d7igj4i8xp4odued58x7t4joo2cf1rpg2s4n2hsiq8dszt93byctfpmjlhjj9w4w0ymdu9m2gxkeu5con24w4zs46wb8i4z8pjo2pb6lr4l64mrpdterm8i6hheo0l58a7o19ma2degfmhegxw9du07s9o0h8eil51cjd7p5bjkqjpaxpdrewg2sdln9pm4h3n4zl610xre1bjt2sb01it4e58fgoe60tab5diqi5d94s3xnt9dt8h22yim0dvugldr717hkwa9d8gbrhj1vjgaumi3e5h66nx4kchkbvdsnzkjo4bmds07icuyl6dsvw62of52irl293n1dy7w6qpiftt95com6dqz2e9jihp2qajiclzvu4uuad2yhbvje6312xt889k1f7eprs225aj72qpdrdh32edu46ij2uo3ird6hdt2546i74g3gk7djdyz8ht4tigy4417ufh03neuz78patfatho3bo2idh7ru4nfdnfc1ry2naa7f0wtudvo8j4vgjq9lbbdegit3dtuldhj1wj9jwpads4xteq9xbfp0e6jo9tsf1wgvfxg3tfyobz9kfoj5inje3oris78bwf2rddl6kz372rdu1h5wwo7bljzdv1d32xfd95s48l3lhr79og70j1spqjo9ubgbb6561d1h3nz9ofwcl2epq7j669q8dumc1if26eeg68fhsrdq9kodw43i49duhindgzx963gw5ig2ieduntb7b91a5i62k9kobugwua1edz39j2x25ifgdtj1cxp4j23cdtw9556jgvdr5dbdum8ti6uf4du0vo9m0kz5e9hxgl7t6jo4bvj2kfle3lqi314sufwiwk5z0y0f41vff52xe2rbhfjovz49ov7x9kfo0f0bfvdr306606tvck5i8ith1ichw8f9ok829ouqd9lvt7i5ropith0xduf3wis76n2v4c15edlmhj2oi78tgy9lpj85yet32qf11j2p5w2vuid9ml4phifrzhihdsdszuc3zhdrg9v2g6enlje1rc172zc463ezchkmsmi7ixcei4jq2vqiqdvwwg5ipfrdqvz361q63clva9j2od9d736ujopmr7rvww5hs1945otmi4w2933q1z40fxc8n83ldvyk73jwhx3f5ok5ep9hfp4f33dvss3mmxpht8s72un0jd4oe1jo6omjoxjneet984wy0i498ni6et2xfp952h0bu3gbae55cgurhkrjl2d2yk2ut15jpdbo3lcjb5vmgjf1zm9dhcitdvh1x4ufzzd7f1mh7pnkj1sqb7o0vaitenp78y0of2qcidt2zzjp67h7bj8ujpdba2pnd1ieoqn5flnnfwyqwj1ry3dvo9h7x6664soydeg3vd6445reem284u1vo5fwrxgbwjl3caw1du3aff0dx93i8vfgl684egexzjpex48giet6ejp9jnvlh6mlms3o7bv325ur3ct93hj0bf47yw29lf7j9npf12x7wqdr4n54psu96hj5f2qxyy9pjq1hl2mjfrie09leekdqvxjhihdci5bve41d899k8j2f2v5h3ghx2639n4780ua77k3x5vgcmdtp2fgkqgrirl1d5byvv2t4hfjfkpjf3a5d9nrxu9nlh15ysmmi6wrm33coe5jgpx3aaxpf50k7dvau27ui41e1jfxef0ci4k6azdrocp4jmpdf252jf3i38drlae9q5vsd5jvq3c4p79kxu232pjfjpi1q3bqc9ehc2odv9xkcmgmscj8bl2s9qc2nvkzg9wl49rjm1d53ai8ijs2ig05jgju1ci5m5t2s9h8f2k0z3lxvv2xae8i6s1n4r48w5w2ozhtsjyj2xtk2q37rjpayh93u9f9pl8tcjw10jp2984xk723af3q95uv7hj1xndv62w5j3b92yggu7o4ryf4wox2u3u2';
+  var cv = document.getElementById('sky'), cx = cv.getContext('2d');
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var seed = 7; function r() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+
+  /* each point: x,y,b = place and brightness in the figure; sx,sy = where it sits in the sky; o* = where it rolls to */
+  var P = [];
+  for (var i = 0; i < DATA.length; i += 5) {
+    var v = parseInt(DATA.substr(i, 5), 36), b = ((v >> 20) & 15) / 15, hd = (v >> 24) & 1;
+    P.push({ x: (v & 1023) / 1023, y: ((v >> 10) & 1023) / 1023, b: b, sx: r(), sy: r(), a0: 0.06 + r() * 0.26, z: 0.55 + 0.45 * Math.min(1, b / 0.6), s: hd ? (b > 0.7 ? 1.5 : 1.1) : (b > 0.7 ? 2.6 : 2), d: 0, t: 0, k: 0, ox: 0, oy: 0, od: 0, ot: 0 });
+  }
+  P.sort(function (a, b) { return a.a0 - b.a0; });       /* dim ones first so bright ones draw on top */
+
+  var phase = 'in', ps, END = 0, raf = 0;                /* in: sky to figure, out: figure to sky, idle: settled */
+  function plan(lead) {                                  /* delays for the sky-to-figure trip, top of the figure first */
+    END = 0;
+    P.forEach(function (p) { p.d = lead + p.y * 2.6 + r() * 1.6; p.t = 2.8 + r() * 1.6; p.k = (r() - 0.5) * 0.5; END = Math.max(END, p.d + p.t); });
+  }
+  function scatter(px, py) {                             /* ripple outward from the pointer, bowing off to new places in the sky */
+    END = 0;
+    P.forEach(function (p) {
+      var dist = Math.hypot(fx + p.x * fh - px, fy + p.y * fh - py) / fh;
+      p.od = dist * 0.9 + r() * 0.35; p.ot = 1.6 + r() * 1.2; p.k = (r() < 0.5 ? -1 : 1) * (0.25 + r() * 0.5);
+      p.ox = r(); p.oy = r(); END = Math.max(END, p.od + p.ot);
+    });
+    phase = 'out'; ps = performance.now(); run();
+  }
+  plan(0);
+
+  var W, H, dpr, fx, fy, fh, stars = [];
+  function layout() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (W > 760) { fh = Math.min(H * 0.84, (W - 420) / ASPECT, 760); fx = W * 0.64 - fh * ASPECT / 2; fy = (H - fh) / 2; }
+    else { fh = Math.min(H * 0.5, (W - 40) / ASPECT); fx = (W - fh * ASPECT) / 2; fy = Math.max(16, (H - fh) * 0.12); }
+    seed = 99; stars = [];
+    for (var i = 0, n = Math.round(W * H / 9000); i < n; i++) stars.push([r() * W, r() * H, 0.05 + r() * 0.3, r() < 0.15 ? 1.6 : 1]);
+  }
+  function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function draw(el) {
+    cx.clearRect(0, 0, W, H); cx.fillStyle = '#e8e6df';
+    for (var i = 0; i < stars.length; i++) { var s = stars[i]; cx.globalAlpha = s[2]; cx.fillRect(s[0], s[1], s[3], s[3]); }
+    for (var j = 0; j < P.length; j++) {
+      var p = P[j], a1 = 0.3 + 0.7 * p.b, fxp = fx + p.x * fh, fyp = fy + p.y * fh, x0, y0, x1, y1, e, al;
+      if (phase === 'out') {
+        e = ease(Math.max(0, Math.min(1, (el - p.od) / p.ot)));
+        x0 = fxp; y0 = fyp; x1 = p.ox * W; y1 = p.oy * H; al = a1 + (p.a0 - a1) * e;
+      } else {
+        e = still || phase === 'idle' ? 1 : ease(Math.max(0, Math.min(1, (el - p.d) / p.t)));
+        x0 = p.sx * W; y0 = p.sy * H; x1 = fxp; y1 = fyp; al = p.a0 + (a1 - p.a0) * e;
+      }
+      var bow = Math.sin(Math.PI * e) * p.k;
+      cx.globalAlpha = al;
+      cx.fillRect(x0 + (x1 - x0) * e - (y1 - y0) * bow, y0 + (y1 - y0) * e + (x1 - x0) * bow, p.s * p.z, p.s * p.z);
+    }
+  }
+  function frame(ts) {
+    if (ps === undefined) ps = ts;
+    var el = (ts - ps) / 1000; draw(el); raf = 0;
+    if (el >= END) {
+      if (phase === 'out') { P.forEach(function (p) { p.sx = p.ox; p.sy = p.oy; }); plan(0.25); phase = 'in'; ps = ts; }   /* rest a beat, then reform from where they landed */
+      else { phase = 'idle'; draw(0); return; }          /* settled: stop drawing */
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function run() { if (!raf) raf = requestAnimationFrame(frame); }
+  function go() { cancelAnimationFrame(raf); raf = 0; layout(); if (still || phase === 'idle') { phase = 'idle'; draw(0); } else run(); }
+  go(); var lw = innerWidth, t;
+  addEventListener('resize', function () { if (innerWidth === lw) return; lw = innerWidth; clearTimeout(t); t = setTimeout(go, 150); });
+
+  /* hover (or tap) on the figure scatters it, once it has settled */
+  function poke(e) {
+    if (still || phase !== 'idle') return;
+    var x = e.clientX, y = e.clientY;
+    if (x > fx && x < fx + fh * ASPECT && y > fy && y < fy + fh) scatter(x, y);
+  }
+  addEventListener('pointermove', poke); addEventListener('pointerdown', poke);
+})();
+</script>
 </body>
 </html>

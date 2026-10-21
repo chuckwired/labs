@@ -1,0 +1,3 @@
+#!/bin/sh
+# Keep hackers-delight/index.html in step with 404.html.
+node tools/sync-404.mjs && git add hackers-delight/index.html
