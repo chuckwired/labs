@@ -221,8 +221,6 @@ body {
   box-shadow: 0 0 8px var(--c);
 }
 .panel-foot { position: sticky; bottom: -8px; background: var(--panel); margin: 0 -8px -8px; display: flex; justify-content: space-between; align-items: center; padding: 8px 16px 10px; border-top: 1px solid var(--line); color: var(--dim); font-size: 11px; }
-#maxBtn { font: inherit; color: var(--dim); background: none; border: 0; padding: 4px 0 4px 12px; cursor: pointer; }
-#maxBtn[aria-pressed="true"] { color: var(--accent); }
 #allBtn { font: inherit; color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; }
 @media (max-width: 480px) { .name { font-size: 26px; } }
 @media (max-width: 640px) { .caption { bottom: calc(env(safe-area-inset-bottom, 0px) + 62px); } }
@@ -253,7 +251,7 @@ body {
   <button id="pickerBtn" type="button" aria-expanded="false" aria-controls="panel">Capes <span id="count"></span></button>
   <div id="panel" hidden>
     <div id="rows"></div>
-    <div class="panel-foot"><span>Shown on the canvas</span><span class="foot-btns"><button id="allBtn" type="button">All</button><button id="maxBtn" type="button" title="Temporary: duplicates the capes up to 29 to stress test">Max</button></span></div>
+    <div class="panel-foot"><span>Shown on the canvas</span><button id="allBtn" type="button">All</button></div>
   </div>
 </div>
 
@@ -426,10 +424,8 @@ const CAPES = [
 ];
 CAPES.forEach(d => { if (!d.plain) d.plain = { trim: shade(d.body, 0.12), trim2: shade(d.body, -0.14) }; });
 
-// dev-only: recoloured copies of the real capes, to test crowded scenes before the art exists. ?stress=N shows N at load; the "Max" button
-// in the picker (temporary) adds up to 29 at runtime. Test capes are never saved to localStorage.
+// dev-only: ?stress=N (up to 60) shows N capes at load, padding the real ones with recoloured copies, to test crowded scenes. Test capes are never saved to localStorage.
 const STRESS = Math.min(+new URLSearchParams(location.search).get('stress') || 0, 60);
-const MAXN = 29;
 const REAL = CAPES.slice();
 function hueShift(hx, deg) {
   let [r, g, b] = hex2rgb(hx).map(v => v / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
@@ -620,10 +616,6 @@ function drawDots() {
   }
 }
 
-function measureOne(c) {
-  c.el.style.width = boxW + 'px'; c.el.style.height = focusH + 'px';
-  c.el.style.setProperty('--u', (focusH / 100) + 'px'); c.persp = focusH * 1.7;
-}
 function measure() {
   vw = innerWidth; vh = innerHeight;
   dpr = Math.min(devicePixelRatio || 1, 2);
@@ -717,7 +709,7 @@ const countEl = document.getElementById('count');
 function setPanel(open) { panel.hidden = !open; pickerBtn.setAttribute('aria-expanded', String(open)); }
 pickerBtn.addEventListener('click', e => { e.stopPropagation(); setPanel(panel.hidden); });
 function persist() {
-  if (!STRESS && !maxOn) try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(capes.filter(c => c.enabled && !c.def.id.startsWith('test-')).map(c => c.def.id))); } catch (e) { /* storage unavailable */ }
+  if (!STRESS) try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(capes.filter(c => c.enabled && !c.def.id.startsWith('test-')).map(c => c.def.id))); } catch (e) { /* storage unavailable */ }
   const on = capes.filter(c => c.enabled).length;
   crowded = on > CONFIG.crowdAt;
   countEl.textContent = `${on}/${capes.length}`;
@@ -743,31 +735,6 @@ function addRow(c) {
   rowsEl.appendChild(row);
 }
 capes.forEach(addRow);
-/* TEMPORARY: "Max" duplicates the capes up to 29 (recoloured copies), shows them all, and restores your selection when toggled off */
-const maxBtn = document.getElementById('maxBtn');
-let maxOn = false, beforeMax = null;
-maxBtn.addEventListener('click', () => {
-  const now = (performance.now() - T0) / 1000;
-  if (!maxOn) {
-    maxOn = true; maxBtn.setAttribute('aria-pressed', 'true');
-    beforeMax = capes.filter(c => c.enabled).map(c => c.def.id);
-    testDefs(capes.length, MAXN).forEach((d, k) => {
-      const c = makeCape(d, capes.length, now + 0.05 * k);
-      c.enabled = false; c.gone = true; c.el.classList.add('gone', 'off'); capes.push(c);
-      measureOne(c); addRow(c);
-    });
-    capes.forEach(c => { setEnabled(c, true); const cb = document.getElementById('cape-' + c.def.id); if (cb) cb.checked = true; });
-  } else {
-    maxOn = false; maxBtn.setAttribute('aria-pressed', 'false');
-    capes.forEach(c => { const keep = beforeMax.includes(c.def.id); setEnabled(c, keep); const cb = document.getElementById('cape-' + c.def.id); if (cb) cb.checked = keep; });
-    // once the extras have faded out, remove them (and their picker rows) entirely
-    setTimeout(() => {
-      for (let i = capes.length - 1; i >= 0; i--) if (capes[i].def.id.startsWith('test-') && !capes[i].enabled) { capes[i].el.remove(); const r = document.getElementById('cape-' + capes[i].def.id); if (r) r.closest('label').remove(); capes.splice(i, 1); }
-      persist(); layout();
-    }, 1400);
-  }
-  layout(); persist();
-});
 /* Trim on/off: rebuild the artwork of every built cape with the other edge colours */
 const trimBtn = document.getElementById('trimBtn'), trimState = document.getElementById('trimState');
 function syncTrimBtn() { trimBtn.setAttribute('aria-pressed', String(trimOn)); trimState.textContent = trimOn ? 'On' : 'Off'; }
