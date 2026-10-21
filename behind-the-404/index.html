@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<meta name="description" content="Behind the design of the 404 page: a dot-matrix figure made from the night sky, a meme in a quiet room, and keeping the joke accessible.">
+<title>Behind the 404 · Chuck Rice Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M6 24V12h10v10h10' fill='none' stroke='%23c98a4e' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M6 8h14v8' fill='none' stroke='%2328d0e6' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#07070a; --ink:#e8e6df; --dim:#8b8a93; --line:rgba(255,255,255,0.10); --serif:'Instrument Serif', Georgia, serif; --mono:'JetBrains Mono', ui-monospace, Menlo, monospace; }
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.wrap { max-width: 720px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px) max(20px, env(safe-area-inset-left, 0px)); }
+.top { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.top a { color: var(--dim); text-decoration: none; transition: color .2s; }
+.top a:hover { color: var(--ink); }
+h1 { margin: clamp(48px, 10vw, 96px) 0 0; font: italic 400 clamp(44px, 9vw, 84px)/0.95 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
+.lede { margin: 24px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
+.cover { display: block; width: 100%; height: auto; margin: 40px 0 8px; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); padding: 14px 0; }
+section { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
+.n { font-size: 11px; letter-spacing: .16em; color: var(--dim); }
+h2 { margin: 6px 0 12px; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif); }
+p { margin: 0 0 12px; max-width: 62ch; }
+.say { color: var(--dim); font-size: 12px; }
+.say b { color: var(--ink); font-weight: 500; }
+.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
+.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
+.go:hover { border-color: var(--ink); }
+footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+@media (max-width: 560px) { .lede { font-size: 15px; } }
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../">&larr; Labs</a>
+    <a href="/404.html">The 404 &rarr;</a>
+  </nav>
+
+  <h1>Behind the design.</h1>
+  <p class="lede">This is the 404 page, and I think 404 pages should be fun. Being fun and being accessible don't have to fight, and this is how I tried to keep both.</p>
+
+  <section>
+    <div class="n">01</div>
+    <h2>Why make the 404 fun</h2>
+    <p>A page that says nothing lives here is a good place for a joke. A 404 is also the one page nobody is on to get something done. They're already a bit lost, which makes it the best place on a site to be generous.</p>
+    <p class="say"><b>Rule:</b> spend your charm where people are already confused.</p>
+  </section>
+  <section>
+    <div class="n">02</div>
+    <h2>The dot matrix I never got to use</h2>
+    <p>I'd wanted to make something from a dot matrix for a while: points of light that, from far enough away, become a picture. It never earned a place on a production page, where it would have been a flourish in the way. A 404 has no job to get in the way of, and the labs already have a night sky of sparse dots behind everything, so the idea was sitting there waiting.</p>
+    <p class="say"><b>Rule:</b> give the idea you couldn't use somewhere to live.</p>
+  </section>
+  <section>
+    <div class="n">03</div>
+    <h2>A meme in a quiet room</h2>
+    <p>The rest of the site is a calm, dark void, so a meme looks out of place, and that's the point. The man in the picture is the confused, looking-around-for-something one, which is exactly what someone on a dead link is doing. Under the headline is a line from the film he comes from, in actual quotation marks so it's clear the page isn't talking to you: &ldquo;Chill out man, I told you it&rsquo;s an accident. You probably hit a bump or something.&rdquo; You, the visitor, hit the bump. The 0 in 404 is a burger emoji, a small nod to the same film.</p>
+    <p class="say"><b>Rule:</b> the joke should be funnier for knowing the reference, and still fine without it.</p>
+  </section>
+  <section>
+    <div class="n">04</div>
+    <h2>Built from the night sky</h2>
+    <p>The page opens on the same field of stars as the index. Then, straight away, they start to move. Each dot that will be part of the figure drifts in from where it was sitting in the sky, head first and coat last, curving a little as it goes, and brightens as it lands. It takes about five seconds. Hover over him (or tap on a phone) and the dots scatter, roll off into new places in the sky and, after a beat, reform.</p>
+    <p>It's still a static page: one HTML file, no libraries and no images. The figure is about 1,900 points traced from the still, packed into text inside the page, and the script stops drawing once everything has settled. The 404 also lives at a second address, as a byte-for-byte copy kept in step by a commit hook, so there's still one place to edit and no flash of a loader.</p>
+    <p class="say"><b>Rule:</b> keep it static, and make the arrival the moment.</p>
+  </section>
+  <section>
+    <div class="n">05</div>
+    <h2>Spending the dots</h2>
+    <p>The first version used nearly four thousand small dots and looked like a smudge. Fewer, bigger dots made the body read but cost the face, so I spend them unevenly: the head and the hand get dense, tiny dots, because that's where the eye goes and where the expression lives. The body can be sparse. I also traced the outline at first and it looked traced. The finished edge is stippled like the rest, with the dots shrinking and thinning toward the edge, like the dotted fade at the edge of a car window.</p>
+    <p class="say"><b>Rule:</b> detail where people look, softness where they don't.</p>
+  </section>
+  <section>
+    <div class="n">06</div>
+    <h2>Fun and accessible</h2>
+    <p>The page doesn't depend on the animation. The headline, the quote and the link are real text, there from the first frame, so nobody waits for the stars. A screen reader hears &ldquo;404&rdquo; rather than &ldquo;4 hamburger 4&rdquo;, because the burger is hidden from it and the number is there as text.</p>
+    <p>The dots needed a description too. A canvas is an empty box to a screen reader, so the figure is announced as a single image: stars drifting together into a man in a dark suit with a coat over his arm, palm out, looking around bewildered, like the confused-man meme. The meme is in the description on purpose, so the joke isn't only for people who can see it. With reduced motion on, the finished figure is just there, and the hover scatter and the page transition are off. The scatter is pointer-only decoration; nothing depends on it, and the link works from the keyboard like any link. The dimmer text sits at about 5.9:1 on the background, which clears AA.</p>
+    <p class="say"><b>Rule:</b> make the fun a layer on top of a page that already works.</p>
+  </section>
+  <div class="actions"><a class="go" href="../">&larr; Back to labs</a><a class="go" href="/404.html">See the 404 &rarr;</a></div>
+  <footer>&copy; 2026 Chuck Rice</footer>
+</div>
+</body>
+</html>

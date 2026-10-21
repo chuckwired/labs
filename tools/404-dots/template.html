@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<title>404 · Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M12 6h8v6l5 11a3 3 0 0 1-3 4H10a3 3 0 0 1-3-4l5-11z' fill='none' stroke='%23e8e6df' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Served from any URL depth: use absolute paths only, inline styles. */
+:root { --bg:#07070a; --ink:#e8e6df; --dim:#8b8a93; }
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh;
+  display: grid; align-items: center;
+  padding: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  background: var(--bg);
+  color: var(--ink); font: 400 14px/1.5 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+#sky { view-transition-name: lab-art; position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+main { position: relative; z-index: 1; max-width: 560px; }
+h1 { margin: 0; font: italic 400 clamp(88px, 20vw, 176px)/0.95 'Instrument Serif', Georgia, serif; letter-spacing: -0.01em; text-wrap: balance; }
+.o { font-style: normal; font-size: .82em; vertical-align: .04em; margin: 0 .02em; }
+p { margin: 20px 0 0; color: var(--dim); font-size: 17px; line-height: 1.55; }
+a { display: inline-block; margin-top: 28px; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
+a:hover { border-color: var(--ink); }
+.links { display: flex; flex-wrap: wrap; gap: 0 28px; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+/* hand-off from the index card (hackers-delight is a copy of this page): the sky takes the shared name "lab-art" */
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (min-width: 761px) { body { padding-left: max(20px, 7vw); } }
+@media (max-width: 760px) {
+  body { align-items: end; padding-bottom: max(32px, env(safe-area-inset-bottom, 0px)); }
+  p { font-size: 15px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="sr">404</span><span aria-hidden="true">4<span class="o">🍔</span>4</span></h1>
+  <p>&ldquo;Chill out man, I told you it&rsquo;s an accident. You probably hit a bump or something.&rdquo;</p>
+  <div class="links"><a href="/">&larr; Labs</a><a href="/behind-the-404/">Behind the design &rarr;</a></div>
+</main>
+<canvas id="sky" role="img" aria-label="Stars in a night sky drifting together into a man in a dark suit with a coat over his arm, palm out, looking around bewildered, like the confused-man meme."></canvas>
+<script>
+/* Night sky that assembles a figure out of its own dots (__N__ of them, traced from a still).
+   Hover the figure and it scatters, rolls away, then reforms. Static page, no dependencies.
+   Points are base-36, 5 chars each: head<<24 | brightness<<20 | y<<10 | x, y/x on a 0-1023 grid of the figure's height. */
+(function () {
+  var ASPECT = __ASPECT__, DATA = '__DATA__';
+  var cv = document.getElementById('sky'), cx = cv.getContext('2d');
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var seed = 7; function r() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+
+  /* each point: x,y,b = place and brightness in the figure; sx,sy = where it sits in the sky; o* = where it rolls to */
+  var P = [];
+  for (var i = 0; i < DATA.length; i += 5) {
+    var v = parseInt(DATA.substr(i, 5), 36), b = ((v >> 20) & 15) / 15, hd = (v >> 24) & 1;
+    P.push({ x: (v & 1023) / 1023, y: ((v >> 10) & 1023) / 1023, b: b, sx: r(), sy: r(), a0: 0.06 + r() * 0.26, z: 0.55 + 0.45 * Math.min(1, b / 0.6), s: hd ? (b > 0.7 ? 1.5 : 1.1) : (b > 0.7 ? 2.6 : 2), d: 0, t: 0, k: 0, ox: 0, oy: 0, od: 0, ot: 0 });
+  }
+  P.sort(function (a, b) { return a.a0 - b.a0; });       /* dim ones first so bright ones draw on top */
+
+  var phase = 'in', ps, END = 0, raf = 0;                /* in: sky to figure, out: figure to sky, idle: settled */
+  function plan(lead) {                                  /* delays for the sky-to-figure trip, top of the figure first */
+    END = 0;
+    P.forEach(function (p) { p.d = lead + p.y * 2.6 + r() * 1.6; p.t = 2.8 + r() * 1.6; p.k = (r() - 0.5) * 0.5; END = Math.max(END, p.d + p.t); });
+  }
+  function scatter(px, py) {                             /* ripple outward from the pointer, bowing off to new places in the sky */
+    END = 0;
+    P.forEach(function (p) {
+      var dist = Math.hypot(fx + p.x * fh - px, fy + p.y * fh - py) / fh;
+      p.od = dist * 0.9 + r() * 0.35; p.ot = 1.6 + r() * 1.2; p.k = (r() < 0.5 ? -1 : 1) * (0.25 + r() * 0.5);
+      p.ox = r(); p.oy = r(); END = Math.max(END, p.od + p.ot);
+    });
+    phase = 'out'; ps = performance.now(); run();
+  }
+  plan(0);
+
+  var W, H, dpr, fx, fy, fh, stars = [];
+  function layout() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (W > 760) { fh = Math.min(H * 0.84, (W - 420) / ASPECT, 760); fx = W * 0.64 - fh * ASPECT / 2; fy = (H - fh) / 2; }
+    else { fh = Math.min(H * 0.5, (W - 40) / ASPECT); fx = (W - fh * ASPECT) / 2; fy = Math.max(16, (H - fh) * 0.12); }
+    seed = 99; stars = [];
+    for (var i = 0, n = Math.round(W * H / 9000); i < n; i++) stars.push([r() * W, r() * H, 0.05 + r() * 0.3, r() < 0.15 ? 1.6 : 1]);
+  }
+  function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function draw(el) {
+    cx.clearRect(0, 0, W, H); cx.fillStyle = '#e8e6df';
+    for (var i = 0; i < stars.length; i++) { var s = stars[i]; cx.globalAlpha = s[2]; cx.fillRect(s[0], s[1], s[3], s[3]); }
+    for (var j = 0; j < P.length; j++) {
+      var p = P[j], a1 = 0.3 + 0.7 * p.b, fxp = fx + p.x * fh, fyp = fy + p.y * fh, x0, y0, x1, y1, e, al;
+      if (phase === 'out') {
+        e = ease(Math.max(0, Math.min(1, (el - p.od) / p.ot)));
+        x0 = fxp; y0 = fyp; x1 = p.ox * W; y1 = p.oy * H; al = a1 + (p.a0 - a1) * e;
+      } else {
+        e = still || phase === 'idle' ? 1 : ease(Math.max(0, Math.min(1, (el - p.d) / p.t)));
+        x0 = p.sx * W; y0 = p.sy * H; x1 = fxp; y1 = fyp; al = p.a0 + (a1 - p.a0) * e;
+      }
+      var bow = Math.sin(Math.PI * e) * p.k;
+      cx.globalAlpha = al;
+      cx.fillRect(x0 + (x1 - x0) * e - (y1 - y0) * bow, y0 + (y1 - y0) * e + (x1 - x0) * bow, p.s * p.z, p.s * p.z);
+    }
+  }
+  function frame(ts) {
+    if (ps === undefined) ps = ts;
+    var el = (ts - ps) / 1000; draw(el); raf = 0;
+    if (el >= END) {
+      if (phase === 'out') { P.forEach(function (p) { p.sx = p.ox; p.sy = p.oy; }); plan(0.25); phase = 'in'; ps = ts; }   /* rest a beat, then reform from where they landed */
+      else { phase = 'idle'; draw(0); return; }          /* settled: stop drawing */
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function run() { if (!raf) raf = requestAnimationFrame(frame); }
+  function go() { cancelAnimationFrame(raf); raf = 0; layout(); if (still || phase === 'idle') { phase = 'idle'; draw(0); } else run(); }
+  go(); var lw = innerWidth, t;
+  addEventListener('resize', function () { if (innerWidth === lw) return; lw = innerWidth; clearTimeout(t); t = setTimeout(go, 150); });
+
+  /* hover (or tap) on the figure scatters it, once it has settled */
+  function poke(e) {
+    if (still || phase !== 'idle') return;
+    var x = e.clientX, y = e.clientY;
+    if (x > fx && x < fx + fh * ASPECT && y > fy && y < fy + fh) scatter(x, y);
+  }
+  addEventListener('pointermove', poke); addEventListener('pointerdown', poke);
+})();
+</script>
+</body>
+</html>
