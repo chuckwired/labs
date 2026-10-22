@@ -9,7 +9,7 @@
 <meta name="description" content="A birthday card with a dog on a checkerboard rug.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Anton&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#111111; --paper:#ffffff; --accent:#e8321e;
@@ -19,21 +19,21 @@
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);overflow:hidden}
   body{font-family:'Archivo','Helvetica Neue',Arial,sans-serif;font-weight:500;font-size:17px;line-height:1.35;
     -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
-  .back{position:fixed;top:12px;left:var(--m);z-index:5;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;padding:6px 0}
+  .back{position:fixed;top:14px;left:var(--m);z-index:5;font-size:16px;line-height:1.3;font-weight:700;color:var(--ink);text-decoration:none;padding:0}
   .back:hover{text-decoration:underline}
   .back:focus-visible,#stage:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 
-  h1{position:absolute;z-index:0;left:var(--m);top:46px;margin:0;font-weight:900;font-stretch:70%;
-    font-size:clamp(34px,12vw,200px);line-height:.9;letter-spacing:-.035em;text-transform:uppercase;
-    font-family:'Archivo','Impact','Arial Narrow',sans-serif}
+  h1{position:absolute;z-index:0;left:var(--m);top:46px;margin:0;font-weight:400;
+    font-size:clamp(34px,12vw,200px);line-height:.95;letter-spacing:-.01em;
+    font-family:'Anton','Impact','Arial Narrow',sans-serif}
   h1 span{display:block;width:max-content;white-space:nowrap}
 
   #stage{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none;cursor:default}
 
-  .hint{position:fixed;z-index:3;right:var(--m);top:12px;margin:0;text-align:right;font-weight:700;font-size:16px;line-height:1.3;
+  .hint{position:fixed;z-index:3;right:var(--m);top:14px;margin:0;text-align:right;font-weight:700;font-size:16px;line-height:1.3;
     pointer-events:none;transition:opacity .5s ease}
   .hint.gone{opacity:0}
-  .hint .mic{font:inherit;font-weight:800;background:none;border:0;padding:2px 0;margin:0;color:var(--ink);cursor:pointer;
+  .hint .mic{font:inherit;font-weight:800;background:none;border:0;padding:0;margin:0;color:var(--ink);cursor:pointer;
     text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px;pointer-events:auto}
   .hint .mic:hover{color:var(--accent)}
   .hint .mic:active{transform:translateY(1px)}
@@ -98,8 +98,9 @@ const CONFIG = {
   barks: ['Woof.', 'Arf!', 'Yip!', 'Woof woof.', 'Again.', 'Hello.'],
   introLine: () => `${cap(CONFIG.dogName)} has been told to behave. It has not listened.`,
   wishLit: 'Close your eyes. Think of something good. Then blow out the candle.',
-  hintLit: 'Make a wish. Tap the candle or',
-  hintPeek: 'Tap the bottom for cake. Drag the toy.',
+  hintLit: 'Make a wish.',
+  hintLitNoMic: 'Make a wish. Tap the candle.',
+  hintPeek: 'Tap the bottom for cake.',
   blowLevel: 0.16,          // mic loudness (0-1) that counts as a blow
   blowTime: 0.22,           // seconds it has to last
   wishDone: 'Wish sent. No refunds.',
@@ -672,8 +673,9 @@ function throwToy() {
 function setHint() {
   const st = cake.userData.state;
   hint.classList.toggle('gone', st === 'out');
-  hintText.textContent = st === 'lit' ? CONFIG.hintLit : CONFIG.hintPeek;
-  micBtn.hidden = !(st === 'lit' && navigator.mediaDevices?.getUserMedia);
+  const mic = st === 'lit' && !!navigator.mediaDevices?.getUserMedia;
+  hintText.textContent = st === 'lit' ? (mic ? CONFIG.hintLit : CONFIG.hintLitNoMic) : CONFIG.hintPeek;
+  micBtn.hidden = !mic;
 }
 function startWish() {
   const u = cake.userData;
