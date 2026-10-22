@@ -87,6 +87,7 @@ a.card:hover .deck, a.card:focus-visible .deck { translate: 0 -2.5%; }
 .plate::after { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,.10), rgba(255,255,255,0) 45%); pointer-events: none; }
 .plate i { position: absolute; width: 60%; aspect-ratio: 1; border-radius: 50%; filter: blur(30px); opacity: .55; left: var(--x); top: var(--y); background: var(--c); transform: translate(-50%, -50%); }
 .plate img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 6% 0; }
+.plate.fill img { object-fit: cover; padding: 0; }
 
 .info { min-width: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 26px; }
@@ -184,6 +185,7 @@ var LABS = [
     tags: ['three.js', 'WebGL', 'Made with Sonnet 5.5'],
     date: '2026-10-22',
     cover: 'birthday-dog/cover.png',
+    fit: 'cover',
     notes: 'birthday-dog/direction/',
     glows: [['#e8321e', '28%', '70%'], ['#cdcac6', '72%', '34%']]
   },
@@ -210,7 +212,7 @@ var LABS = [
     var a = el('a', 'card'); a.href = l.path; a.setAttribute('aria-label', l.title);
     var art = el('div', 'art'), deck = el('div', 'deck');
     var g = l.glows || [];
-    var plate = el('div', 'plate');
+    var plate = el('div', 'plate'); if (l.fit === 'cover') plate.classList.add('fill');
     g.forEach(function (gg) { var i = el('i'); i.style.setProperty('--c', gg[0]); i.style.setProperty('--x', gg[1]); i.style.setProperty('--y', gg[2]); plate.appendChild(i); });
     if (l.cover) { var img = el('img'); img.src = l.cover; img.alt = ''; img.width = 400; img.height = 190; img.decoding = 'async'; plate.appendChild(img); }
     deck.appendChild(plate);

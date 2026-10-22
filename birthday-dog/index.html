@@ -110,8 +110,9 @@ const CONFIG = {
   hintLit: 'Make a wish.',
   hintLitNoMic: 'Make a wish. Tap the candle.',
   hintPeek: 'Tap the bottom for cake.',
-  blowLevel: 0.16,          // mic loudness (0-1) that counts as a blow
-  blowTime: 0.22,           // seconds it has to last
+  blowMin: 0.05,            // quietest mic loudness (0-1) that can count as a blow
+  blowRatio: 2.6,           // a blow has to be this many times louder than the room
+  blowTime: 0.2,            // seconds it has to last
   wishDone: 'Wish sent. No refunds.',
   fetchLines: ['Good dog.', 'It always brings it back. Eventually.', 'Nobody asked for a slobbery toy. Here it is.'],
   mouthFull: 'Hold on, mouth full.',
@@ -709,11 +710,13 @@ let mic = null;
 async function startMic() {
   if (mic) return;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // breath is noise, so switch off the processing that exists to remove noise
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     const ac = new (window.AudioContext || window.webkitAudioContext)();
-    const an = ac.createAnalyser(); an.fftSize = 512;
+    const an = ac.createAnalyser(); an.fftSize = 1024; an.smoothingTimeConstant = 0;
     ac.createMediaStreamSource(stream).connect(an);
-    mic = { stream, ac, an, buf: new Uint8Array(an.fftSize), hot: 0 };
+    mic = { stream, ac, an, buf: new Uint8Array(an.fftSize), hot: 0, level: 0, floor: 0.01 };
+    if (ac.state === 'suspended') ac.resume();   // created after the permission prompt, so it may start suspended (not awaited: it can stay pending)
     micBtn.textContent = 'Listening. Blow now';
     setStatus('Listening for a blow.');
   } catch (e) { micBtn.hidden = true; setStatus('No mic, no problem. Tap the candle.'); }
@@ -727,10 +730,15 @@ micBtn.addEventListener('click', startMic);
 addEventListener('keydown', (e) => { if (e.key === 'Escape') { stopMic(); } });
 function pollMic(dt) {
   if (!mic || cake.userData.state !== 'lit') return;
+  if (mic.ac.state === 'suspended') mic.ac.resume();
   mic.an.getByteTimeDomainData(mic.buf);
   let sum = 0; for (let i = 0; i < mic.buf.length; i++) { const v = (mic.buf[i] - 128) / 128; sum += v * v; }
   const rms = Math.sqrt(sum / mic.buf.length);
-  mic.hot = rms > CONFIG.blowLevel ? mic.hot + dt : Math.max(0, mic.hot - dt);
+  mic.level += (rms - mic.level) * Math.min(1, dt * 20);
+  const need = Math.max(CONFIG.blowMin, mic.floor * CONFIG.blowRatio);
+  const loud = mic.level > need;
+  if (!loud) mic.floor += (mic.level - mic.floor) * Math.min(1, dt * 1.5);   // learn how loud the room is
+  mic.hot = loud ? mic.hot + dt : Math.max(0, mic.hot - dt * 2);
   if (mic.hot > CONFIG.blowTime) blowOut();
 }
 function cakeTap() { if (cake.userData.state === 'peek') startWish(); else blowOut(); }
@@ -1028,7 +1036,12 @@ function updateCake(dt) {
   const k = u.k.step(dt), kc = Math.min(Math.max(k, 0), 1.15);
   cake.position.set(view.cakePeekX + (view.cakeLitX - view.cakePeekX) * kc, Math.sin(Math.min(Math.max(k, 0), 1) * Math.PI) * 0.35, view.cakePeekZ + (view.cakeLitZ - view.cakePeekZ) * kc);
   cake.scale.setScalar(CAKE_S * (1 - 0.06 * Math.min(Math.max(k, 0), 1)));
-  if (u.state === 'lit' && k > 0.8) { u.flame.visible = true; u.flame.scale.set(1 + Math.sin(T * 22) * 0.08, 1 + Math.sin(T * 17 + 1) * 0.14, 1); }
+  if (u.state === 'lit' && k > 0.8) {
+    u.flame.visible = true;
+    const bend = mic ? Math.min(1, mic.hot / CONFIG.blowTime) : 0;   // the flame leans and shrinks as you blow
+    u.flame.scale.set((1 + Math.sin(T * 22) * 0.08) * (1 - 0.35 * bend), (1 + Math.sin(T * 17 + 1) * 0.14) * (1 - 0.45 * bend), 1);
+    u.flame.rotation.z = -bend * 0.6;
+  }
 }
 
 /* ------------------------------------------------------------- main loop */
@@ -1081,7 +1094,7 @@ else setTimeout(() => say('Happy birthday!', 2.5), 600);
   document.addEventListener('pointerleave', () => notes.classList.remove('in'));
   addEventListener('blur', () => notes.classList.remove('in'));
 }
-window.__pop = { cake, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
+window.__pop = { cake, micInfo: () => mic && { state: mic.ac.state, level: +mic.level.toFixed(3), floor: +mic.floor.toFixed(3), hot: +mic.hot.toFixed(2) }, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); pollMic(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
 </body>
 </html>
