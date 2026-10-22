@@ -32,6 +32,12 @@
   .hint{position:fixed;z-index:3;right:var(--m);top:12px;margin:0;text-align:right;font-weight:700;font-size:16px;line-height:1.3;
     pointer-events:none;transition:opacity .5s ease}
   .hint.gone{opacity:0}
+  .hint .mic{font:inherit;font-weight:800;background:none;border:0;padding:2px 0;margin:0;color:var(--ink);cursor:pointer;
+    text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px;pointer-events:auto}
+  .hint .mic:hover{color:var(--accent)}
+  .hint .mic:active{transform:translateY(1px)}
+  .hint .mic:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .hint .mic[hidden]{display:none}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .bubble{position:fixed;left:0;top:0;z-index:4;pointer-events:none;background:var(--ink);color:#fff;font-weight:800;
@@ -57,7 +63,7 @@
 <canvas id="stage" tabindex="0" role="img" aria-label="A shih tzu on a checkerboard rug. Move the pointer to make it look, click it to pat it, drag the toy to throw it, tap the bottom of the screen (or press C) to bring out a birthday cake."></canvas>
 <div class="bubble" id="bubble" aria-hidden="true">Woof.</div>
 <p id="fallback">Your browser could not draw the dog, so here is the short version: happy birthday, Mama Candy.</p>
-<p class="hint rise" style="--i:3" id="hint">Tap the bottom for cake. Drag the toy.</p>
+<p class="hint rise" style="--i:3" id="hint"><span id="hintText"></span> <button class="mic" id="micBtn" type="button" hidden>Blow into your mic</button></p>
 <p class="sr" id="status" aria-live="polite"></p>
 
 <script type="importmap">
@@ -86,6 +92,10 @@ const CONFIG = {
   barks: ['Woof.', 'Arf!', 'Yip!', 'Woof woof.', 'Again.', 'Hello.'],
   introLine: () => `${cap(CONFIG.dogName)} has been told to behave. It has not listened.`,
   wishLit: 'Close your eyes. Think of something good. Then blow out the candle.',
+  hintLit: 'Make a wish. Tap the candle or',
+  hintPeek: 'Tap the bottom for cake. Drag the toy.',
+  blowLevel: 0.16,          // mic loudness (0-1) that counts as a blow
+  blowTime: 0.22,           // seconds it has to last
   wishDone: 'Wish sent. No refunds.',
   fetchLines: ['Good dog.', 'It always brings it back. Eventually.', 'Nobody asked for a slobbery toy. Here it is.'],
   mouthFull: 'Hold on, mouth full.',
@@ -94,8 +104,8 @@ function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (id) => document.getElementById(id);
-const canvas = $('stage'), h1 = $('title'), bubble = $('bubble'), statusEl = $('status'), hint = $('hint');
-statusEl.textContent = CONFIG.introLine();
+const canvas = $('stage'), h1 = $('title'), bubble = $('bubble'), statusEl = $('status'), hint = $('hint'), hintText = $('hintText'), micBtn = $('micBtn');
+statusEl.textContent = CONFIG.wishLit;
 
 /* -------------------------------------------------------------- renderer */
 let renderer;
@@ -449,7 +459,7 @@ const toyShadow = shadow.clone(); scene.add(toyShadow);
 /* --------------------------------------------------------------- cake */
 const CAKE_S = 1.3;
 const cake = new THREE.Group(); scene.add(cake);
-cake.userData = { t: 0, state: 'peek', k: new Spring(110, 13, 0) };
+cake.userData = { t: 0, state: 'lit', k: new Spring(110, 13, 1) };
 {
   const mk = (geo, color, y) => {
     const m = new THREE.Mesh(geo, solid(color, 0.2)); m.position.y = y; cake.add(m);
@@ -529,7 +539,7 @@ const D = {
   yaw: CONFIG.homeYaw, yawT: CONFIG.homeYaw, vy: 0, y: 0, state: 'idle', cd: 1.5, speed: 0, gait: 0,
   vel: new THREE.Vector3(), prev: new THREE.Vector3(), squash: new Spring(160, 12, 0),
   hYaw: new Spring(90, 11), hPitch: new Spring(90, 11), hRoll: new Spring(70, 9),
-  sit: new Spring(70, 11, 0), idleT: 0, dashAt: 5, wag: new Spring(40, 5, 0), wagT: 0.25, wagBoost: 0, blink: 0, nextBlink: 2, hover: false, bark: 0, pant: 0,
+  sit: new Spring(70, 11, 1), idleT: 0, dashAt: 5, wag: new Spring(40, 5, 0), wagT: 0.25, wagBoost: 0, blink: 0, nextBlink: 2, hover: false, bark: 0, pant: 0,
 };
 dog.root.position.copy(home);
 const pointer = { x: 0, y: 0, nx: 0, ny: 0, has: false, down: false, moved: 0, lastMove: 0 };
@@ -653,21 +663,58 @@ function throwToy() {
   setStatus(pick(CONFIG.fetchLines));
 }
 
+function setHint() {
+  const st = cake.userData.state;
+  hint.classList.toggle('gone', st === 'out');
+  hintText.textContent = st === 'lit' ? CONFIG.hintLit : CONFIG.hintPeek;
+  micBtn.hidden = !(st === 'lit' && navigator.mediaDevices?.getUserMedia);
+}
 function startWish() {
   const u = cake.userData;
   if (u.state !== 'peek') return;
   u.state = 'lit'; u.t = 0;
-  hint.classList.add('gone');
+  setHint();
   setStatus(CONFIG.wishLit);
   jump(0.5); D.wagBoost = 1.2;
 }
 function blowOut() {
   const u = cake.userData; if (u.state !== 'lit') return;
   u.state = 'out'; u.t = 0; u.flame.visible = false;
+  stopMic(); setHint();
   setStatus(CONFIG.wishDone);
   const o = cake.position.clone(); o.y = 1.1 * CAKE_S;
   burst(o, 190, 1.15); burst(headWorld(), 70, 0.9);
   jump(1.2); D.wagBoost = 2.2; say('Happy birthday!', 2.2);
+}
+
+/* mic blowing: permission is asked only when the button is pressed */
+let mic = null;
+async function startMic() {
+  if (mic) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const an = ac.createAnalyser(); an.fftSize = 512;
+    ac.createMediaStreamSource(stream).connect(an);
+    mic = { stream, ac, an, buf: new Uint8Array(an.fftSize), hot: 0 };
+    micBtn.textContent = 'Listening. Blow now';
+    setStatus('Listening for a blow.');
+  } catch (e) { micBtn.hidden = true; setStatus('No mic, no problem. Tap the candle.'); }
+}
+function stopMic() {
+  if (!mic) return;
+  mic.stream.getTracks().forEach((t) => t.stop()); mic.ac.close?.(); mic = null;
+  micBtn.textContent = 'Blow into your mic';
+}
+micBtn.addEventListener('click', startMic);
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { stopMic(); } });
+function pollMic(dt) {
+  if (!mic || cake.userData.state !== 'lit') return;
+  mic.an.getByteTimeDomainData(mic.buf);
+  let sum = 0; for (let i = 0; i < mic.buf.length; i++) { const v = (mic.buf[i] - 128) / 128; sum += v * v; }
+  const rms = Math.sqrt(sum / mic.buf.length);
+  mic.hot = rms > CONFIG.blowLevel ? mic.hot + dt : Math.max(0, mic.hot - dt);
+  if (mic.hot > CONFIG.blowTime) blowOut();
 }
 function cakeTap() { if (cake.userData.state === 'peek') startWish(); else blowOut(); }
 
@@ -955,7 +1002,7 @@ function updateDog(dt) {
 function updateCake(dt) {
   const u = cake.userData;
   u.t += dt;
-  if (u.state === 'out' && u.t > 3) { u.state = 'peek'; u.t = 0; setStatus(CONFIG.introLine()); }
+  if (u.state === 'out' && u.t > 3) { u.state = 'peek'; u.t = 0; setHint(); setStatus(CONFIG.introLine()); }
   u.k.t = u.state === 'peek' ? 0 : 1;
   const k = u.k.step(dt), kc = Math.min(Math.max(k, 0), 1.15);
   cake.position.set(view.cakePeekX + (view.cakeLitX - view.cakePeekX) * kc, Math.sin(Math.min(Math.max(k, 0), 1) * Math.PI) * 0.35, view.cakePeekZ + (view.cakeLitZ - view.cakePeekZ) * kc);
@@ -970,7 +1017,7 @@ function frame(now) {
   running = true;
   requestAnimationFrame(frame);
   const dt = Math.min((now - last) / 1000, 0.05); last = now; T += dt;
-  try { updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); } catch (err) { if (!frame.warned) { frame.warned = 1; console.error('card update failed', err); } }
+  try { updateToy(dt); updateDog(dt); updateCake(dt); pollMic(dt); updateConfetti(dt); } catch (err) { if (!frame.warned) { frame.warned = 1; console.error('card update failed', err); } }
   toyShadow.position.set(toy.group.position.x, 0.016, toy.group.position.z);
   const ts = toy.carried ? 0.001 : 1.1 * (1 - Math.min(toy.group.position.y, 2) * 0.2);
   toyShadow.scale.set(ts, ts * 0.8, 1);
@@ -989,6 +1036,8 @@ document.addEventListener('visibilitychange', wake);
 window.addEventListener('focus', wake); window.addEventListener('pageshow', wake);
 window.addEventListener('resize', layout);
 layout();
+setHint();
+D.yaw = D.yawT = Math.atan2(view.cakeLitX - dog.root.position.x, view.cakeLitZ - dog.root.position.z);
 document.fonts?.ready.then(layout);
 setTimeout(layout, 900);
 requestAnimationFrame(frame);
