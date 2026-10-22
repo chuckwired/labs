@@ -74,6 +74,9 @@ const CONFIG = {
   paper: '#ffffff',
   accent: '#e8321e',
   tile: 1.5,                // checker tile size in world units (bigger = calmer)
+  cakePeekAt: 0.2,          // screen x (0-1) where the cake peeks in from the bottom
+  cakeLitAt: 0.3,           // screen x it slides to when lit
+  dashEvery: [8, 14],       // seconds idle before the dog zooms off left and back in from the right
   floorDark: '#cdcac6',     // the 'dark' checker square; paler = milder
   maxPixelRatio: 2,
   furScale: 1,              // 0.5 = lighter fur for slow devices
@@ -330,12 +333,12 @@ const dog = {};
   const tl = new THREE.Mesh(sphereG, new THREE.MeshBasicMaterial({ color: '#d2566a' }));
   tl.scale.set(0.012, 0.01, 0.12); tl.position.set(0, 0.0, 0.07); tongue.add(tl);
   // underbite: the chin juts past the muzzle, and the dog's right canine (screen left) pokes up over the lip
-  const jaw = ell(head, [0.28, 0.12, 0.32], [0, -0.03, 1.3], solid('#fff0dc'), true);
-  fur(head, { radii: [0.3, 0.14, 0.34], center: [0, -0.03, 1.3], count: 30, size: 0.085, droop: 1.0, jitter: 0.35,
+  const jaw = ell(head, [0.27, 0.12, 0.31], [0, -0.03, 1.26], solid('#fff0dc'), true);
+  fur(head, { radii: [0.29, 0.14, 0.33], center: [0, -0.03, 1.26], count: 30, size: 0.085, droop: 1.0, jitter: 0.35,
     keep: (p, n) => (n.y < -0.2 || n.z < -0.2) && !toothZone(p), colorFn: () => CREAM() });
   const canG = new THREE.ConeGeometry(0.075, 0.32, 14);
   const can = new THREE.Mesh(canG, new THREE.MeshToonMaterial({ color: '#ffffff', gradientMap: gradTex }));
-  can.position.set(-0.16, 0.15, 1.58); can.rotation.set(0.4, 0, 0.12);
+  can.position.set(-0.16, 0.15, 1.53); can.rotation.set(0.4, 0, 0.12);
   const canO = new THREE.Mesh(canG, new THREE.MeshBasicMaterial({ color: CONFIG.ink, side: THREE.BackSide })); canO.scale.set(1.4, 1.1, 1.4); can.add(canO);
   head.add(can);
   // mouth anchor for fetch
@@ -526,7 +529,7 @@ const D = {
   yaw: CONFIG.homeYaw, yawT: CONFIG.homeYaw, vy: 0, y: 0, state: 'idle', cd: 1.5, speed: 0, gait: 0,
   vel: new THREE.Vector3(), prev: new THREE.Vector3(), squash: new Spring(160, 12, 0),
   hYaw: new Spring(90, 11), hPitch: new Spring(90, 11), hRoll: new Spring(70, 9),
-  wag: new Spring(40, 5, 0), wagT: 0.25, wagBoost: 0, blink: 0, nextBlink: 2, hover: false, bark: 0, pant: 0,
+  sit: new Spring(70, 11, 0), idleT: 0, dashAt: 5, wag: new Spring(40, 5, 0), wagT: 0.25, wagBoost: 0, blink: 0, nextBlink: 2, hover: false, bark: 0, pant: 0,
 };
 dog.root.position.copy(home);
 const pointer = { x: 0, y: 0, nx: 0, ny: 0, has: false, down: false, moved: 0, lastMove: 0 };
@@ -539,6 +542,12 @@ const _v = new THREE.Vector3();
 
 /* ------------------------------------------------------------- layout */
 function screenY(x, y, z) { _v.set(x, y, z).project(camera); return (1 - _v.y) / 2 * view.h; }
+function screenX(x, y, z) { _v.set(x, y, z).project(camera); return (_v.x + 1) / 2 * view.w; }
+function xForScreenX(sx, y, z) {
+  let lo = -40, hi = 40;
+  for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (screenX(mid, y, z) < sx) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
 function zForScreenY(sy) {
   let lo = -90, hi = 8;
   for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (screenY(0, 0, mid) < sy) lo = mid; else hi = mid; }
@@ -585,11 +594,14 @@ function layout() {
   view.zBack = Math.max(farZ + 0.8, -2.6);
   view.zFront = THREE.MathUtils.clamp(zForScreenY(h - 40), 0.5, 2.3);
   view.bx = Math.min(4.2, d * tn * camera.aspect * 0.8 * (2 * Math.min(cx, w - cx) / w));
-  view.cakeLitZ = THREE.MathUtils.clamp(zForScreenY(h * 0.88), 0.8, 4);
+  view.cakeLitZ = THREE.MathUtils.clamp(zForScreenY(h * 0.84), 0.8, 4);
   const tipY = 1.02 * CAKE_S;
   let lo = -20, hi = camera.position.z - 1;
   for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (screenY(0, tipY, mid) < h - peekPx) lo = mid; else hi = mid; }
   view.cakePeekZ = (lo + hi) / 2;
+  view.cakePeekX = xForScreenX(w * CONFIG.cakePeekAt, tipY, view.cakePeekZ);
+  view.cakeLitX = xForScreenX(w * CONFIG.cakeLitAt, 0.4, view.cakeLitZ);
+  view.offL = xForScreenX(-220, 0.5, home.z); view.offR = xForScreenX(w + 220, 0.5, home.z);
 }
 
 /* ------------------------------------------------------- speech bubble */
@@ -667,6 +679,11 @@ function setPointer(e) {
   pointer.has = true; pointer.lastMove = performance.now();
 }
 function pickHit(candidates) {
+  if (!toy.carried && candidates.includes(toy.hit)) {
+    _v.copy(toy.group.position).project(camera);
+    const tx = (_v.x + 1) / 2 * view.w, ty = (1 - _v.y) / 2 * view.h;
+    if (Math.hypot(pointer.x - tx, pointer.y - ty) < (view.w < 600 ? 56 : 70)) return 'toy';
+  }
   ray.setFromCamera({ x: pointer.nx, y: pointer.ny }, camera);
   const hits = ray.intersectObjects(candidates, false);
   return hits.length ? hits[0].object.userData.hit : null;
@@ -771,9 +788,17 @@ function updateDog(dt) {
   const r = dog.root, pos = r.position;
   let moving = false, goal = null, stop = 0;
   D.cd -= dt;
+  const sitWant = cake.userData.state !== 'peek' && D.state === 'idle' ? 1 : 0;
+  D.sit.t = sitWant;
+  const sit = THREE.MathUtils.clamp(D.sit.step(dt), -0.05, 1.05);
+  if (pointer.down || toy.held || sitWant) D.idleT = 0;
 
   if (D.state === 'idle') {
-    if (D.cd <= 0 && toyFree()) {
+    if (!reduced && !sitWant) {
+      D.idleT += dt;
+      if (D.idleT > D.dashAt) { D.state = 'dashOut'; D.idleT = 0; D.dashAt = rnd(...CONFIG.dashEvery); say('Zoom.', 0.8); }
+    }
+    if (D.state === 'idle' && D.cd <= 0 && toyFree() && !sitWant) {
       const dx = toy.group.position.x - pos.x, dz = toy.group.position.z - pos.z;
       if (Math.hypot(dx, dz) > 1.3) { D.state = 'chase'; say('!', 0.7); jump(0.6); }
     }
@@ -790,6 +815,8 @@ function updateDog(dt) {
     } else { goal = tp; stop = 1.05; }
   }
   if (D.state === 'return') { goal = home; stop = 0.02; }
+  if (D.state === 'dashOut') { goal = { x: view.offL, z: home.z }; stop = 0; }
+  if (D.state === 'dashIn') { goal = home; stop = 0.02; }
   if (D.state === 'present') {
     D.yawT = CONFIG.homeYaw;
     if (Math.abs(angDiff(D.yaw, CONFIG.homeYaw)) < 0.12) {
@@ -805,13 +832,17 @@ function updateDog(dt) {
   if (goal) {
     const dx = goal.x - pos.x, dz = goal.z - pos.z, d = Math.hypot(dx, dz);
     if (d > stop + 0.02) {
-      const sp = D.state === 'chase' ? 4.2 : 3.2;
+      let sp = D.state === 'chase' ? 4.2 : 3.2;
+      if (D.state === 'dashOut') sp = 12;
+      if (D.state === 'dashIn') sp = Math.min(12, 2.2 + d * 4.5);
       const step = Math.min(sp * dt, d - stop);
       pos.x += dx / d * step; pos.z += dz / d * step; moving = true;
       D.yawT = Math.atan2(dx, dz);
     } else if (D.state === 'return') { D.state = 'present'; }
+    else if (D.state === 'dashOut') { pos.x = view.offR; D.state = 'dashIn'; }
+    else if (D.state === 'dashIn') { D.state = 'idle'; D.cd = 3; jump(0.5); D.wagBoost = 1.6; }
   } else if (D.state === 'idle') {
-    D.yawT = CONFIG.homeYaw;
+    D.yawT = sitWant ? Math.atan2(view.cakeLitX - pos.x, view.cakeLitZ - pos.z) : CONFIG.homeYaw;
     // drift gently back to home
     const dx = home.x - pos.x, dz = home.z - pos.z;
     if (Math.hypot(dx, dz) > 0.02) { pos.x += dx * Math.min(1, dt * 3); pos.z += dz * Math.min(1, dt * 3); }
@@ -829,15 +860,17 @@ function updateDog(dt) {
 
   // gait
   D.speed += ((moving ? 1 : 0) - D.speed) * Math.min(1, dt * 10);
-  D.gait += dt * (moving ? 15 : 0);
+  D.gait += dt * (moving ? (D.state === 'dashOut' || D.state === 'dashIn' ? 26 : 15) : 0);
   const bob = Math.abs(Math.sin(D.gait * 0.5)) * 0.09 * D.speed;
   const breathe = reduced ? 0 : Math.sin(T * 2.1) * 0.012;
-  dog.rig.position.y = D.y + bob;
+  dog.rig.position.y = D.y + bob - 0.1 * sit;
+  dog.rig.rotation.x = -0.55 * sit;
   dog.rig.scale.set(1 - sq * 0.5 + breathe * 0.5, 1 + sq + breathe, 1 - sq * 0.5 + breathe * 0.5);
   dog.legs.forEach((l) => {
     const sw = Math.sin(D.gait + l.userData.phase * Math.PI) * 0.75 * D.speed;
     const air = D.y > 0.02 ? -0.5 : 0;
-    l.rotation.x += (sw + air - l.rotation.x) * Math.min(1, dt * 18);
+    const sitL = l.position.z > 0 ? 0.55 * sit : -0.9 * sit;
+    l.rotation.x += (sw + air + sitL - l.rotation.x) * Math.min(1, dt * 18);
   });
 
   // velocity for secondary motion
@@ -925,7 +958,7 @@ function updateCake(dt) {
   if (u.state === 'out' && u.t > 3) { u.state = 'peek'; u.t = 0; setStatus(CONFIG.introLine()); }
   u.k.t = u.state === 'peek' ? 0 : 1;
   const k = u.k.step(dt), kc = Math.min(Math.max(k, 0), 1.15);
-  cake.position.set(0, Math.sin(Math.min(Math.max(k, 0), 1) * Math.PI) * 0.45, view.cakePeekZ + (view.cakeLitZ - view.cakePeekZ) * kc);
+  cake.position.set(view.cakePeekX + (view.cakeLitX - view.cakePeekX) * kc, Math.sin(Math.min(Math.max(k, 0), 1) * Math.PI) * 0.35, view.cakePeekZ + (view.cakeLitZ - view.cakePeekZ) * kc);
   cake.scale.setScalar(CAKE_S * (1 - 0.06 * Math.min(Math.max(k, 0), 1)));
   if (u.state === 'lit' && k > 0.8) { u.flame.visible = true; u.flame.scale.set(1 + Math.sin(T * 22) * 0.08, 1 + Math.sin(T * 17 + 1) * 0.14, 1); }
 }
