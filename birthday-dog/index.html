@@ -84,6 +84,7 @@ const CONFIG = {
   cakePeekAt: 0.2,          // screen x (0-1) where the cake peeks in from the bottom
   cakeLitAt: 0.3,           // screen x it slides to when lit
   dashEvery: [8, 14],       // seconds idle before the dog zooms off left and back in from the right
+  sitLift: 0.2,             // raises the seated dog so his paws rest on the floor instead of sinking into it
   sitTurn: -0.5,            // extra turn (radians) toward the cake when sitting, so his left side faces us
   awkwardLeg: 1,            // Otto's trademark: this leg (0-3: front R, front L, back R, back L) sticks out sideways
   awkwardKick: 1.1,         // how far out it goes when he sits (radians)
@@ -914,7 +915,7 @@ function updateDog(dt) {
   D.gait += dt * (moving ? (D.state === 'dashOut' || D.state === 'dashIn' ? 26 : 15) : 0);
   const bob = Math.abs(Math.sin(D.gait * 0.5)) * 0.09 * D.speed;
   const breathe = reduced ? 0 : Math.sin(T * 2.1) * 0.012;
-  dog.rig.position.y = D.y + bob - 0.1 * sit;
+  dog.rig.position.y = D.y + bob + CONFIG.sitLift * sit;
   dog.rig.rotation.x = -0.55 * sit;
   dog.rig.scale.set(1 - sq * 0.5 + breathe * 0.5, 1 + sq + breathe, 1 - sq * 0.5 + breathe * 0.5);
   dog.legs.forEach((l) => {
