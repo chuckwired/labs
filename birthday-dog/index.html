@@ -39,6 +39,10 @@
   .hint .mic:active{transform:translateY(1px)}
   .hint .mic:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   .hint .mic[hidden]{display:none}
+  .tune{position:fixed;z-index:6;left:var(--m);bottom:12px;display:grid;gap:8px;padding:10px 12px;background:var(--paper);border:3px solid var(--ink);font-size:14px;font-weight:700}
+  .tune label{display:grid;grid-template-columns:7.5em 11em 3.2em;align-items:center;gap:8px}
+  .tune output{font-variant-numeric:tabular-nums;text-align:right}
+  .tune input{width:100%;accent-color:var(--accent)}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .bubble{position:fixed;left:0;top:0;z-index:4;pointer-events:none;background:var(--ink);color:#fff;font-weight:800;
@@ -65,6 +69,10 @@
 <div class="bubble" id="bubble" aria-hidden="true">Woof.</div>
 <p id="fallback">Your browser could not draw the dog, so here is the short version: happy birthday, Mama Candy.</p>
 <p class="hint rise" style="--i:3" id="hint"><span id="hintText"></span> <button class="mic" id="micBtn" type="button" hidden>Blow into your mic</button></p>
+<div class="tune" id="tune" hidden>
+  <label>Sitting height <input id="tuneSit" type="range" min="-0.3" max="0.8" step="0.01"><output id="tuneSitV"></output></label>
+  <label>Standing height <input id="tuneStand" type="range" min="-0.3" max="0.5" step="0.01"><output id="tuneStandV"></output></label>
+</div>
 <p class="sr" id="status" aria-live="polite"></p>
 
 <script type="importmap">
@@ -84,6 +92,7 @@ const CONFIG = {
   cakePeekAt: 0.2,          // screen x (0-1) where the cake peeks in from the bottom
   cakeLitAt: 0.3,           // screen x it slides to when lit
   dashEvery: [8, 14],       // seconds idle before the dog zooms off left and back in from the right
+  standLift: 0,             // raises the standing dog (tune with ?tune)
   sitLift: 0.2,             // raises the seated dog so his paws rest on the floor instead of sinking into it
   sitTurn: -0.5,            // extra turn (radians) toward the cake when sitting, so his left side faces us
   awkwardLeg: 1,            // Otto's trademark: this leg (0-3: front R, front L, back R, back L) sticks out sideways
@@ -915,7 +924,7 @@ function updateDog(dt) {
   D.gait += dt * (moving ? (D.state === 'dashOut' || D.state === 'dashIn' ? 26 : 15) : 0);
   const bob = Math.abs(Math.sin(D.gait * 0.5)) * 0.09 * D.speed;
   const breathe = reduced ? 0 : Math.sin(T * 2.1) * 0.012;
-  dog.rig.position.y = D.y + bob + CONFIG.sitLift * sit;
+  dog.rig.position.y = D.y + bob + CONFIG.standLift * (1 - sit) + CONFIG.sitLift * sit;
   dog.rig.rotation.x = -0.55 * sit;
   dog.rig.scale.set(1 - sq * 0.5 + breathe * 0.5, 1 + sq + breathe, 1 - sq * 0.5 + breathe * 0.5);
   dog.legs.forEach((l) => {
@@ -1055,6 +1064,14 @@ requestAnimationFrame(frame);
 if (!reduced) setTimeout(() => { jump(1); D.wagBoost = 1.8; say('Happy birthday!', 2); burst(headWorld(), 90, 1); }, 900);
 else setTimeout(() => say('Happy birthday!', 2.5), 600);
 
+if (new URLSearchParams(location.search).has('tune')) {
+  $('tune').hidden = false;
+  [['tuneSit', 'tuneSitV', 'sitLift'], ['tuneStand', 'tuneStandV', 'standLift']].forEach(([i, o, k]) => {
+    const inp = $(i), out = $(o);
+    inp.value = CONFIG[k]; out.textContent = (+inp.value).toFixed(2);
+    inp.addEventListener('input', () => { CONFIG[k] = +inp.value; out.textContent = (+inp.value).toFixed(2); });
+  });
+}
 window.__pop = { cake, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
 </body>
