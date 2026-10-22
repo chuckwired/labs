@@ -9,7 +9,7 @@
 <meta name="description" content="A birthday card with a dog on a checkerboard rug.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Anton&family=Bowlby+One&family=Fraunces:opsz,wght,SOFT,WONK@9..144,900,100,1&family=Dela+Gothic+One&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#111111; --paper:#ffffff; --accent:#e8321e;
@@ -39,6 +39,9 @@
   .hint .mic:active{transform:translateY(1px)}
   .hint .mic:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   .hint .mic[hidden]{display:none}
+  .fonts{position:fixed;z-index:6;right:var(--m);bottom:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:min(560px,calc(100% - 2*var(--m)))}
+  .fonts button{font:inherit;font-weight:800;font-size:15px;line-height:1;min-height:40px;padding:0 12px;border:3px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:0}
+  .fonts button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .bubble{position:fixed;left:0;top:0;z-index:4;pointer-events:none;background:var(--ink);color:#fff;font-weight:800;
@@ -65,6 +68,7 @@
 <div class="bubble" id="bubble" aria-hidden="true">Woof.</div>
 <p id="fallback">Your browser could not draw the dog, so here is the short version: happy birthday, Mama Candy.</p>
 <p class="hint rise" style="--i:3" id="hint"><span id="hintText"></span> <button class="mic" id="micBtn" type="button" hidden>Blow into your mic</button></p>
+<div class="fonts" id="fonts" hidden></div>
 <p class="sr" id="status" aria-live="polite"></p>
 
 <script type="importmap">
@@ -1056,6 +1060,36 @@ requestAnimationFrame(frame);
 if (!reduced) setTimeout(() => { jump(1); D.wagBoost = 1.8; say('Happy birthday!', 2); burst(headWorld(), 90, 1); }, 900);
 else setTimeout(() => say('Happy birthday!', 2.5), 600);
 
+/* font options (preview with ?fonts): one family, display tracking, headline on two lines */
+const FONTS = [
+  { name: 'Archivo (now)',  family: "'Archivo'",             weight: 900, stretch: '70%', upper: true,  track: '-.035em', lead: .9 },
+  { name: 'Bricolage',      family: "'Bricolage Grotesque'", weight: 800, stretch: '100%', upper: false, track: '-.04em',  lead: .92 },
+  { name: 'Anton',          family: "'Anton'",               weight: 400, stretch: '100%', upper: true,  track: '-.01em',  lead: .95 },
+  { name: 'Bowlby One',     family: "'Bowlby One'",          weight: 400, stretch: '100%', upper: true,  track: '-.03em',  lead: .95 },
+  { name: 'Fraunces',       family: "'Fraunces'",            weight: 900, stretch: '100%', upper: false, track: '-.035em', lead: .92, vs: "'SOFT' 100, 'WONK' 1, 'opsz' 144" },
+  { name: 'Dela Gothic',    family: "'Dela Gothic One'",     weight: 400, stretch: '100%', upper: true,  track: '-.05em',  lead: .95 },
+];
+let fontIdx = 0, caseOverride = null;
+function setFont(i) {
+  fontIdx = i;
+  const f = FONTS[i], upper = caseOverride ?? f.upper;
+  h1.style.fontFamily = `${f.family}, 'Helvetica Neue', Arial, sans-serif`;
+  h1.style.fontWeight = f.weight; h1.style.fontStretch = f.stretch;
+  h1.style.textTransform = upper ? 'uppercase' : 'none';
+  const ct = $('caseToggle'); if (ct) { ct.textContent = upper ? 'CAPS' : 'Sentence'; ct.setAttribute('aria-pressed', upper); }
+  h1.style.letterSpacing = f.track; h1.style.lineHeight = f.lead;
+  h1.style.fontVariationSettings = f.vs || 'normal';
+  [...$('fonts').children].forEach((b, j) => { if (b.id !== 'caseToggle') b.setAttribute('aria-pressed', j === i); });
+  document.fonts?.load(`${f.weight} 100px ${f.family}`).then(layout); layout();
+}
+if (new URLSearchParams(location.search).has('fonts')) {
+  const box = $('fonts'); box.hidden = false;
+  FONTS.forEach((f, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = f.name; b.addEventListener('click', () => setFont(i)); box.appendChild(b); });
+  const ct = document.createElement('button'); ct.type = 'button'; ct.id = 'caseToggle'; ct.title = 'Toggle capitals / sentence case';
+  ct.addEventListener('click', () => { caseOverride = !(caseOverride ?? FONTS[fontIdx].upper); setFont(fontIdx); });
+  box.appendChild(ct);
+  setFont(+new URLSearchParams(location.search).get('fonts') || 0);
+}
 window.__pop = { cake, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
 </body>
