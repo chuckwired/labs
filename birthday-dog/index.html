@@ -39,6 +39,14 @@
   .hint .mic:active{transform:translateY(1px)}
   .hint .mic:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   .hint .mic[hidden]{display:none}
+  .notes{position:fixed;z-index:5;right:var(--m);bottom:calc(var(--m) * .75);display:inline-block;padding:12px 16px;
+    background:var(--ink);color:var(--paper);font-weight:800;font-size:16px;line-height:1;text-decoration:none;
+    transform:translate(130%,130%);opacity:0;visibility:hidden;
+    transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s ease,visibility 0s linear .45s}
+  .notes.in,.notes:focus-visible{transform:none;opacity:1;visibility:visible;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s ease,visibility 0s}
+  .notes:hover{background:var(--accent)}
+  .notes:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  @media (prefers-reduced-motion:reduce){.notes{transform:none;transition:opacity .2s ease,visibility 0s linear .2s}.notes.in,.notes:focus-visible{transition:opacity .2s ease,visibility 0s}}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .bubble{position:fixed;left:0;top:0;z-index:4;pointer-events:none;background:var(--ink);color:#fff;font-weight:800;
@@ -65,6 +73,7 @@
 <div class="bubble" id="bubble" aria-hidden="true">Woof.</div>
 <p id="fallback">Your browser could not draw the dog, so here is the short version: happy birthday, Mama Candy.</p>
 <p class="hint rise" style="--i:3" id="hint"><span id="hintText"></span> <button class="mic" id="micBtn" type="button" hidden>Blow into your mic</button></p>
+<a class="notes" id="notes" href="direction/">Behind the design &rarr;</a>
 <p class="sr" id="status" aria-live="polite"></p>
 
 <script type="importmap">
@@ -1058,6 +1067,20 @@ requestAnimationFrame(frame);
 if (!reduced) setTimeout(() => { jump(1); D.wagBoost = 1.8; say('Happy birthday!', 2); burst(headWorld(), 90, 1); }, 900);
 else setTimeout(() => say('Happy birthday!', 2.5), 600);
 
+/* "Behind the design" slides in from the bottom-right corner while a mouse is near it */
+{
+  const notes = $('notes');
+  let overNotes = false;
+  notes.addEventListener('pointerenter', () => { overNotes = true; });
+  notes.addEventListener('pointerleave', () => { overNotes = false; });
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const near = e.clientX > innerWidth - 300 && e.clientY > innerHeight - 170;
+    notes.classList.toggle('in', near || overNotes);
+  });
+  document.addEventListener('pointerleave', () => notes.classList.remove('in'));
+  addEventListener('blur', () => notes.classList.remove('in'));
+}
 window.__pop = { cake, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
 </body>

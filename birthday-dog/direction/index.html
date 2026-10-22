@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<meta name="description" content="Behind the design of the birthday card for Mama Candy: three style directions, one winner, and a lot of fiddling with a shih tzu's leg.">
+<title>Behind the design · Chuck Rice Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#07070a; --ink:#e8e6df; --dim:#8b8a93; --line:rgba(255,255,255,0.10); --serif:'Instrument Serif', Georgia, serif; --mono:'JetBrains Mono', ui-monospace, Menlo, monospace; }
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.wrap { max-width: 720px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px) max(20px, env(safe-area-inset-left, 0px)); }
+.top { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.top a { color: var(--dim); text-decoration: none; transition: color .2s; }
+.top a:hover { color: var(--ink); }
+h1 { margin: clamp(48px, 10vw, 96px) 0 0; font: italic 400 clamp(44px, 9vw, 84px)/0.95 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
+.lede { margin: 24px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
+section { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
+.n { font-size: 11px; letter-spacing: .16em; color: var(--dim); }
+h2 { margin: 6px 0 12px; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif); }
+p { margin: 0 0 12px; max-width: 62ch; }
+ul { margin: 0 0 12px; padding-left: 1.2em; max-width: 62ch; }
+li { margin: 0 0 6px; }
+.say { color: var(--dim); font-size: 12px; }
+.say b { color: var(--ink); font-weight: 500; }
+figure { margin: 22px 0 8px; }
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); }
+figcaption { margin-top: 8px; color: var(--dim); font-size: 12px; max-width: 62ch; }
+.pair { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 22px 0 8px; }
+.pair figure { margin: 0; }
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0 8px; }
+.three figure { margin: 0; }
+@media (min-width: 620px) { .pair { grid-template-columns: 3fr 1fr; align-items: end; } }
+@media (max-width: 560px) { .lede { font-size: 15px; } .three { grid-template-columns: 1fr; } }
+.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
+.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
+.go:hover { border-color: var(--ink); }
+footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../../">&larr; Labs</a>
+    <a href="../">The card &rarr;</a>
+  </nav>
+
+  <h1>Behind the design.</h1>
+  <p class="lede">A birthday card for Mama Candy, with Otto the shih tzu on it. The brief was one sentence: a rich, interactive card with a good 3D dog that reacts to you. Most of the work was working out what kind of card, then fiddling with a leg.</p>
+
+  <figure>
+    <img src="shots/04-pop-refined-desktop.png" alt="The finished card: a checkerboard floor, a cartoon shih tzu mid-bark with a Happy birthday speech bubble, and a lit cake at the bottom left" width="1280" height="800" loading="lazy">
+    <figcaption>Where it ended up. The candle is already lit when the page opens, and Otto sits side-on with his front left leg out.</figcaption>
+  </figure>
+
+  <section>
+    <div class="n">01</div>
+    <h2>Three directions first</h2>
+    <p>I didn't want to start from "a dog on a page". I gave the style question to the taste skill, a design rulebook for coding agents, and asked for three directions. Its rules did the useful boring work: one ground, one ink, one accent, big type, no decoration for decoration's sake. Three builds ran side by side, each with the same dog and the same brief, so the only thing that changed was the look.</p>
+    <div class="three">
+      <figure>
+        <img src="shots/01-checkerboard-pop-mobile.png" alt="Checkerboard Pop on a phone" width="390" height="844" loading="lazy">
+        <figcaption><b>Checkerboard Pop.</b> The rug from the photo as the stage. Flat, loud, one red.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/02-golden-hour-mobile.png" alt="Golden Hour Living Room on a phone" width="390" height="844" loading="lazy">
+        <figcaption><b>Golden Hour.</b> The lamp-lit sofa moment. Soft light, the most realistic fur.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/03-void-party-mobile.png" alt="Void Party on a phone" width="390" height="844" loading="lazy">
+        <figcaption><b>Void Party.</b> Same void as the rest of these labs, the dog floating like a cape.</figcaption>
+      </figure>
+    </div>
+    <p class="say"><b>Rule:</b> don't pick a style from a description. Build all of them and look.</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
+    <h2>Why Pop won</h2>
+    <p>Golden Hour was the prettiest and the most realistic, and it was too polite. Void Party was the safest because it matched everything else here. Pop was the one that made me smile on first load, which for a birthday card is the whole job. It also has a reason to exist: the checkerboard is lifted straight from the rug in the photo.</p>
+    <div class="pair">
+      <figure>
+        <img src="shots/01-checkerboard-pop-desktop.png" alt="First version of Checkerboard Pop on desktop, with a black and white floor and a large black dialog panel" width="1280" height="800" loading="lazy">
+        <figcaption>The first Pop. Bold, but the black floor shouted over the dog and the dialog box got in the way.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/01-checkerboard-pop-mobile.png" alt="First version of Checkerboard Pop on a phone" width="390" height="844" loading="lazy">
+      </figure>
+    </div>
+    <p class="say"><b>Rule:</b> pick the one you smile at, then fix what's loud.</p>
+  </section>
+
+  <section>
+    <div class="n">03</div>
+    <h2>Quieter floor, no dialog</h2>
+    <p>Two things bothered me straight away. The checkerboard was too harsh, so the squares got about twice as big and the dark ones went to a warm pale grey. And the dialog box with its buttons felt like a form on a birthday card.</p>
+    <p>It's gone. Instead a cake peeks up from the bottom edge. Tap the bottom of the screen and it slides in diagonally from the corner and the dog sits down to look at it. The cake is the button.</p>
+    <p class="say"><b>Rule:</b> if the interface is a box of buttons, hide it inside the scene.</p>
+  </section>
+
+  <section>
+    <div class="n">04</div>
+    <h2>Making it look like Otto</h2>
+    <p>The first dog was a very fluffy popcorn ball. Better than nothing, but not a shih tzu. A few rounds of notes fixed the face:</p>
+    <ul>
+      <li>More fluff around the eyes, so he looks like he's peeping out of it.</li>
+      <li>An underbite, which I then asked to be a bit less strong.</li>
+      <li>The right canine (on the left as you look at him) poking up over his lip.</li>
+    </ul>
+    <p>Then the body language. When the cake is out he sits, and turns side-on so you see him in profile. When nothing's happening he occasionally sprints off the left edge and comes back in from the right and stops. And Otto has a trademark awkward leg, his front left, so when he sits it sticks straight out sideways. That one took two attempts, because from the front his head covers it. Turning him a bit further towards the cake fixed it.</p>
+    <p class="say"><b>Rule:</b> the specific, slightly wrong detail is the likeness.</p>
+  </section>
+
+  <section>
+    <div class="n">05</div>
+    <h2>Candle lit, mic ready</h2>
+    <p>The card opens with the candle already lit, so you don't have to work out what to do. You can blow it out by tapping the cake, or press "Blow into your mic" and actually blow. The browser only asks for the microphone when you press that button. Blow it out and there's confetti, a bark and a fresh wish.</p>
+    <p>The toy was too hard to grab, so touching anywhere near it now counts, not just the plush itself.</p>
+    <p class="say"><b>Rule:</b> be generous with where a finger lands.</p>
+  </section>
+
+  <section>
+    <div class="n">06</div>
+    <h2>Floor, paws and a slider</h2>
+    <p>Sitting made his paws sink into the floor. Instead of lowering the floor (which would have meant moving the cake and the toy too) I lifted the dog. I couldn't judge the height by eye from a description, so I added two sliders, one for sitting and one for standing, and I set them by hand: 0.35 sitting, 0.3 standing. Then the sliders came out.</p>
+    <figure>
+      <img src="shots/05-height-tuning-sliders-desktop.png" alt="The card with two height sliders at the bottom left reading 0.35 and 0.30" width="1280" height="800" loading="lazy">
+      <figcaption>The temporary sliders, with the numbers that stuck. The dog is mid-jump from the opening hello.</figcaption>
+    </figure>
+    <p class="say"><b>Rule:</b> when you can't describe it, give yourself a knob.</p>
+  </section>
+
+  <section>
+    <div class="n">07</div>
+    <h2>Five fonts, then Anton</h2>
+    <p>The headline began in a heavy condensed grotesk, Archivo. I asked for five alternatives, picked by the same rules (one family, tight tracking, two lines at every width), and added a preview with a caps toggle so I could compare them on the real page. Anton in sentence case won: tall, loud, and friendlier in lowercase. The Labs link and the hint line up along the top now, and the hint is shortened to "Make a wish. Blow into your mic" so it fits on a phone.</p>
+    <div class="pair">
+      <figure>
+        <img src="shots/06-font-picker-anton-sentence-desktop.png" alt="The font picker at the bottom right with Anton selected and the headline in sentence case" width="1280" height="800" loading="lazy">
+        <figcaption>The picker, with Anton in sentence case selected.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/06-font-picker-anton-sentence-mobile.png" alt="The same on a phone" width="390" height="844" loading="lazy">
+      </figure>
+    </div>
+    <p class="say"><b>Rule:</b> choose a typeface on the real page, not in a specimen.</p>
+  </section>
+
+  <section>
+    <div class="n">08</div>
+    <h2>What it is, and isn't</h2>
+    <p>The dog isn't a model. There's no 3D file: Otto is built in code out of a few hundred fluffy tufts, with ears and a tail on springs, so he reacts instead of looping an animation. It's stylised, not anatomical, and that's on purpose.</p>
+    <p>I've only run it in a headless browser so far. The mic path is untested, and I haven't tried it on a real phone yet.</p>
+    <p class="say"><b>Rule:</b> say what you haven't tested.</p>
+  </section>
+
+  <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">The card &rarr;</a></div>
+  <footer>&copy; 2026 Chuck Rice</footer>
+</div>
+</body>
+</html>
