@@ -39,6 +39,14 @@
   .hint .mic:active{transform:translateY(1px)}
   .hint .mic:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   .hint .mic[hidden]{display:none}
+  .notes{position:fixed;z-index:5;right:var(--m);bottom:calc(var(--m) * .75);display:inline-block;padding:12px 16px;
+    background:var(--ink);color:var(--paper);font-weight:800;font-size:16px;line-height:1;text-decoration:none;
+    transform:translate(130%,130%);opacity:0;visibility:hidden;
+    transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s ease,visibility 0s linear .45s}
+  .notes.in,.notes:focus-visible{transform:none;opacity:1;visibility:visible;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s ease,visibility 0s}
+  .notes:hover{background:var(--accent)}
+  .notes:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  @media (prefers-reduced-motion:reduce){.notes{transform:none;transition:opacity .2s ease,visibility 0s linear .2s}.notes.in,.notes:focus-visible{transition:opacity .2s ease,visibility 0s}}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .bubble{position:fixed;left:0;top:0;z-index:4;pointer-events:none;background:var(--ink);color:#fff;font-weight:800;
@@ -65,6 +73,7 @@
 <div class="bubble" id="bubble" aria-hidden="true">Woof.</div>
 <p id="fallback">Your browser could not draw the dog, so here is the short version: happy birthday, Mama Candy.</p>
 <p class="hint rise" style="--i:3" id="hint"><span id="hintText"></span> <button class="mic" id="micBtn" type="button" hidden>Blow into your mic</button></p>
+<a class="notes" id="notes" href="direction/">Behind the design &rarr;</a>
 <p class="sr" id="status" aria-live="polite"></p>
 
 <script type="importmap">
@@ -101,8 +110,9 @@ const CONFIG = {
   hintLit: 'Make a wish.',
   hintLitNoMic: 'Make a wish. Tap the candle.',
   hintPeek: 'Tap the bottom for cake.',
-  blowLevel: 0.16,          // mic loudness (0-1) that counts as a blow
-  blowTime: 0.22,           // seconds it has to last
+  blowMin: 0.05,            // quietest mic loudness (0-1) that can count as a blow
+  blowRatio: 2.6,           // a blow has to be this many times louder than the room
+  blowTime: 0.2,            // seconds it has to last
   wishDone: 'Wish sent. No refunds.',
   fetchLines: ['Good dog.', 'It always brings it back. Eventually.', 'Nobody asked for a slobbery toy. Here it is.'],
   mouthFull: 'Hold on, mouth full.',
@@ -700,11 +710,13 @@ let mic = null;
 async function startMic() {
   if (mic) return;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // breath is noise, so switch off the processing that exists to remove noise
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     const ac = new (window.AudioContext || window.webkitAudioContext)();
-    const an = ac.createAnalyser(); an.fftSize = 512;
+    const an = ac.createAnalyser(); an.fftSize = 1024; an.smoothingTimeConstant = 0;
     ac.createMediaStreamSource(stream).connect(an);
-    mic = { stream, ac, an, buf: new Uint8Array(an.fftSize), hot: 0 };
+    mic = { stream, ac, an, buf: new Uint8Array(an.fftSize), hot: 0, level: 0, floor: 0.01 };
+    if (ac.state === 'suspended') ac.resume();   // created after the permission prompt, so it may start suspended (not awaited: it can stay pending)
     micBtn.textContent = 'Listening. Blow now';
     setStatus('Listening for a blow.');
   } catch (e) { micBtn.hidden = true; setStatus('No mic, no problem. Tap the candle.'); }
@@ -718,10 +730,15 @@ micBtn.addEventListener('click', startMic);
 addEventListener('keydown', (e) => { if (e.key === 'Escape') { stopMic(); } });
 function pollMic(dt) {
   if (!mic || cake.userData.state !== 'lit') return;
+  if (mic.ac.state === 'suspended') mic.ac.resume();
   mic.an.getByteTimeDomainData(mic.buf);
   let sum = 0; for (let i = 0; i < mic.buf.length; i++) { const v = (mic.buf[i] - 128) / 128; sum += v * v; }
   const rms = Math.sqrt(sum / mic.buf.length);
-  mic.hot = rms > CONFIG.blowLevel ? mic.hot + dt : Math.max(0, mic.hot - dt);
+  mic.level += (rms - mic.level) * Math.min(1, dt * 20);
+  const need = Math.max(CONFIG.blowMin, mic.floor * CONFIG.blowRatio);
+  const loud = mic.level > need;
+  if (!loud) mic.floor += (mic.level - mic.floor) * Math.min(1, dt * 1.5);   // learn how loud the room is
+  mic.hot = loud ? mic.hot + dt : Math.max(0, mic.hot - dt * 2);
   if (mic.hot > CONFIG.blowTime) blowOut();
 }
 function cakeTap() { if (cake.userData.state === 'peek') startWish(); else blowOut(); }
@@ -1019,7 +1036,12 @@ function updateCake(dt) {
   const k = u.k.step(dt), kc = Math.min(Math.max(k, 0), 1.15);
   cake.position.set(view.cakePeekX + (view.cakeLitX - view.cakePeekX) * kc, Math.sin(Math.min(Math.max(k, 0), 1) * Math.PI) * 0.35, view.cakePeekZ + (view.cakeLitZ - view.cakePeekZ) * kc);
   cake.scale.setScalar(CAKE_S * (1 - 0.06 * Math.min(Math.max(k, 0), 1)));
-  if (u.state === 'lit' && k > 0.8) { u.flame.visible = true; u.flame.scale.set(1 + Math.sin(T * 22) * 0.08, 1 + Math.sin(T * 17 + 1) * 0.14, 1); }
+  if (u.state === 'lit' && k > 0.8) {
+    u.flame.visible = true;
+    const bend = mic ? Math.min(1, mic.hot / CONFIG.blowTime) : 0;   // the flame leans and shrinks as you blow
+    u.flame.scale.set((1 + Math.sin(T * 22) * 0.08) * (1 - 0.35 * bend), (1 + Math.sin(T * 17 + 1) * 0.14) * (1 - 0.45 * bend), 1);
+    u.flame.rotation.z = -bend * 0.6;
+  }
 }
 
 /* ------------------------------------------------------------- main loop */
@@ -1058,7 +1080,21 @@ requestAnimationFrame(frame);
 if (!reduced) setTimeout(() => { jump(1); D.wagBoost = 1.8; say('Happy birthday!', 2); burst(headWorld(), 90, 1); }, 900);
 else setTimeout(() => say('Happy birthday!', 2.5), 600);
 
-window.__pop = { cake, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
+/* "Behind the design" slides in from the bottom-right corner while a mouse is near it */
+{
+  const notes = $('notes');
+  let overNotes = false;
+  notes.addEventListener('pointerenter', () => { overNotes = true; });
+  notes.addEventListener('pointerleave', () => { overNotes = false; });
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const near = e.clientX > innerWidth - 300 && e.clientY > innerHeight - 170;
+    notes.classList.toggle('in', near || overNotes);
+  });
+  document.addEventListener('pointerleave', () => notes.classList.remove('in'));
+  addEventListener('blur', () => notes.classList.remove('in'));
+}
+window.__pop = { cake, micInfo: () => mic && { state: mic.ac.state, level: +mic.level.toFixed(3), floor: +mic.floor.toFixed(3), hot: +mic.hot.toFixed(2) }, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); pollMic(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
 </body>
 </html>
