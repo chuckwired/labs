@@ -485,10 +485,13 @@ cake.userData = { t: 0, state: 'lit', k: new Spring(110, 13, 1) };
   mk(new THREE.CylinderGeometry(0.56, 0.56, 0.4, 36), '#111111', 0.2);
   mk(new THREE.CylinderGeometry(0.38, 0.38, 0.3, 36), CONFIG.accent, 0.55);
   mk(new THREE.CylinderGeometry(0.035, 0.035, 0.3, 12), '#ffffff', 0.85);
-  const flame = new THREE.Group(); flame.position.y = 1.07; flame.visible = false; cake.add(flame); cake.userData.flame = flame;
-  const fg = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-  fg.scale.set(0.07, 0.13, 0.07); fg.position.y = 0.05; flame.add(fg);
-  const fo = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({ color: CONFIG.ink, side: THREE.BackSide })); fo.scale.set(0.1, 0.165, 0.1); fo.position.y = 0.05; flame.add(fo);
+  const flame = new THREE.Group(); flame.position.y = 1.02; flame.visible = false; cake.add(flame); cake.userData.flame = flame;
+  // teardrop flame: yellow outer, orange inner, thin ink outline like everything else
+  const prof = []; for (let i = 0; i <= 20; i++) { const u = i / 20; prof.push(new THREE.Vector2(0.085 * Math.sin(Math.PI * Math.pow(u, 0.62)) * Math.pow(1 - u, 0.35), u * 0.3)); }
+  const dropG = new THREE.LatheGeometry(prof, 20);
+  const fo = new THREE.Mesh(dropG, new THREE.MeshBasicMaterial({ color: CONFIG.ink, side: THREE.BackSide })); fo.scale.set(1.28, 1.1, 1.28); fo.position.y = -0.01; flame.add(fo);
+  const fg = new THREE.Mesh(dropG, new THREE.MeshBasicMaterial({ color: '#ffd23a' })); flame.add(fg);
+  const fi = new THREE.Mesh(dropG, new THREE.MeshBasicMaterial({ color: '#ff8a1f' })); fi.scale.set(0.6, 0.55, 0.6); fi.position.y = 0.012; flame.add(fi);
   const hit = new THREE.Mesh(sphereG, new THREE.MeshBasicMaterial({ visible: false })); hit.scale.set(0.8, 0.95, 0.8); hit.position.y = 0.6; hit.userData.hit = 'cake'; cake.add(hit); cake.userData.hit = hit;
 }
 
