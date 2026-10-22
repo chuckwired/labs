@@ -20,7 +20,7 @@
     -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
   .back{position:fixed;top:12px;left:var(--m);z-index:5;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;padding:6px 0}
   .back:hover{text-decoration:underline}
-  .back:focus-visible,.btn:focus-visible,#stage:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .back:focus-visible,#stage:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 
   h1{position:absolute;z-index:0;left:var(--m);top:46px;margin:0;font-weight:900;font-stretch:70%;
     font-size:clamp(34px,12vw,200px);line-height:.9;letter-spacing:-.035em;text-transform:uppercase;
@@ -29,20 +29,10 @@
 
   #stage{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none;cursor:default}
 
-  .panel{position:fixed;z-index:3;left:var(--m);bottom:var(--m);width:min(540px,calc(100% - 2*var(--m)));
-    background:var(--paper);border:3px solid var(--ink);padding:16px 18px 18px}
-  .panel p{margin:0 0 14px;font-weight:600;font-size:18px;line-height:1.3}
-  #status{min-height:2.6em}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .btn{font:inherit;font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1;min-height:50px;padding:0 20px;
-    border:3px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:0;
-    transition:transform .12s ease}
-  .btn:hover{transform:translateY(-3px)}
-  .btn:active{transform:translateY(2px) scale(.97)}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--ink)}
-  .btn.ghost:hover{background:var(--ink);color:var(--paper)}
-  .btn.primary:hover{background:var(--accent)}
-  .btn[disabled]{cursor:default}
+  .hint{position:fixed;z-index:3;right:var(--m);top:12px;margin:0;text-align:right;font-weight:700;font-size:16px;line-height:1.3;
+    pointer-events:none;transition:opacity .5s ease}
+  .hint.gone{opacity:0}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   .bubble{position:fixed;left:0;top:0;z-index:4;pointer-events:none;background:var(--ink);color:#fff;font-weight:800;
     font-size:22px;letter-spacing:-.02em;line-height:1;padding:11px 14px 12px;opacity:0;white-space:nowrap;
@@ -51,36 +41,24 @@
 
   #fallback{display:none;position:fixed;z-index:2;left:var(--m);right:var(--m);top:42%;font-size:clamp(20px,4vw,30px);font-weight:700;line-height:1.2}
   .nogl #fallback{display:block}
-  .nogl .panel .row{display:none}
+  .nogl .hint{display:none}
 
   .rise{animation:rise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*80ms)}
   @keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
     .rise{animation:none}
-    .btn{transition:none}
+    .hint{transition:none}
   }
-  @media (max-width:520px){
-    .panel{padding:12px 14px 14px}
-    .panel p{font-size:16px;margin-bottom:10px}
-    #status{min-height:2.6em}
-    .btn{flex:1;font-size:18px;padding:0 10px;min-height:48px}
-  }
-  @media (max-height:640px){ #status{min-height:0} }
 </style>
 </head>
 <body>
 <a class="back" href="../../">← Labs</a>
 <h1 id="title" aria-label="Happy birthday, Mama Candy"><span class="rise" style="--i:0" aria-hidden="true">Happy birthday,</span><span class="rise" style="--i:1" aria-hidden="true">Mama Candy</span></h1>
-<canvas id="stage" tabindex="0" role="img" aria-label="A shih tzu on a checkerboard rug. Move the pointer to make it look, click it to pat it, drag the toy to throw it."></canvas>
+<canvas id="stage" tabindex="0" role="img" aria-label="A shih tzu on a checkerboard rug. Move the pointer to make it look, click it to pat it, drag the toy to throw it, tap the bottom of the screen (or press C) to bring out a birthday cake."></canvas>
 <div class="bubble" id="bubble" aria-hidden="true">Woof.</div>
 <p id="fallback">Your browser could not draw the dog, so here is the short version: happy birthday, Mama Candy.</p>
-<section class="panel rise" style="--i:3" id="panel">
-  <p id="status" aria-live="polite">The birthday dog has been told to behave. It has not listened.</p>
-  <div class="row">
-    <button class="btn primary" id="wishBtn" type="button">Make a wish</button>
-    <button class="btn ghost" id="toyBtn" type="button">Throw the toy</button>
-  </div>
-</section>
+<p class="hint rise" style="--i:3" id="hint">Tap the bottom for cake. Drag the toy.</p>
+<p class="sr" id="status" aria-live="polite"></p>
 
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -95,7 +73,8 @@ const CONFIG = {
   ink: '#111111',
   paper: '#ffffff',
   accent: '#e8321e',
-  tile: 0.7,                // checker tile size in world units
+  tile: 1.5,                // checker tile size in world units (bigger = calmer)
+  floorDark: '#cdcac6',     // the 'dark' checker square; paler = milder
   maxPixelRatio: 2,
   furScale: 1,              // 0.5 = lighter fur for slow devices
   homeYaw: 0.38,            // dog's resting three-quarter turn
@@ -112,8 +91,7 @@ function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (id) => document.getElementById(id);
-const canvas = $('stage'), h1 = $('title'), panel = $('panel'), bubble = $('bubble'), statusEl = $('status');
-const wishBtn = $('wishBtn'), toyBtn = $('toyBtn');
+const canvas = $('stage'), h1 = $('title'), bubble = $('bubble'), statusEl = $('status'), hint = $('hint');
 statusEl.textContent = CONFIG.introLine();
 
 /* -------------------------------------------------------------- renderer */
@@ -323,14 +301,15 @@ const dog = {};
   // topknot
   fur(head, { radii: [0.12, 0.1, 0.12], center: [0, 1.12, 0.45], count: 14, size: 0.18, droop: -0.6, jitter: 0.4, len: 1.4, colorFn: () => Math.random() < 0.5 ? CREAM() : APRICOT() });
 
+  const toothZone = (p) => p.x < -0.02 && p.x > -0.36 && p.y < 0.28 && p.z > 1.08;   // keep fur off the canine
   // muzzle
   ell(head, [0.3, 0.22, 0.3], [0, 0.32, 1.0], solid('#fff0dc'), true);
   fur(head, { radii: [0.33, 0.25, 0.33], center: [0, 0.32, 1.0], count: 120, size: 0.11, droop: 0.5, jitter: 0.3,
-    keep: (p, n) => !(p.y < 0.28 && Math.abs(p.x) < 0.25 && n.z > 0.1) && Math.hypot(p.x, p.y - NOSE.y, p.z - NOSE.z) > 0.15,
+    keep: (p, n) => !(p.y < 0.28 && Math.abs(p.x) < 0.25 && n.z > 0.1) && Math.hypot(p.x, p.y - NOSE.y, p.z - NOSE.z) > 0.15 && !toothZone(p),
     colorFn: () => CREAM() });
   // beard
   fur(head, { radii: [0.34, 0.12, 0.3], center: [0, 0.07, 0.92], count: 60, size: 0.13, droop: 1.2, jitter: 0.4, len: 1.3,
-    keep: (p, n) => !(Math.abs(p.x) < 0.22 && n.z > 0.2 && p.y > 0.0),
+    keep: (p, n) => !(Math.abs(p.x) < 0.22 && n.z > 0.2 && p.y > 0.0) && !toothZone(p),
     colorFn: () => CREAM() });
   // nose
   const nose = ell(head, [0.14, 0.1, 0.1], NOSE.toArray(), solid('#161010', 0.1), false);
@@ -350,6 +329,15 @@ const dog = {};
   tgO.scale.set(0.145, 0.07, 0.19); tgO.position.copy(tg.position); tongue.add(tgO);
   const tl = new THREE.Mesh(sphereG, new THREE.MeshBasicMaterial({ color: '#d2566a' }));
   tl.scale.set(0.012, 0.01, 0.12); tl.position.set(0, 0.0, 0.07); tongue.add(tl);
+  // underbite: the chin juts past the muzzle, and the dog's right canine (screen left) pokes up over the lip
+  const jaw = ell(head, [0.28, 0.12, 0.32], [0, -0.03, 1.3], solid('#fff0dc'), true);
+  fur(head, { radii: [0.3, 0.14, 0.34], center: [0, -0.03, 1.3], count: 30, size: 0.085, droop: 1.0, jitter: 0.35,
+    keep: (p, n) => (n.y < -0.2 || n.z < -0.2) && !toothZone(p), colorFn: () => CREAM() });
+  const canG = new THREE.ConeGeometry(0.075, 0.32, 14);
+  const can = new THREE.Mesh(canG, new THREE.MeshToonMaterial({ color: '#ffffff', gradientMap: gradTex }));
+  can.position.set(-0.16, 0.15, 1.58); can.rotation.set(0.4, 0, 0.12);
+  const canO = new THREE.Mesh(canG, new THREE.MeshBasicMaterial({ color: CONFIG.ink, side: THREE.BackSide })); canO.scale.set(1.4, 1.1, 1.4); can.add(canO);
+  head.add(can);
   // mouth anchor for fetch
   const anchor = new THREE.Group(); anchor.position.set(0, 0.08, 1.25); head.add(anchor); dog.anchor = anchor;
 
@@ -372,8 +360,13 @@ const dog = {};
     lid.scale.set(0.17, 0.0, 0.12); lid.position.set(0, 0.0, 0.03); eye.add(lid);
     eye.userData.lid = lid; eye.userData.ball = ball;
     dog.eyes.push(eye);
-    // brow tuft
-    fur(head, { radii: [0.1, 0.04, 0.06], center: [e[0], e[1] + 0.2, e[2] - 0.02], count: 8, size: 0.09, droop: -0.2, jitter: 0.3, colorFn: () => RUST() });
+    // peeping fluff: a heavy fringe falling over the top of the eye, plus cheek tufts at the sides and below
+    fur(head, { radii: [0.19, 0.07, 0.1], center: [e[0] + s * 0.03, e[1] + 0.3, e[2] - 0.08], count: 30, size: 0.1, droop: 0.9, jitter: 0.4, len: 1.0,
+      colorFn: () => Math.random() < 0.55 ? RUST() : (Math.random() < 0.5 ? APRICOT() : CREAM()) });
+    fur(head, { radii: [0.15, 0.12, 0.1], center: [e[0] + s * 0.2, e[1] - 0.03, e[2] - 0.12], count: 30, size: 0.115, droop: 0.9, jitter: 0.35,
+      colorFn: () => Math.random() < 0.5 ? CREAM() : APRICOT() });
+    fur(head, { radii: [0.17, 0.08, 0.1], center: [e[0] - s * 0.02, e[1] - 0.2, e[2] - 0.1], count: 24, size: 0.1, droop: 1.0, jitter: 0.35,
+      colorFn: () => CREAM() });
   });
 
   // ears
@@ -425,7 +418,7 @@ toy.group.position.set(1.2, toy.r, 1.0);
 
 /* ---------------------------------------------------------------- floor */
 const floorMat = new THREE.ShaderMaterial({
-  uniforms: { uTile: { value: CONFIG.tile }, uZFar: { value: -10 }, uInk: { value: new THREE.Vector3(0.0667, 0.0667, 0.0667) }, uPaper: { value: new THREE.Vector3(1, 1, 1) } },
+  uniforms: { uTile: { value: CONFIG.tile }, uZFar: { value: -10 }, uInk: { value: (() => { const c = new THREE.Color().setStyle(CONFIG.floorDark, THREE.LinearSRGBColorSpace); return new THREE.Vector3(c.r, c.g, c.b); })() }, uPaper: { value: new THREE.Vector3(1, 1, 1) } },
   vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
   fragmentShader: `
     varying vec3 vW; uniform float uTile; uniform float uZFar; uniform vec3 uInk; uniform vec3 uPaper;
@@ -451,21 +444,22 @@ shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.015; scene.add(shadow);
 const toyShadow = shadow.clone(); scene.add(toyShadow);
 
 /* --------------------------------------------------------------- cake */
-const cake = new THREE.Group(); cake.visible = false; scene.add(cake);
-cake.userData = { t: 0, state: 'none' };
+const CAKE_S = 1.3;
+const cake = new THREE.Group(); scene.add(cake);
+cake.userData = { t: 0, state: 'peek', k: new Spring(110, 13, 0) };
 {
   const mk = (geo, color, y) => {
     const m = new THREE.Mesh(geo, solid(color, 0.2)); m.position.y = y; cake.add(m);
     const o = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: CONFIG.ink, side: THREE.BackSide })); o.scale.set(1.06, 1.04, 1.06); m.add(o); return m;
   };
   mk(new THREE.CylinderGeometry(0.56, 0.56, 0.4, 36), '#111111', 0.2);
-  mk(new THREE.CylinderGeometry(0.38, 0.38, 0.3, 36), '#ffffff', 0.55);
+  mk(new THREE.CylinderGeometry(0.38, 0.38, 0.3, 36), CONFIG.accent, 0.55);
   mk(new THREE.CylinderGeometry(0.035, 0.035, 0.3, 12), '#ffffff', 0.85);
-  const flame = new THREE.Group(); flame.position.y = 1.07; cake.add(flame); cake.userData.flame = flame;
+  const flame = new THREE.Group(); flame.position.y = 1.07; flame.visible = false; cake.add(flame); cake.userData.flame = flame;
   const fg = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
   fg.scale.set(0.07, 0.13, 0.07); fg.position.y = 0.05; flame.add(fg);
   const fo = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({ color: CONFIG.ink, side: THREE.BackSide })); fo.scale.set(0.1, 0.165, 0.1); fo.position.y = 0.05; flame.add(fo);
-  const hit = new THREE.Mesh(sphereG, new THREE.MeshBasicMaterial({ visible: false })); hit.scale.set(0.7, 0.9, 0.7); hit.position.y = 0.7; hit.userData.hit = 'cake'; cake.add(hit); cake.userData.hit = hit;
+  const hit = new THREE.Mesh(sphereG, new THREE.MeshBasicMaterial({ visible: false })); hit.scale.set(0.8, 0.95, 0.8); hit.position.y = 0.6; hit.userData.hit = 'cake'; cake.add(hit); cake.userData.hit = hit;
 }
 
 /* ------------------------------------------------------------- confetti */
@@ -567,18 +561,16 @@ function layout() {
   view.w = w; view.h = h;
   const fs = fitHeadline();
   const hb = h1.getBoundingClientRect().bottom;
-  const pt = panel.getBoundingClientRect().top;
   const overlap = window.innerWidth > 700 ? fs * 0.08 : 0;
-  const wide = w > 900;
-  const pr = panel.getBoundingClientRect().right;
-  const cx = wide ? (pr + w) / 2 : w / 2;
-  const top = hb - overlap, bot = wide ? h - 16 : pt - 6;
+  const cx = w / 2;
+  const peekPx = THREE.MathUtils.clamp(h * 0.15, 78, 130);
+  const top = hb - overlap, bot = h - peekPx * 0.7;
   const sh = Math.max(bot - top, 220), cy = (top + bot) / 2;
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   const tn = Math.tan(THREE.MathUtils.degToRad(CONFIG.fov / 2));
-  const worldH = 4.0, worldW = 4.5 * (w / (2 * Math.min(cx, w - cx)));
+  const worldH = 4.6, worldW = 4.5 * (w / (2 * Math.min(cx, w - cx)));
   const dH = (worldH * h / sh) / (2 * tn);
   const dW = worldW / (2 * tn * camera.aspect);
   const d = Math.max(dH, dW);
@@ -591,9 +583,13 @@ function layout() {
   const farZ = zForScreenY(hb + 8);
   floorMat.uniforms.uZFar.value = farZ;
   view.zBack = Math.max(farZ + 0.8, -2.6);
-  view.zFront = THREE.MathUtils.clamp(zForScreenY(bot - 24), 0.5, 2.3);
+  view.zFront = THREE.MathUtils.clamp(zForScreenY(h - 40), 0.5, 2.3);
   view.bx = Math.min(4.2, d * tn * camera.aspect * 0.8 * (2 * Math.min(cx, w - cx) / w));
-  cake.position.set(Math.min(view.bx * 0.8, 2.8), 0, view.zFront - 0.15);
+  view.cakeLitZ = THREE.MathUtils.clamp(zForScreenY(h * 0.88), 0.8, 4);
+  const tipY = 1.02 * CAKE_S;
+  let lo = -20, hi = camera.position.z - 1;
+  for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (screenY(0, tipY, mid) < h - peekPx) lo = mid; else hi = mid; }
+  view.cakePeekZ = (lo + hi) / 2;
 }
 
 /* ------------------------------------------------------- speech bubble */
@@ -647,23 +643,21 @@ function throwToy() {
 
 function startWish() {
   const u = cake.userData;
-  cake.visible = true; u.t = 0; u.state = 'lit'; cake.scale.setScalar(0.001); u.flame.visible = true; u.flame.scale.setScalar(1);
-  wishBtn.textContent = 'Blow it out';
+  if (u.state !== 'peek') return;
+  u.state = 'lit'; u.t = 0;
+  hint.classList.add('gone');
   setStatus(CONFIG.wishLit);
+  jump(0.5); D.wagBoost = 1.2;
 }
 function blowOut() {
   const u = cake.userData; if (u.state !== 'lit') return;
   u.state = 'out'; u.t = 0; u.flame.visible = false;
-  wishBtn.textContent = 'Wish again';
   setStatus(CONFIG.wishDone);
-  const o = cake.position.clone(); o.y = 1.1;
+  const o = cake.position.clone(); o.y = 1.1 * CAKE_S;
   burst(o, 190, 1.15); burst(headWorld(), 70, 0.9);
   jump(1.2); D.wagBoost = 2.2; say('Happy birthday!', 2.2);
 }
-wishBtn.addEventListener('click', () => {
-  if (cake.userData.state === 'lit') blowOut(); else startWish();
-});
-toyBtn.addEventListener('click', throwToy);
+function cakeTap() { if (cake.userData.state === 'peek') startWish(); else blowOut(); }
 
 /* ---------------------------------------------------------------- input */
 function setPointer(e) {
@@ -680,7 +674,7 @@ function pickHit(candidates) {
 function targets() {
   const list = [...dog.hits];
   if (!toy.carried) list.unshift(toy.hit);
-  if (cake.visible && cake.userData.state === 'lit') list.unshift(cake.userData.hit);
+  if (cake.userData.state !== 'out') list.unshift(cake.userData.hit);
   return list;
 }
 let downHit = null, downAt = 0;
@@ -718,12 +712,15 @@ function endPointer(e) {
   }
   const tap = pointer.moved < 10;
   if (tap && downHit === 'dog') pat();
-  else if (tap && downHit === 'cake') blowOut();
+  else if (tap && (downHit === 'cake' || (downHit !== 'toy' && pointer.y > view.h * 0.8))) cakeTap();
 }
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
 canvas.addEventListener('pointerleave', () => { if (!pointer.down) { pointer.has = false; D.hover = false; } });
-canvas.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pat(); } });
+canvas.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pat(); }
+  else if (e.key === 'c' || e.key === 'C') cakeTap();
+});
 
 let hoverTimer = 0;
 function updateHover() {
@@ -851,7 +848,7 @@ function updateDog(dt) {
   const carrying = D.state === 'return' || D.state === 'present';
   let ty = 0, tp = 0;
   const idleLook = pointer.has && performance.now() - pointer.lastMove < 6000;
-  if (cake.visible && cake.userData.state === 'lit') {
+  if (cake.userData.state === 'lit' && cake.userData.k.x > 0.5) {
     look.copy(cake.position).setY(1.0);
   } else if (idleLook && !carrying && D.state !== 'chase') {
     ray.setFromCamera({ x: pointer.nx, y: pointer.ny }, camera);
@@ -924,18 +921,13 @@ function updateDog(dt) {
 
 function updateCake(dt) {
   const u = cake.userData;
-  if (!cake.visible) return;
   u.t += dt;
-  if (u.state === 'lit') {
-    const k = Math.min(1, u.t / 0.5), e = 1 + 2.7 * Math.pow(k - 1, 3) + 1.7 * Math.pow(k - 1, 2);
-    cake.scale.setScalar(Math.max(0.001, e));
-    u.flame.scale.set(1 + Math.sin(T * 22) * 0.08, 1 + Math.sin(T * 17 + 1) * 0.14, 1);
-  } else if (u.state === 'out') {
-    if (u.t > 3) {
-      const k = Math.max(0, 1 - (u.t - 3) / 0.5); cake.scale.setScalar(Math.max(0.001, k));
-      if (k <= 0) { cake.visible = false; u.state = 'none'; }
-    }
-  }
+  if (u.state === 'out' && u.t > 3) { u.state = 'peek'; u.t = 0; setStatus(CONFIG.introLine()); }
+  u.k.t = u.state === 'peek' ? 0 : 1;
+  const k = u.k.step(dt), kc = Math.min(Math.max(k, 0), 1.15);
+  cake.position.set(0, Math.sin(Math.min(Math.max(k, 0), 1) * Math.PI) * 0.45, view.cakePeekZ + (view.cakeLitZ - view.cakePeekZ) * kc);
+  cake.scale.setScalar(CAKE_S * (1 - 0.06 * Math.min(Math.max(k, 0), 1)));
+  if (u.state === 'lit' && k > 0.8) { u.flame.visible = true; u.flame.scale.set(1 + Math.sin(T * 22) * 0.08, 1 + Math.sin(T * 17 + 1) * 0.14, 1); }
 }
 
 /* ------------------------------------------------------------- main loop */
@@ -972,7 +964,7 @@ requestAnimationFrame(frame);
 if (!reduced) setTimeout(() => { jump(1); D.wagBoost = 1.8; say('Happy birthday!', 2); burst(headWorld(), 90, 1); }, 900);
 else setTimeout(() => say('Happy birthday!', 2.5), 600);
 
-window.__pop = { step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, throwToy, camera, view, CONFIG };
+window.__pop = { cake, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
 </body>
 </html>
