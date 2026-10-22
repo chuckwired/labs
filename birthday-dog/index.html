@@ -84,8 +84,9 @@ const CONFIG = {
   cakePeekAt: 0.2,          // screen x (0-1) where the cake peeks in from the bottom
   cakeLitAt: 0.3,           // screen x it slides to when lit
   dashEvery: [8, 14],       // seconds idle before the dog zooms off left and back in from the right
+  sitTurn: -0.5,            // extra turn (radians) toward the cake when sitting, so his left side faces us
   awkwardLeg: 1,            // Otto's trademark: this leg (0-3: front R, front L, back R, back L) sticks out sideways
-  awkwardKick: 0.8,        // how far out it goes when he sits (radians)
+  awkwardKick: 1.1,         // how far out it goes when he sits (radians)
   floorDark: '#cdcac6',     // the 'dark' checker square; paler = milder
   maxPixelRatio: 2,
   furScale: 1,              // 0.5 = lighter fur for slow devices
@@ -257,7 +258,7 @@ const dog = {};
     ell(leg, [0.31, 0.17, 0.38], [0, -0.7, 0.1], solid('#fff0dc'), true);
     fur(leg, { radii: [0.3, 0.5, 0.3], center: [0, -0.4, 0], count: 70, size: 0.16, droop: 0.8,
       colorFn: (p) => p.y < -0.5 ? CREAM() : (Math.random() < 0.5 ? CREAM() : APRICOT()) });
-    leg.userData.phase = ph;
+    leg.userData.phase = ph; leg.userData.x0 = x; leg.userData.y0 = y;
     dog.legs.push(leg);
   });
 
@@ -892,7 +893,7 @@ function updateDog(dt) {
     else if (D.state === 'dashOut') { pos.x = view.offR; D.state = 'dashIn'; }
     else if (D.state === 'dashIn') { D.state = 'idle'; D.cd = 3; jump(0.5); D.wagBoost = 1.6; }
   } else if (D.state === 'idle') {
-    D.yawT = sitWant ? Math.atan2(view.cakeLitX - pos.x, view.cakeLitZ - pos.z) : CONFIG.homeYaw;
+    D.yawT = sitWant ? Math.atan2(view.cakeLitX - pos.x, view.cakeLitZ - pos.z) + CONFIG.sitTurn : CONFIG.homeYaw;
     // drift gently back to home
     const dx = home.x - pos.x, dz = home.z - pos.z;
     if (Math.hypot(dx, dz) > 0.02) { pos.x += dx * Math.min(1, dt * 3); pos.z += dz * Math.min(1, dt * 3); }
@@ -919,10 +920,12 @@ function updateDog(dt) {
   dog.legs.forEach((l) => {
     const sw = Math.sin(D.gait + l.userData.phase * Math.PI) * 0.75 * D.speed;
     const air = D.y > 0.02 ? -0.5 : 0;
-    const sitL = l.position.z > 0 ? 0.55 * sit : -0.9 * sit;
+    const isAwk = dog.legs.indexOf(l) === CONFIG.awkwardLeg;
+    const sitL = l.position.z > 0 ? (isAwk ? 0 : 0.55) * sit : -0.9 * sit;
     l.rotation.x += (sw + air + sitL - l.rotation.x) * Math.min(1, dt * 18);
-    const awk = dog.legs.indexOf(l) === CONFIG.awkwardLeg ? Math.sign(l.position.x) * (0.18 + CONFIG.awkwardKick * sit) * (1 - Math.min(1, D.speed * 2)) : 0;
+    const awk = isAwk ? Math.sign(l.position.x) * (0.18 + CONFIG.awkwardKick * sit) * (1 - Math.min(1, D.speed * 2)) : 0;
     l.rotation.z += (awk - l.rotation.z) * Math.min(1, dt * 12);
+    if (isAwk) { l.position.x = Math.sign(l.userData.x0) * (Math.abs(l.userData.x0) + 0.25 * sit); l.position.y = l.userData.y0 + 0.12 * sit; l.scale.y = 1 + 0.15 * sit; }
   });
 
   // velocity for secondary motion
