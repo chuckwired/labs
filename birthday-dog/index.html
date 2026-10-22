@@ -84,6 +84,8 @@ const CONFIG = {
   cakePeekAt: 0.2,          // screen x (0-1) where the cake peeks in from the bottom
   cakeLitAt: 0.3,           // screen x it slides to when lit
   dashEvery: [8, 14],       // seconds idle before the dog zooms off left and back in from the right
+  awkwardLeg: 1,            // Otto's trademark: this leg (0-3: front R, front L, back R, back L) sticks out sideways
+  awkwardKick: 0.8,        // how far out it goes when he sits (radians)
   floorDark: '#cdcac6',     // the 'dark' checker square; paler = milder
   maxPixelRatio: 2,
   furScale: 1,              // 0.5 = lighter fur for slow devices
@@ -919,6 +921,8 @@ function updateDog(dt) {
     const air = D.y > 0.02 ? -0.5 : 0;
     const sitL = l.position.z > 0 ? 0.55 * sit : -0.9 * sit;
     l.rotation.x += (sw + air + sitL - l.rotation.x) * Math.min(1, dt * 18);
+    const awk = dog.legs.indexOf(l) === CONFIG.awkwardLeg ? Math.sign(l.position.x) * (0.18 + CONFIG.awkwardKick * sit) * (1 - Math.min(1, D.speed * 2)) : 0;
+    l.rotation.z += (awk - l.rotation.z) * Math.min(1, dt * 12);
   });
 
   // velocity for secondary motion
