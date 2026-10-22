@@ -107,7 +107,7 @@ const CONFIG = {
   barks: ['Woof.', 'Arf!', 'Yip!', 'Woof woof.', 'Again.', 'Hello.'],
   introLine: () => `${cap(CONFIG.dogName)} has been told to behave. It has not listened.`,
   wishLit: 'Close your eyes. Think of something good. Then blow out the candle.',
-  hintLit: 'Make a wish.',
+  hintLit: 'Make a wish. Blow into your mic',
   hintLitNoMic: 'Make a wish. Tap the candle.',
   hintPeek: 'Tap the bottom for cake.',
   blowMin: 0.05,            // quietest mic loudness (0-1) that can count as a blow
@@ -682,16 +682,16 @@ function throwToy() {
 
 function setHint() {
   const st = cake.userData.state;
+  const canMic = !!navigator.mediaDevices?.getUserMedia;
   hint.classList.toggle('gone', st === 'out');
-  const mic = st === 'lit' && !!navigator.mediaDevices?.getUserMedia;
-  hintText.textContent = st === 'lit' ? (mic ? CONFIG.hintLit : CONFIG.hintLitNoMic) : CONFIG.hintPeek;
-  micBtn.hidden = !mic;
+  hintText.textContent = st === 'lit' ? (micState === 'denied' || !canMic ? CONFIG.hintLitNoMic : CONFIG.hintLit) : CONFIG.hintPeek;
+  micBtn.hidden = !(st === 'lit' && canMic && micState === 'denied');   // only offered again if the first ask was refused
 }
 function startWish() {
   const u = cake.userData;
   if (u.state !== 'peek') return;
   u.state = 'lit'; u.t = 0;
-  setHint();
+  startMic(); setHint();
   setStatus(CONFIG.wishLit);
   jump(0.5); D.wagBoost = 1.2;
 }
@@ -706,9 +706,10 @@ function blowOut() {
 }
 
 /* mic blowing: permission is asked only when the button is pressed */
-let mic = null;
+let mic = null, micState = 'idle';   // idle | pending | on | denied
 async function startMic() {
-  if (mic) return;
+  if (mic || micState === 'pending' || !navigator.mediaDevices?.getUserMedia) return;
+  micState = 'pending';
   try {
     // breath is noise, so switch off the processing that exists to remove noise
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -717,16 +718,18 @@ async function startMic() {
     ac.createMediaStreamSource(stream).connect(an);
     mic = { stream, ac, an, buf: new Uint8Array(an.fftSize), hot: 0, level: 0, floor: 0.01 };
     if (ac.state === 'suspended') ac.resume();   // created after the permission prompt, so it may start suspended (not awaited: it can stay pending)
-    micBtn.textContent = 'Listening. Blow now';
+    micState = 'on'; setHint();
     setStatus('Listening for a blow.');
-  } catch (e) { micBtn.hidden = true; setStatus('No mic, no problem. Tap the candle.'); }
+  } catch (e) { micState = 'denied'; setHint(); setStatus('No mic, no problem. Tap the candle.'); }
 }
 function stopMic() {
   if (!mic) return;
-  mic.stream.getTracks().forEach((t) => t.stop()); mic.ac.close?.(); mic = null;
-  micBtn.textContent = 'Blow into your mic';
+  mic.stream.getTracks().forEach((t) => t.stop()); mic.ac.close?.(); mic = null; micState = 'idle';
 }
-micBtn.addEventListener('click', startMic);
+micBtn.textContent = 'Try the mic';
+micBtn.addEventListener('click', () => { micState = 'idle'; startMic(); });
+// the audio context may start suspended without a gesture: wake it on the first touch or key
+['pointerdown', 'keydown'].forEach((t) => addEventListener(t, () => { if (mic && mic.ac.state === 'suspended') mic.ac.resume(); }, { passive: true }));
 addEventListener('keydown', (e) => { if (e.key === 'Escape') { stopMic(); } });
 function pollMic(dt) {
   if (!mic || cake.userData.state !== 'lit') return;
@@ -1071,6 +1074,7 @@ window.addEventListener('focus', wake); window.addEventListener('pageshow', wake
 window.addEventListener('resize', layout);
 layout();
 setHint();
+startMic();   // ask for the mic straight away: the candle is already lit
 D.yaw = D.yawT = Math.atan2(view.cakeLitX - dog.root.position.x, view.cakeLitZ - dog.root.position.z);
 document.fonts?.ready.then(layout);
 setTimeout(layout, 900);
