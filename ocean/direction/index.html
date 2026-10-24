@@ -46,12 +46,12 @@ td.num { font-variant-numeric: tabular-nums; }
 .go:hover { border-color: var(--ink); }
 footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
 .chart { margin: 20px 0 8px; }
-.crow { display: grid; grid-template-columns: 104px 52px 1fr 76px; align-items: center; gap: 0 10px; min-height: 40px; border-bottom: 1px solid var(--line); }
-.crow.chead { min-height: 34px; border-bottom: 0; }
+.crow { display: grid; grid-template-columns: 112px 1fr 64px; align-items: center; gap: 0 12px; min-height: 40px; border-bottom: 1px solid var(--line); }
+.crow.chead { min-height: 34px; border-bottom: 0; grid-template-columns: 112px 1fr 64px; }
+.crow.chead .track { grid-column: 2; }
+.ct { margin: 22px 0 0; font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
 .cl { font-size: 12px; color: var(--dim); }
 .crow.keep .cl { color: var(--ink); }
-.scr { justify-self: center; width: var(--w); aspect-ratio: 1636 / 1566; border: 1px solid rgba(255,255,255,.35); border-radius: 2px; background: rgba(255,255,255,.07); }
-.crow.keep .scr { border-color: #e8b060; background: rgba(232,176,96,.16); }
 .track { position: relative; height: 40px; }
 .chead .track { height: 34px; }
 .ln { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.22); }
@@ -62,9 +62,8 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 .crow.keep .bar { background: #e8b060; }
 .js .chart:not(.in) .bar { width: 0; }
 .cv { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
-.cv small { display: block; font-size: 10px; color: var(--dim); letter-spacing: .06em; }
 @media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
-@media (max-width: 560px) { .crow { grid-template-columns: 78px 40px 1fr 56px; gap: 0 6px; } .cl { font-size: 11px; } .ln b { font-size: 9px; } .scr { transform: scale(.8); } }
+@media (max-width: 560px) { .crow, .crow.chead { grid-template-columns: 82px 1fr 54px; gap: 0 8px; } .cl { font-size: 11px; } .ln b { font-size: 9px; } }
 @media (max-width: 560px) { .lede { font-size: 15px; } .pair { grid-template-columns: 1fr; } .pair.three { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
@@ -149,16 +148,25 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <div class="n">07</div>
     <h2>Counting milliseconds</h2>
     <p>On my Mac every version held a flat 120fps, which is just the ceiling of the display and tells you nothing. So I stopped the animation loop, drew frames back to back and timed them, forcing the GPU to finish each one. That gives a cost per frame, which is what a phone cares about.</p>
-    <p>Below, each row is one version. The small screen is how many pixels it was drawing, and the bar is how long one frame took. The two lines are the budgets: miss the left one and you can't hold 120fps, miss the right one and you can't hold 60.</p>
-    <div class="chart" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B swell mesh 4.1, B gentler swell 2.4, C baked spectrum 1.9, C golden light 1.9. The 120 frames per second budget is 8.3 milliseconds and the 60 frames per second budget is 16.7 milliseconds.">
-      <div class="crow chead"><span></span><span></span><div class="track"><i class="ln l120"><b>120fps &middot; 8.3ms</b></i><i class="ln l60"><b>60fps &middot; 16.7ms</b></i></div><span></span></div>
-      <div class="crow"><span class="cl">A, raymarched</span><span class="scr" style="--w:45px" title="2.56 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:40.6%"></i></div><span class="cv">7.3 ms<small>2.56 MP</small></span></div>
-      <div class="crow"><span class="cl">B, swell mesh</span><span class="scr" style="--w:39px" title="1.96 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:22.8%"></i></div><span class="cv">4.1 ms<small>1.96 MP</small></span></div>
-      <div class="crow keep"><span class="cl">B, gentler swell</span><span class="scr" style="--w:39px" title="1.96 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms<small>1.96 MP</small></span></div>
-      <div class="crow"><span class="cl">C, baked spectrum</span><span class="scr" style="--w:45px" title="2.56 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms<small>2.56 MP</small></span></div>
-      <div class="crow keep"><span class="cl">C, golden light</span><span class="scr" style="--w:45px" title="2.56 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms<small>2.56 MP</small></span></div>
+    <p>Below, each row is one version. First, how many pixels it was drawing. Then, how long one frame took. In the second chart the two dashed lines are the budgets: miss the left one and you can't hold 120fps, miss the right one and you can't hold 60.</p>
+    <h3 class="ct">Pixels drawn per frame</h3>
+    <div class="chart" role="img" aria-label="Bar chart of megapixels drawn. A raymarched 2.56, B swell mesh 1.96, B gentler swell 1.96, C baked spectrum 2.56, C golden light 2.56.">
+      <div class="crow"><span class="cl">A, raymarched</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
+      <div class="crow"><span class="cl">B, swell mesh</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
+      <div class="crow keep"><span class="cl">B, gentler swell</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
+      <div class="crow"><span class="cl">C, baked spectrum</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
+      <div class="crow keep"><span class="cl">C, golden light</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
     </div>
-    <p class="say">Gold bars are the two that shipped. Screens are drawn to scale by pixel count.</p>
+    <h3 class="ct">Time per frame</h3>
+    <div class="chart" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B swell mesh 4.1, B gentler swell 2.4, C baked spectrum 1.9, C golden light 1.9. The 120 frames per second budget is 8.3 milliseconds and the 60 frames per second budget is 16.7 milliseconds.">
+      <div class="crow chead"><div class="track"><i class="ln l120"><b>120fps &middot; 8.3ms</b></i><i class="ln l60"><b>60fps &middot; 16.7ms</b></i></div></div>
+      <div class="crow"><span class="cl">A, raymarched</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:40.6%"></i></div><span class="cv">7.3 ms</span></div>
+      <div class="crow"><span class="cl">B, swell mesh</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:22.8%"></i></div><span class="cv">4.1 ms</span></div>
+      <div class="crow keep"><span class="cl">B, gentler swell</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms</span></div>
+      <div class="crow"><span class="cl">C, baked spectrum</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
+      <div class="crow keep"><span class="cl">C, golden light</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
+    </div>
+    <p class="say">Gold bars are the two that shipped.</p>
     <table>
       <tr><th>Version</th><th>Pixels</th><th>Per frame</th><th>Per megapixel</th></tr>
       <tr><td>A, raymarched</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td><td class="num">2.9 ms</td></tr>
@@ -202,10 +210,13 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 </div>
 <script>
 (function () {
-  var c = document.querySelector('.chart'); if (!c) return;
+  var charts = document.querySelectorAll('.chart'); if (!charts.length) return;
   document.documentElement.classList.add('js');
-  if (!('IntersectionObserver' in window)) { c.classList.add('in'); return; }
-  new IntersectionObserver(function (e, o) { if (e[0].isIntersecting) { c.classList.add('in'); o.disconnect(); } }, { threshold: 0.4 }).observe(c);
+  if (!('IntersectionObserver' in window)) { charts.forEach(function (c) { c.classList.add('in'); }); return; }
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.4 });
+  charts.forEach(function (c) { io.observe(c); });
 })();
 </script>
 </body>
