@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a2440">
+<meta name="robots" content="noindex">
+<title>Ocean A: Raymarched sea</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: #2a2440;
+    /* static fallback sky: shown if WebGL is missing or the shader fails */
+    background-image: linear-gradient(to bottom, #1d2252 0%, #5a4a7a 28%, #d98a62 50%, #f2b46e 57%, #26414a 58%, #0c2a33 100%);
+  }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .back {
+    position: fixed; top: 14px; left: 16px; z-index: 2;
+    font: 11px/1 "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .16em; text-transform: uppercase; text-decoration: none;
+    color: rgba(255,255,255,.75); text-shadow: 0 1px 6px rgba(20,10,30,.6), 0 0 2px rgba(20,10,30,.5);
+    padding: 6px 4px; border-radius: 2px;
+  }
+  .back:hover { color: #fff; }
+  .back:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .note {
+    position: fixed; left: 0; right: 0; bottom: 20px; text-align: center; margin: 0;
+    font: 12px/1.4 ui-monospace, Menlo, monospace; color: rgba(255,255,255,.8); display: none;
+  }
+  .nogl .note { display: block; }
+  .nogl canvas { display: none; }
+</style>
+</head>
+<body>
+<a class="back" href="../../../">&larr; Labs</a>
+<canvas id="c" aria-label="A calm open ocean at golden hour, with a tiny penguin floating in the distance" role="img"></canvas>
+<p class="note">WebGL is not available here, so this is a still sky instead of the sea.</p>
+
+<script>
+'use strict';
+// ---------------------------------------------------------------- tunables
+const CONFIG = {
+  sunElevationDeg: 7.5,     // above the horizon
+  sunAzimuthDeg: 17,        // right of centre (positive = right)
+  sunAzimuthNarrowDeg: 6,   // used on portrait screens so the sun stays in frame
+  horizon: 0.58,            // horizon height as a fraction of the screen, from the bottom
+  cameraHeight: 2.2,        // metres above mean sea level
+  waveAmplitude: 0.27,      // metres, largest swell
+  choppiness: 0.55,         // domain-warp / crest sharpening drag
+  octavesDesktop: 16,
+  octavesMobile: 11,
+  foam: 0.55,
+  penguin: {
+    x: -0.30,               // screen x from centre, in units of min(height, .8 width)
+    down: 0.34,             // fraction of the way from horizon to bottom of the screen
+    size: 0.75,             // 1 = 0.5 m of penguin (body length)
+    headTurnEvery: 5.3,     // seconds
+    flipperEvery: 9.7,
+  },
+  quality: {
+    maxDpr: 2,
+    scaleMin: 0.4,
+    scaleMax: 1.0,
+    startDesktop: 1.0,
+    startMobile: 0.7,
+    slowMs: 24,             // average frame time above this -> drop resolution
+    fastMs: 13.5,           // below this for a long while -> raise it
+    step: 0.1,
+  },
+  timeScale: 1,
+  reducedMotionTimeScale: 0.2,
+};
+
+// ---------------------------------------------------------------- shaders
+const COMMON = `
+precision highp float;
+#define FOC 1.0
+#define UNIT min(uRes.y, 0.8 * uRes.x)
+uniform vec2 uRes;
+uniform float uTime, uFrame, uAmp, uChop, uCamH, uHor, uFoam;
+uniform vec3 uSun;
+uniform vec4 uPeng;   // x, down, size, octaves
+varying vec4 vPeng;   // screen x, screen y (waterline), roll, distance
+
+float camY() { return uCamH + 0.05 * sin(uTime * 0.55) + 0.03 * sin(uTime * 0.9 + 1.0); }
+float horY() { return (uHor - 0.5) * uRes.y / UNIT + 0.004 * sin(uTime * 0.41); }
+
+// summed directional waves: exp(sin) crests, each octave drags the next (domain warp).
+// returns (height, d/dx, d/dz) before the global amplitude. fp = pixel footprint in metres.
+vec3 waves(vec2 p, float fp, int N) {
+  float freq = 0.38, w = 1.0, h = 0.0, ws = 0.0;
+  vec2 d = vec2(0.0);
+  for (int i = 0; i < 16; i++) {
+    if (i >= N) break;
+    float fade = 1.0 - smoothstep(0.45, 1.4, fp * freq);
+    if (fade <= 0.0) break;
+    float a = 1.15 * sin(float(i) * 2.39 + 0.6);
+    vec2 dir = vec2(sin(a), cos(a));
+    float om = sqrt(9.8 * freq) * 0.5;
+    float x = dot(dir, p) * freq + uTime * om + float(i) * 1.7;
+    float f = exp(sin(x) - 1.0);
+    float df = f * cos(x);
+    h += w * f * fade;
+    ws += w * fade;
+    d += dir * (df * freq * w * fade);
+    p += dir * (df * w * uChop * fade);
+    w *= 0.78; freq *= 1.3;
+  }
+  return vec3(h - 0.43 * ws, d);
+}
+`;
+
+const VERT = COMMON + `
+attribute vec2 aPos;
+void main() {
+  gl_Position = vec4(aPos, 0.0, 1.0);
+  float yH = horY(), cy = camY();
+  float dy = (yH + 0.5 * uRes.y / UNIT) * uPeng.y;
+  float z = cy * FOC / dy;
+  vec2 pw = vec2(uPeng.x * z / FOC, z);
+  vec3 wv = waves(pw, 0.03, 10);
+  float h = wv.x * uAmp;
+  vPeng = vec4(uPeng.x, yH + (h - cy) * FOC / z, atan(wv.y * uAmp), z);
+}
+`;
+
+const FRAG = COMMON + `
+float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+float fbm(vec2 p, int N) {
+  float a = 0.5, s = 0.0;
+  for (int i = 0; i < 4; i++) { if (i >= N) break; s += a * vnoise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }
+  return s;
+}
+
+vec3 sky(vec3 rd, int cn, bool disc) {
+  float y = max(rd.y, 0.0);
+  float mu = max(dot(rd, uSun), 0.0);
+  // horizon band: warm near the sun, dusty rose-mauve away from it
+  vec3 hor = mix(vec3(0.55, 0.32, 0.36), vec3(1.0, 0.56, 0.24), smoothstep(0.0, 0.9, pow(mu, 1.5)));
+  vec3 mid = mix(vec3(0.24, 0.20, 0.50), vec3(0.62, 0.34, 0.42), pow(mu, 3.0));
+  vec3 top = vec3(0.035, 0.07, 0.30);
+  vec3 c = mix(hor, mid, smoothstep(0.0, 0.22, pow(y, 0.8)));
+  c = mix(c, top, smoothstep(0.03, 0.5, y));
+  // glows around the sun
+  c += vec3(1.0, 0.50, 0.18) * pow(mu, 6.0) * 0.55;
+  c += vec3(1.0, 0.68, 0.32) * pow(mu, 48.0) * 1.1;
+  c += vec3(1.0, 0.82, 0.55) * pow(mu, 700.0) * 5.0;
+  if (disc) c += vec3(1.0, 0.86, 0.62) * 70.0 * smoothstep(0.99996, 0.99999, mu);
+  // wispy streaks, stretched along the horizon
+  float cd = y + 0.07;
+  vec2 cp = vec2(rd.x / cd * 0.16 + uTime * 0.003, rd.z / cd * 0.85);
+  float dn = fbm(cp + vec2(0.0, fbm(cp * 0.6, 2) * 0.8), cn);
+  float cov = smoothstep(0.54, 0.84, dn) * smoothstep(0.015, 0.16, y) * (1.0 - smoothstep(0.55, 0.95, y));
+  float lit = pow(mu, 2.5);
+  vec3 cc = mix(vec3(0.42, 0.30, 0.46), vec3(1.0, 0.62, 0.38), 0.25 + 0.75 * lit);
+  cc += vec3(1.0, 0.7, 0.4) * (cov * (1.0 - cov) * 3.2) * (0.3 + 1.5 * lit);
+  c = mix(c, cc, cov * 0.85);
+  return c;
+}
+
+// penguin parts (metres, y up from the waterline)
+float smin(float a, float b, float k) { float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0); return mix(b, a, h) - k * h * (1.0 - h); }
+float sdCap(vec2 p, vec2 a, vec2 b, float r) { vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - r; }
+float sdEll(vec2 p, vec2 r) { float k0 = length(p / r); float k1 = length(p / (r * r)); return k0 * (k0 - 1.0) / k1; }
+float pengBody(vec2 q, float turn, float fl) {
+  float d = sdEll(q - vec2(0.0, 0.02), vec2(0.25, 0.13));
+  vec2 hc = vec2(0.05 * turn, 0.172);
+  d = smin(d, length(q - hc) - 0.062, 0.05);
+  d = smin(d, sdCap(q, vec2(0.02 * turn, 0.09), hc, 0.05), 0.04);
+  d = min(d, sdCap(q, vec2(0.21, 0.015), vec2(0.33, 0.05), 0.014));
+  float ang = -0.5 - fl;
+  vec2 sh = vec2(0.17, 0.08);
+  d = smin(d, sdCap(q, sh, sh + vec2(cos(ang), sin(ang)) * 0.14, 0.021), 0.02);
+  return d;
+}
+float stepRand(float i) { return floor(hash(vec2(i, 3.7)) * 5.0) * 0.5 - 1.0; }  // -1 .. 1
+float headTurn(float t) {
+  float u = t / ${'${HT}'};
+  float i = floor(u), f = fract(u);
+  float a = stepRand(i - 1.0), b = stepRand(i);
+  if (hash(vec2(i, 9.1)) < 0.3) b = a;
+  return mix(a, b, smoothstep(0.0, 0.18, f));
+}
+float flipperTwitch(float t) {
+  float u = fract(t / ${'${FT}'} + 0.3);
+  return smoothstep(0.0, 0.01, u) * (1.0 - smoothstep(0.01, 0.06, u)) * sin(u * 400.0) * 0.55;
+}
+
+vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+
+void main() {
+  vec2 fc = gl_FragCoord.xy;
+  float unit = UNIT;
+  vec2 uv = (fc - 0.5 * uRes) / unit;
+  float yH = horY(), cy = camY();
+  vec3 rd = normalize(vec3(uv.x, uv.y - yH, FOC));
+  vec3 ro = vec3(0.0, cy, 0.0);
+  int OCT = int(uPeng.w);
+  vec3 col;
+  float pm = 1.0 / (unit * FOC);  // pixel angle
+
+  if (rd.y > -0.0006) {
+    col = sky(rd, 4, true);
+  } else {
+    float t0 = min(cy / -rd.y, 9000.0);
+    float t = t0;
+    // height-corrected refinement of the plane intersection
+    for (int i = 0; i < 4; i++) {
+      float fp = t * pm * max(1.0, t / cy) * 0.4;
+      float hh = waves(ro.xz + rd.xz * t, fp, 6).x * uAmp;
+      t = clamp((hh - ro.y) / rd.y, 0.2, 9000.0);
+    }
+    t = mix(t, t0, smoothstep(60.0, 500.0, t0));
+    vec3 p = ro + rd * t;
+    float fp = t * pm * max(1.0, t / cy) * 0.4;
+    vec3 wv = waves(p.xz, fp, OCT);
+    float hN = clamp(wv.x * 0.6 + 0.5, 0.0, 1.0);          // rough 0..1 crest-ness
+    vec3 n = normalize(vec3(-wv.y * uAmp, 1.0, -wv.z * uAmp));
+
+    // penguin ripple ring on the water plane
+    float pz = vPeng.w, px = vPeng.x * pz / FOC;
+    vec2 rv = p.xz - vec2(px, pz);
+    float rr = length(rv);
+    float ringMask = 0.0;
+    if (rr < 2.6) {
+      float ph = rr * 19.0 - uTime * 2.1;
+      float env = smoothstep(0.12, 0.35, rr) * exp(-rr * 1.5);
+      float rip = sin(ph) * env * 0.12;
+      n = normalize(n + vec3(rv.x, 0.0, rv.y) / max(rr, 0.001) * rip);
+      ringMask = env;
+    }
+    n = normalize(mix(n, vec3(0, 1, 0), smoothstep(60.0, 1500.0, t) * 0.8));
+
+    vec3 V = -rd;
+    float cosT = clamp(dot(n, V), 0.0, 1.0);
+    float F = 0.02 + 0.98 * pow(1.0 - cosT, 5.0);
+    vec3 R = reflect(rd, n);
+    R.y = abs(R.y) + 0.0015;
+    vec3 refl = sky(R, 2, false) * 0.85;
+
+    // sun glitter: lobe widens with distance
+    float dRL = max(dot(R, uSun), 0.0);
+    float expo = mix(1800.0, 260.0, smoothstep(5.0, 400.0, t));
+    float glit = pow(dRL, expo) * (expo * 0.016);
+    glit += pow(dRL, 80.0) * 0.5;
+    vec3 sunCol = vec3(1.0, 0.74, 0.42);
+
+    // body colour: deep teal, subsurface glow on crests toward the sun
+    vec3 deep = vec3(0.012, 0.075, 0.095);
+    float toSun = pow(max(dot(normalize(vec3(uSun.x, 0.0, uSun.z)), vec3(rd.x, 0.0, rd.z)), 0.0), 2.0);
+    float sss = smoothstep(0.42, 0.95, hN) * (0.25 + 0.75 * toSun);
+    vec3 body = deep + vec3(0.025, 0.15, 0.10) * sss * vec3(1.0, 0.95, 0.55) * 0.9;
+    body += vec3(0.02, 0.05, 0.07) * (0.5 + 0.5 * n.y);
+    body *= mix(0.55, 1.0, hN);
+
+    col = body * (1.0 - F) + F * refl + sunCol * glit * F * 2.2;
+
+    // foam on steep high crests
+    float sl = length(wv.yz) * uAmp;
+    float fn = vnoise(p.xz * 3.1 + uTime * 0.2) * 0.6 + vnoise(p.xz * 9.0 - uTime * 0.3) * 0.4;
+    float foam = smoothstep(0.80, 0.97, hN) * smoothstep(0.30, 0.55, sl) * smoothstep(0.45, 0.75, fn) * uFoam;
+    foam *= 1.0 - smoothstep(300.0, 900.0, t);
+    col = mix(col, vec3(0.9, 0.62, 0.42) * (0.6 + 1.2 * toSun), foam * 0.75);
+
+    // aerial haze to the horizon colour
+    vec3 hz = sky(normalize(vec3(rd.x, 0.012, rd.z)), 1, false);
+    float fog = 1.0 - exp(-t * 0.0011);
+    col = mix(col, hz, fog * fog * 0.8 + fog * 0.2);
+    col = mix(col, hz, smoothstep(2500.0, 9000.0, t));
+  }
+
+  // ---- the penguin
+  {
+    float sz = uPeng.z;
+    float msc = FOC / vPeng.w;                 // screen units per metre
+    vec2 q = (uv - vPeng.xy) / (msc * sz);     // metres
+    float cr = cos(vPeng.z), sr = sin(vPeng.z);
+    q = vec2(cr * q.x + sr * q.y, -sr * q.x + cr * q.y);
+    q.y += 0.035;                              // sits a little low in the water
+    float pix = vPeng.w / (FOC * unit) / sz;   // metres per pixel
+    if (abs(q.x) < 0.7 && q.y > -1.0 && q.y < 0.5) {
+      float turn = headTurn(uTime);
+      float fl = flipperTwitch(uTime);
+      if (q.y > 0.0) {
+        float d = pengBody(q, turn, fl);
+        float a = clamp(0.5 - d / pix, 0.0, 1.0);
+        // water cuts the body at the line (slightly soft)
+        a *= smoothstep(0.0, pix * 1.2, q.y);
+        if (a > 0.0) {
+          vec3 pc = vec3(0.010, 0.011, 0.015);
+          // white belly glint low on the near flank
+          float wm = smoothstep(-0.10, -0.19, q.x) * smoothstep(0.075, 0.02, q.y);
+          pc = mix(pc, vec3(0.62, 0.55, 0.50), wm * 0.9);
+          // lit rim from the low sun on the right / top edges
+          vec2 sd2 = normalize(vec2(1.0, 0.5));
+          float d2 = pengBody(q + sd2 * 0.016, turn, fl);
+          float rim = smoothstep(0.0, 0.012, d2) * (1.0 - smoothstep(0.0, 0.03, -d));
+          pc += vec3(1.0, 0.58, 0.24) * rim * 5.0;
+          // orange beak hint when the head is turned
+          float bv = smoothstep(0.3, 0.9, abs(turn));
+          vec2 hc = vec2(0.05 * turn, 0.172);
+          float sg = turn < 0.0 ? -1.0 : 1.0;
+          float bk = sdCap(q, hc + vec2(sg * 0.05, -0.012), hc + vec2(sg * (0.05 + 0.055 * bv), -0.024), 0.011 * bv);
+          pc = mix(pc, vec3(1.0, 0.42, 0.08) * 1.6, clamp(0.5 - bk / pix, 0.0, 1.0) * bv);
+          col = mix(col, pc, a);
+          float ba = clamp(0.5 - bk / pix, 0.0, 1.0) * bv;
+          col = mix(col, vec3(1.0, 0.42, 0.08) * 1.6, ba);
+        }
+      } else {
+        // reflection smear: mirrored, stretched, broken up by ripples
+        float wob = 0.035 * sin(q.y * 38.0 + uTime * 1.7) + 0.02 * sin(q.y * 91.0 - uTime * 2.3);
+        vec2 rq = vec2(q.x + wob, -q.y * 0.55);
+        float d = pengBody(rq, headTurn(uTime), 0.0);
+        float a = (1.0 - smoothstep(-0.02, 0.05, d)) * exp(q.y * 3.2);
+        a *= 0.45 + 0.35 * sin(q.y * 150.0 + uTime * 3.0);
+        col = mix(col, col * 0.3 + vec3(0.004, 0.006, 0.01), clamp(a, 0.0, 0.7));
+      }
+    }
+  }
+
+  // ---- grade
+  col = aces(col * 0.55);
+  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.3);
+  col = pow(col, vec3(1.0 / 2.2));
+  vec2 vq = fc / uRes - 0.5;
+  col *= 1.0 - 0.28 * dot(vq, vq);
+  float g = hash(fc + fract(uFrame * 0.0137) * 91.0) + hash(fc.yx * 1.31 + fract(uFrame * 0.0071) * 53.0) - 1.0;
+  col += g * (1.5 / 255.0) + g * 0.008;
+  SETCOL(vec4(col, 1.0));
+}
+`;
+
+// ---------------------------------------------------------------- setup
+(function () {
+  const canvas = document.getElementById('c');
+  const Q = CONFIG.quality;
+  const params = new URLSearchParams(location.search);
+  const coarse = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 700;
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = mq.matches;
+  mq.addEventListener && mq.addEventListener('change', e => { reduced = e.matches; });
+
+  let gl = null, isGL2 = false;
+  const attrs = { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'high-performance' };
+  try { gl = canvas.getContext('webgl2', attrs); isGL2 = !!gl; } catch (e) {}
+  if (!gl) { try { gl = canvas.getContext('webgl', attrs) || canvas.getContext('experimental-webgl', attrs); } catch (e) {} }
+
+  function fail(msg) {
+    if (msg) console.warn('[ocean] ' + msg);
+    document.documentElement.classList.add('nogl');
+  }
+  if (!gl) { fail('WebGL unavailable, showing static sky.'); return; }
+
+  const pre = isGL2
+    ? { v: '#version 300 es\n#define attribute in\n#define varying out\n',
+        f: '#version 300 es\nprecision highp float;\n#define varying in\nout vec4 oc;\n#define SETCOL(c) oc = (c)\n' }
+    : { v: '', f: '#define SETCOL(c) gl_FragColor = (c)\n' };
+
+  const P = CONFIG.penguin;
+  const fragSrc = FRAG.replace('${HT}', P.headTurnEvery.toFixed(3)).replace('${FT}', P.flipperEvery.toFixed(3));
+
+  function compile(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      console.error('[ocean] shader compile failed:\n' + gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+  const vs = compile(gl.VERTEX_SHADER, pre.v + VERT);
+  const fs = compile(gl.FRAGMENT_SHADER, pre.f + fragSrc);
+  if (!vs || !fs) { fail('falling back to static sky.'); return; }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, vs); gl.attachShader(prog, fs);
+  gl.bindAttribLocation(prog, 0, 'aPos');
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    console.error('[ocean] link failed:\n' + gl.getProgramInfoLog(prog));
+    fail('falling back to static sky.'); return;
+  }
+  gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.disable(gl.DEPTH_TEST);
+
+  const U = {};
+  ['uRes', 'uTime', 'uFrame', 'uAmp', 'uChop', 'uCamH', 'uHor', 'uFoam', 'uSun', 'uPeng'].forEach(n => U[n] = gl.getUniformLocation(prog, n));
+
+  // state (all preallocated, nothing allocated per frame)
+  const state = {
+    time: parseFloat(params.get('t')) || 40,
+    frame: 0,
+    scale: params.has('scale') ? parseFloat(params.get('scale')) : (coarse ? Q.startMobile : Q.startDesktop),
+    w: 0, h: 0, ema: 16, slow: 0, fast: 0, running: false, lastScaleChange: 0,
+  };
+  const octaves = coarse ? CONFIG.octavesMobile : CONFIG.octavesDesktop;
+  const D2R = Math.PI / 180;
+
+  function uploadStatic() {
+    const narrow = canvas.clientWidth < canvas.clientHeight * 0.8;
+    const el = CONFIG.sunElevationDeg * D2R, az = (narrow ? CONFIG.sunAzimuthNarrowDeg : CONFIG.sunAzimuthDeg) * D2R;
+    gl.uniform3f(U.uSun, Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+    gl.uniform1f(U.uAmp, CONFIG.waveAmplitude);
+    gl.uniform1f(U.uChop, CONFIG.choppiness);
+    gl.uniform1f(U.uCamH, CONFIG.cameraHeight);
+    gl.uniform1f(U.uHor, CONFIG.horizon);
+    gl.uniform1f(U.uFoam, CONFIG.foam);
+    gl.uniform4f(U.uPeng, P.x, P.down, P.size, octaves);
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, Q.maxDpr);
+    const k = dpr * state.scale;
+    const w = Math.max(2, Math.round(canvas.clientWidth * k));
+    const h = Math.max(2, Math.round(canvas.clientHeight * k));
+    if (w !== state.w || h !== state.h) {
+      state.w = canvas.width = w; state.h = canvas.height = h;
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(U.uRes, w, h);
+    }
+  }
+
+  function render() {
+    gl.uniform1f(U.uTime, state.time);
+    gl.uniform1f(U.uFrame, state.frame++);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  function step(dt) {
+    state.time += dt * CONFIG.timeScale * (reduced ? CONFIG.reducedMotionTimeScale : 1);
+    if (state.time > 20000) state.time -= 20000;
+    render();
+  }
+
+  // adaptive resolution from measured frame times
+  function adapt(ms) {
+    state.ema += (ms - state.ema) * 0.08;
+    if (state.ema > Q.slowMs) { state.slow++; state.fast = 0; } else if (state.ema < Q.fastMs) { state.fast++; state.slow = 0; } else { state.slow = state.fast = 0; }
+    let s = state.scale;
+    if (state.slow > 20 && s > Q.scaleMin) s = Math.max(Q.scaleMin, s - Q.step);
+    else if (state.fast > 240 && s < Q.scaleMax) s = Math.min(Q.scaleMax, s + Q.step);
+    if (s !== state.scale) { state.scale = Math.round(s * 100) / 100; state.slow = state.fast = 0; state.ema = 16; resize(); }
+  }
+
+  let last = 0, raf = 0;
+  function loop(now) {
+    raf = requestAnimationFrame(loop);
+    const ms = last ? now - last : 16;
+    last = now;
+    if (ms < 250) adapt(ms);
+    step(Math.min(ms, 100) / 1000);
+  }
+  function start() { if (!raf && !params.has('still')) { last = 0; raf = requestAnimationFrame(loop); } }
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); fail('context lost.'); });
+
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { uploadStatic(); resize(); render(); }, 80); });
+
+  uploadStatic();
+  resize();
+  render();
+  start();
+
+  window.__ocean = {
+    config: CONFIG,
+    step(dt) { step(dt === undefined ? 1 / 60 : dt); },
+    get scale() { return state.scale; },
+    setScale(s) { state.scale = s; resize(); render(); },
+    get frameMs() { return state.ema; },
+    get time() { return state.time; },
+    setTime(t) { state.time = t; render(); },
+    stop, start, refresh() { uploadStatic(); resize(); render(); },
+    get webgl2() { return isGL2; },
+    get size() { return [state.w, state.h]; },
+  };
+})();
+</script>
+</body>
+</html>

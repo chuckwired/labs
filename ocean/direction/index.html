@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="description" content="Behind the design of the Ocean lab: three ways to make a realistic sea in raw WebGL2, and how two of them ended up in one file.">
+<title>Behind the design · Chuck Rice Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M3 20q4-5 8 0t8 0 8 0' fill='none' stroke='%23e8b060' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M3 12q4-5 8 0t8 0 8 0' fill='none' stroke='%232f9a9a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#07070a; --ink:#e8e6df; --dim:#8b8a93; --line:rgba(255,255,255,0.10); --serif:'Instrument Serif', Georgia, serif; --mono:'JetBrains Mono', ui-monospace, Menlo, monospace; }
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.wrap { max-width: 720px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px) max(20px, env(safe-area-inset-left, 0px)); }
+.top { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.top a { color: var(--dim); text-decoration: none; transition: color .2s; }
+.top a:hover { color: var(--ink); }
+h1 { margin: clamp(48px, 10vw, 96px) 0 0; font: italic 400 clamp(44px, 9vw, 84px)/0.95 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
+.lede { margin: 24px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
+.cover { display: block; width: 100%; height: auto; margin: 40px 0 8px; border: 1px solid var(--line); border-radius: 7px; }
+section { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
+.n { font-size: 11px; letter-spacing: .16em; color: var(--dim); }
+h2 { margin: 6px 0 12px; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif); }
+p { margin: 0 0 12px; max-width: 62ch; }
+.say { color: var(--dim); font-size: 12px; }
+.say b { color: var(--ink); font-weight: 500; }
+figure { margin: 18px 0 14px; }
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 5px; }
+figcaption { margin-top: 8px; color: var(--dim); font-size: 12px; max-width: 62ch; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 14px; }
+.pair figure { margin: 0; }
+.pair.three { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.phone { max-width: 240px; }
+table { border-collapse: collapse; margin: 16px 0 14px; font-size: 12px; width: 100%; max-width: 62ch; }
+th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); font-weight: 400; }
+th { color: var(--dim); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; }
+.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
+.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
+.go:hover { border-color: var(--ink); }
+footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+@media (max-width: 560px) { .lede { font-size: 15px; } .pair { grid-template-columns: 1fr; } .pair.three { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../../">&larr; Labs</a>
+    <a href="../">Dive in &rarr;</a>
+  </nav>
+
+  <h1>Behind the design.</h1>
+  <p class="lede">I asked for the most realistic water we could get, in a browser, with no libraries and a frame rate that holds on a phone. Then I asked for a penguin, but only just visible.</p>
+
+  <img class="cover" src="../cover.png" alt="The ocean lab's cover: a golden-hour sea on the left and a magenta sunset sea on the right, split by a slight diagonal" width="1000" height="475">
+
+  <section>
+    <div class="n">01</div>
+    <h2>The brief</h2>
+    <p>Open ocean. A golden-hour skyline. A penguin floating off in the distance, there if you look, easy to miss if you don't. Everything in raw WebGL2, nothing to install, and it has to hold up on desktop and on a phone.</p>
+    <p>The penguin is the point. A good sea makes people say "huh, that looks real". A tiny penguin in it makes them lean toward the screen.</p>
+    <p class="say"><b>Rule:</b> realism gets the attention, a small surprise keeps it.</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
+    <h2>Three oceans, three ways</h2>
+    <p>I can't judge a rendering technique from a paragraph, so I had three built side by side. Same brief, different engines:</p>
+    <p><b>A, raymarched.</b> One shader, no geometry. Every pixel fires a ray at a sea made of summed waves. The nicest close-up water, and the most expensive.</p>
+    <p><b>B, swell mesh.</b> A real grid of triangles, spaced out toward the horizon, pushed around by sixteen Gerstner waves from a 170m swell down to a 0.65m chop. The sun sits right on the horizon.</p>
+    <p><b>C, baked spectrum.</b> At load it spends about a second building a wave field from a physical wave spectrum, then every frame just reads from it. Cheap per pixel by design.</p>
+    <div class="pair three">
+      <figure><img src="shots/1-a-raymarched.jpg" alt="Direction A: raymarched sea at golden hour" loading="lazy"><figcaption>A. Raymarched.</figcaption></figure>
+      <figure><img src="shots/1-b-swell-mesh.jpg" alt="Direction B: a magenta and amber sunset over a swell mesh" loading="lazy"><figcaption>B. Swell mesh.</figcaption></figure>
+      <figure><img src="shots/1-c-baked-spectrum.jpg" alt="Direction C: a pale veiled sun over a calm baked-spectrum sea" loading="lazy"><figcaption>C. Baked spectrum.</figcaption></figure>
+    </div>
+    <p class="say"><b>Rule:</b> build the options, then argue about them.</p>
+  </section>
+
+  <section>
+    <div class="n">03</div>
+    <h2>Torn between two</h2>
+    <p>From memory I liked C the most, but on a second look I was torn between B and C. A was the one I let go. So I asked for one more round: C with the feel of A's golden light, and B with a gentler swell.</p>
+    <p>Then they were still so close that I asked for both, with a toggle, in the same file. The page is built so I can fold it down to one later: each look is its own engine, with its own script, canvas and button, and nothing else refers to it.</p>
+    <p class="say"><b>Rule:</b> if two are this close, ship both and let people vote with a tap.</p>
+  </section>
+
+  <section>
+    <div class="n">04</div>
+    <h2>The swell that showed the underside</h2>
+    <p>My note on B was that when a big swell rose, I could see below the water, and it broke the illusion. I assumed it was just too big. Cutting the swell by about half helped, but the real cause was that the big waves were also sliding the nearest part of the mesh sideways, away from the camera, so the sea opened up in front of you. The sideways push now fades out close to the camera.</p>
+    <p>The same pass found the bright seam and the faint contour rings I'd spotted: both were foam firing on every bit of chop. It's calmer now, and a little flatter near the camera. That is the price.</p>
+    <div class="pair">
+      <figure><img src="shots/1-b-swell-mesh.jpg" alt="Sunset direction before the change" loading="lazy"><figcaption>Before.</figcaption></figure>
+      <figure><img src="shots/2-b-gentle-swell.jpg" alt="Sunset direction after the change, calmer near the camera" loading="lazy"><figcaption>After. Long swells cut by about half, camera heave halved.</figcaption></figure>
+    </div>
+    <p class="say"><b>Rule:</b> when the illusion breaks, find which thing it broke on, not just which number is too big.</p>
+  </section>
+
+  <section>
+    <div class="n">05</div>
+    <h2>A penguin from my degree</h2>
+    <p>The first penguins were fine and forgettable. I wanted the one I used in a games computing assignment at uni, which I think came from the OGRE graphics engine: a round, slightly startled bird with huge pale eyes and flippers stuck out like it's balancing. So this one floats front-on, waterline across its belly, rides the swell, turns its head now and then and twitches a flipper.</p>
+    <p>It is drawn from scratch, in the shader, so there is no model file. At normal size it is about 22 to 25 pixels wide: a dark head, two pale dots, a flick of orange. Add <code>?penguinzoom</code> to the address to see it at 8x. The flippers are still a bit stick-like up close. I can live with that.</p>
+    <div class="pair">
+      <figure><img src="shots/2-c-penguin-zoom.jpg" alt="The penguin at eight times scale on the golden look" loading="lazy"><figcaption>Golden hour, at 8x.</figcaption></figure>
+      <figure><img src="shots/2-b-penguin-zoom.jpg" alt="The penguin at eight times scale on the sunset look" loading="lazy"><figcaption>Sunset, at 8x.</figcaption></figure>
+    </div>
+    <p class="say"><b>Rule:</b> specific and slightly wrong beats average. The penguin from my degree beats a generic one.</p>
+  </section>
+
+  <section>
+    <div class="n">06</div>
+    <h2>Counting milliseconds</h2>
+    <p>On my Mac every version held a flat 120fps, which is just the ceiling of the display and tells you nothing. So I stopped the animation loop, drew frames back to back and timed them, forcing the GPU to finish each one. That gives a cost per frame, which is what a phone cares about.</p>
+    <table>
+      <tr><th>Version</th><th>Pixels</th><th>Per frame</th></tr>
+      <tr><td>A, raymarched</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td></tr>
+      <tr><td>B, swell mesh</td><td class="num">1.96 MP</td><td class="num">~4.1 ms</td></tr>
+      <tr><td>B, gentler swell</td><td class="num">1.96 MP</td><td class="num">~2.4 ms</td></tr>
+      <tr><td>C, baked spectrum</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td></tr>
+      <tr><td>C, golden light</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td></tr>
+    </table>
+    <p>Both looks also render at a lower resolution when frames run slow, step back up when there's room, and stop entirely when the tab is hidden. Only the visible look runs, and the other is built the first time you ask for it. Add <code>?fps</code> (or press P) for a readout.</p>
+    <p>One honest caveat: these are numbers from one Mac. I haven't tried a phone yet. A phone GPU is a lot slower, so the point of the table is the gaps between rows, not the milliseconds.</p>
+    <p class="say"><b>Rule:</b> measure the cost of a frame, not whether it kept up.</p>
+  </section>
+
+  <section>
+    <div class="n">07</div>
+    <h2>Two looks, one file</h2>
+    <p>The final page is a toggle at the bottom (or press T): Golden hour and Sunset. Switching crossfades, the one you leave stops rendering, and your choice is remembered. Add <code>?look=sunset</code> to link straight to one.</p>
+    <div class="pair">
+      <figure><img src="shots/3-final-golden.jpg" alt="The finished page on the golden hour look, with the toggle at the bottom" loading="lazy"><figcaption>Golden hour.</figcaption></figure>
+      <figure><img src="shots/3-final-sunset.jpg" alt="The finished page on the sunset look" loading="lazy"><figcaption>Sunset.</figcaption></figure>
+    </div>
+    <div class="pair">
+      <figure class="phone"><img src="shots/3-final-phone-golden.jpg" alt="The golden look at phone width" loading="lazy"><figcaption>Phone width, golden.</figcaption></figure>
+      <figure class="phone"><img src="shots/3-final-phone-sunset.jpg" alt="The sunset look at phone width" loading="lazy"><figcaption>Phone width, sunset.</figcaption></figure>
+    </div>
+    <p>All the screenshots here were rendered by a headless browser in software, so the colours are right and the speed means nothing. The three first directions, and the two follow-ups, are still in the repo under <code>ocean/directions/</code>.</p>
+    <p class="say"><b>Rule:</b> keep the road not taken. It's the best part of the story.</p>
+  </section>
+
+  <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
+  <footer>&copy; 2026 Chuck Rice</footer>
+</div>
+</body>
+</html>
