@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a0a24">
+<meta name="robots" content="noindex">
+<title>Ocean - B: swell mesh</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1a0a24; }
+  body {
+    background: linear-gradient(to bottom, #0b0620 0%, #2a0f3e 22%, #6a1c4a 36%, #c2452a 42%, #f09030 44%, #1a1030 45%, #0a0818 100%);
+  }
+  canvas#sea { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .back {
+    position: fixed; top: 14px; left: 16px; z-index: 2;
+    font: 11px/1 "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-transform: uppercase; letter-spacing: .16em; text-decoration: none;
+    color: rgba(255,255,255,.75); text-shadow: 0 1px 6px rgba(40,10,30,.7), 0 0 2px rgba(40,10,30,.6);
+    padding: 6px 4px; border-radius: 2px;
+  }
+  .back:hover { color: #fff; }
+  .back:focus-visible { outline: 1px solid rgba(255,255,255,.9); outline-offset: 3px; }
+  #nogl {
+    position: fixed; left: 0; right: 0; bottom: 18px; text-align: center; z-index: 1; display: none;
+    font: 11px/1.4 ui-monospace, Menlo, monospace; letter-spacing: .08em; color: rgba(255,255,255,.7);
+    text-shadow: 0 1px 6px rgba(40,10,30,.7); padding: 0 16px;
+  }
+  .nogl canvas#sea { display: none; }
+  .nogl #nogl { display: block; }
+</style>
+</head>
+<body>
+<a class="back" href="../../../">&larr; Labs</a>
+<canvas id="sea" aria-label="An ocean at sunset with a tiny penguin floating in the distance" role="img"></canvas>
+<div id="nogl">This ocean needs WebGL2, which this browser is not offering.</div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------------------------------------------------------------- CONFIG
+const CONFIG = {
+  sun: { elevationDeg: 1.0, azimuthDeg: 13, radiusDeg: 1.0, radiance: 95 },
+  camera: { height: 3.7, horizonFrac: 0.44, fovYDeg: 46, minTanX: 0.42, heave: 0.5 },
+  // [wavelength m, amplitude m, direction deg off the wind (0 = toward camera), steepness 0..1]
+  waves: [
+    [170, 0.95, -6, 0.10], [118, 0.56, 12, 0.12], [84, 0.46, -22, 0.14], [56, 0.28, 24, 0.16],
+    [36, 0.16, -12, 0.22], [24, 0.105, 18, 0.26], [16, 0.068, -34, 0.30], [11, 0.042, 38, 0.34],
+    [7.5, 0.027, -8, 0.38], [5.2, 0.018, 25, 0.40], [3.6, 0.012, -30, 0.42], [2.6, 0.008, 42, 0.44],
+    [1.8, 0.0055, -48, 0.46], [1.25, 0.0038, 10, 0.48], [0.9, 0.0026, -60, 0.50], [0.65, 0.0018, 55, 0.50]
+  ],
+  windDirDeg: 0,
+  amplitude: 1.0,        // global height multiplier
+  steepness: 1.0,        // global crest-sharpness multiplier
+  timeScale: 1.0,
+  reducedMotionScale: 0.25,
+  mesh: { cols: 224, rows: 352, near: 1.5, far: 8000 },
+  look: { glitter: 1.0, detail: 0.55, foam: 1.0, sss: 1.0, exposure: 0.62, cirrusDrift: 0.0035 },
+  penguin: {
+    ndcX: -0.34,          // horizontal screen position (-1 left .. 1 right)
+    ndcY: -0.17,          // vertical screen position (horizon is about +0.12, bottom -1)
+    size: 1.0,            // model scale (model is ~0.5 m long)
+    wander: 1.6,          // metres of slow drift around its spot
+    lookEvery: [5, 13],   // seconds between head turns
+    flipperEvery: [9, 24] // seconds between flipper twitches
+  },
+  quality: {
+    dprCap: 1.75, scaleMin: 0.5, scaleMax: 1.0, scaleStartDesktop: 1.0, scaleStartMobile: 0.8,
+    slowMs: 22, fastMs: 18.5, step: 0.07, settleMs: 1600, probeMs: 4500
+  }
+};
+
+const canvas = document.getElementById('sea');
+const params = new URLSearchParams(location.search);
+const reduceMQ = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+
+// ---------------------------------------------------------------- GL setup
+let gl = null;
+try {
+  gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: true, stencil: false,
+                                     powerPreference: 'high-performance', preserveDrawingBuffer: false });
+} catch (e) { gl = null; }
+if (!gl) { document.documentElement.classList.add('nogl'); window.__ocean = { config: CONFIG, error: 'no webgl2' }; return; }
+
+// ---------------------------------------------------------------- shaders
+const COMMON = `#version 300 es
+precision highp float;
+uniform float u_t;
+uniform vec3 u_sun;      // unit vector toward the sun
+uniform vec3 u_sunCol;   // tint
+uniform vec4 u_sunP;     // radiance, angular radius (rad), cloud offset xy
+uniform vec4 u_cam;      // tanX, tanY, sinP, cosP
+uniform float u_exp;
+const float PI = 3.14159265;
+
+float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec3 noised(vec2 x){
+  vec2 i = floor(x), f = fract(x);
+  vec2 u = f*f*f*(f*(f*6.-15.)+10.);
+  vec2 du = 30.*f*f*(f*(f-2.)+1.);
+  float a = hash12(i), b = hash12(i+vec2(1,0)), c = hash12(i+vec2(0,1)), d = hash12(i+vec2(1,1));
+  float k1 = b-a, k2 = c-a, k4 = a-b-c+d;
+  return vec3(a + k1*u.x + k2*u.y + k4*u.x*u.y, du*vec2(k1 + k4*u.y, k2 + k4*u.x));
+}
+
+vec3 ramp(float t){
+  vec3 c0 = vec3(1.30,0.50,0.12), c1 = vec3(1.02,0.24,0.12), c2 = vec3(0.60,0.10,0.23),
+       c3 = vec3(0.27,0.06,0.31), c4 = vec3(0.085,0.045,0.26), c5 = vec3(0.02,0.025,0.12);
+  vec3 c = mix(c0, c1, smoothstep(0.0, 0.14, t));
+  c = mix(c, c2, smoothstep(0.14, 0.30, t));
+  c = mix(c, c3, smoothstep(0.30, 0.48, t));
+  c = mix(c, c4, smoothstep(0.48, 0.72, t));
+  return mix(c, c5, smoothstep(0.72, 1.0, t));
+}
+
+float cirrus(vec3 rd, float ang, int oct, out vec3 col){
+  col = vec3(0.);
+  float e = rd.y;
+  if (e < 0.03) return 0.;
+  vec2 uv = rd.xz / (e + 0.12);
+  uv = mat2(0.95,-0.31,0.31,0.95) * uv + u_sunP.zw;
+  vec2 q = vec2(uv.x * 0.42, uv.y * 3.4);
+  float f = 0., a = 0.6;
+  for (int i = 0; i < 4; i++){
+    if (i >= oct) break;
+    float n = noised(q).x; n = 1. - abs(2.*n - 1.); f += a * n * n;
+    q = mat2(1.7,0.35,-0.35,1.7) * q; a *= 0.5;
+  }
+  float cover = noised(uv * vec2(0.16, 0.7) + 11.).x;
+  float env = smoothstep(0.03, 0.12, e) * (1. - smoothstep(0.5, 0.95, e));
+  float m = smoothstep(0.28, 0.82, f) * smoothstep(0.32, 0.68, cover) * env;
+  float lit = exp(-e * 3.6) * (0.28 + 0.72 * exp(-ang * 1.1));
+  col = mix(vec3(0.20,0.055,0.27), vec3(1.2,0.36,0.14), clamp(lit * 1.5, 0., 1.));
+  return m;
+}
+
+vec3 skyCol(vec3 rd, int oct, bool bands){
+  float e = max(rd.y, 0.0);
+  float cs = dot(rd, u_sun);
+  float ang = acos(clamp(cs, -1., 1.));
+  vec3 c = ramp(sqrt(e));
+  // anti-sun side is cooler and dimmer
+  c *= mix(vec3(0.62,0.58,0.8), vec3(1.), smoothstep(-0.2, 0.9, cs));
+  c += u_sunCol * (exp(-ang*2.6)*0.30 + exp(-ang*9.)*0.55 + exp(-ang*38.)*1.4) * (0.35 + 0.65*exp(-e*9.));
+  // horizon haze: a bright thin film and a wider warm one
+  float hz = exp(-e/0.010)*0.85 + exp(-e/0.055)*0.30;
+  c += vec3(1.25,0.50,0.20) * hz * 0.7 * (0.45 + 0.9*exp(-ang*1.5));
+  if (bands) {
+    float az = atan(rd.x, -rd.z);
+    for (int L = 0; L < 3; L++) {
+      float fl = float(L);
+      float ec = 0.030 + 0.036*fl;
+      float n = noised(vec2(az*(7.+3.*fl), e*(300.-70.*fl) + fl*13.)).x * 0.65
+              + noised(vec2(az*(21.+5.*fl)+7., e*(620.-100.*fl))).x * 0.35;
+      float m = smoothstep(0.52, 0.80, n) * exp(-pow((e-ec)/(0.011+0.003*fl), 2.));
+      float lit = exp(-ang*2.2) * (0.9 - 0.2*fl);
+      vec3 bc = mix(vec3(0.17,0.04,0.16), vec3(1.15,0.36,0.14), clamp(lit,0.,1.));
+      c = mix(c, bc, m * 0.7);
+    }
+  }
+  vec3 cc; float cm = cirrus(rd, ang, oct, cc);
+  c = mix(c, cc, cm * 0.7);
+  return c;
+}
+
+vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14), 0., 1.); }
+vec3 finish(vec3 c, vec2 fc){
+  c = aces(c * u_exp);
+  c = pow(c, vec3(1./2.2));
+  float n = fract(52.9829189 * fract(dot(fc, vec2(0.06711056, 0.00583715))));
+  float n2 = fract(52.9829189 * fract(dot(fc + 17., vec2(0.06711056, 0.00583715))));
+  return c + (n + n2 - 1.) / 255.;
+}
+`;
+
+const SKY_VS = `#version 300 es
+out vec2 v_ndc;
+void main(){
+  vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)) * 2. - 1.;
+  v_ndc = p; gl_Position = vec4(p, 0., 1.);
+}`;
+const SKY_FS = COMMON + `
+in vec2 v_ndc; out vec4 o;
+void main(){
+  float sp = u_cam.z, cp = u_cam.w;
+  vec3 rd = normalize(vec3(v_ndc.x*u_cam.x, -sp + cp*v_ndc.y*u_cam.y, -cp - sp*v_ndc.y*u_cam.y));
+  vec3 c = skyCol(rd, 4, true);
+  // sun disc with limb darkening, dimmed by haze near the horizon
+  float ang = acos(clamp(dot(rd, u_sun), -1., 1.));
+  float R = u_sunP.y;
+  float disc = smoothstep(R, R*0.94, ang);
+  float limb = 0.72 + 0.28 * sqrt(max(1. - (ang/R)*(ang/R), 0.));
+  float hazeT = mix(0.55, 1., smoothstep(0.0, 0.035, rd.y));
+  c += vec3(1.0,0.56,0.22) * 3.2 * disc * limb * hazeT;
+  o = vec4(finish(c, gl_FragCoord.xy), 1.);
+}`;
+
+const WATER_VS = `#version 300 es
+precision highp float;
+in vec2 a_g;
+uniform vec4 u_cam;       // tanX, tanY, sinP, cosP
+uniform vec4 u_np;        // near, far, xSpread, camY
+uniform vec4 u_wA[16];    // dirx, dirz, k, A
+uniform vec4 u_wB[16];    // phase, steepness, wavelength, 0
+out vec3 v_wp; out vec2 v_p0; out vec3 v_n; out float v_j; out float v_h;
+void main(){
+  float d = u_np.x * exp(a_g.y * log(u_np.y / u_np.x));
+  vec2 p0 = vec2(a_g.x * d * u_np.z, -d);
+  vec3 disp = vec3(0.);
+  float nx = 0., nz = 0., ny = 0., jxx = 1., jzz = 1., jxz = 0.;
+  for (int i = 0; i < 16; i++){
+    vec4 A = u_wA[i]; vec4 B = u_wB[i];
+    float fade = 1. - smoothstep(B.z*6., B.z*14., d);
+    float th = A.z * dot(A.xy, p0) + B.x;
+    float s = sin(th), c = cos(th);
+    float amp = A.w * fade, st = B.y * fade;
+    disp.xz += A.xy * (st / A.z * c);
+    disp.y += amp * s;
+    nx -= A.x * A.z * amp * c; nz -= A.y * A.z * amp * c; ny -= st * s;
+    jxx -= st*A.x*A.x*s; jzz -= st*A.y*A.y*s; jxz -= st*A.x*A.y*s;
+  }
+  vec3 wp = vec3(p0.x + disp.x, disp.y - u_np.w, p0.y + disp.z);
+  float sp = u_cam.z, cp = u_cam.w;
+  float vx = wp.x, vy = wp.y*cp - wp.z*sp, depth = -wp.y*sp - wp.z*cp;
+  float n = 0.5, f = 12000.;
+  gl_Position = vec4(vx/u_cam.x, vy/u_cam.y, ((f+n)*depth - 2.*f*n)/(f-n), depth);
+  v_wp = wp; v_p0 = p0; v_n = vec3(nx, 1. + ny, nz); v_j = jxx*jzz - jxz*jxz; v_h = disp.y;
+}`;
+const WATER_FS = COMMON + `
+in vec3 v_wp; in vec2 v_p0; in vec3 v_n; in float v_j; in float v_h;
+uniform vec4 u_look;   // glitter, detail, foam, sss
+uniform vec3 u_peng;   // x, z (camera relative), unused
+out vec4 o;
+void main(){
+  float dist = length(v_wp);
+  vec3 V = -v_wp / dist;
+  vec3 N = normalize(v_n);
+
+  // detail normals: two scrolling anisotropic octaves, faded by pixel footprint
+  vec2 fw = fwidth(v_p0);
+  float fp = length(fw);
+  float f1 = 1. - smoothstep(0.12, 0.42, fp / 1.5);
+  float f2 = 1. - smoothstep(0.12, 0.42, fp / 0.6);
+  float lost = (1. - f1) * 0.6 + (1. - f2) * 0.25;
+  vec2 pA = v_p0 * vec2(0.62, 0.95) + vec2(0.3, -u_t * 1.15 * 0.95);
+  vec2 pB = v_p0 * vec2(1.6, 2.3) + vec2(-0.2, -u_t * 0.8 * 2.3) + 5.1;
+  vec3 gA = noised(pA); vec3 gB = noised(pB);
+  vec2 sl = vec2(gA.y * 0.62, gA.z * 0.95) * 0.07 * f1 + vec2(gB.y * 1.6, gB.z * 2.3) * 0.022 * f2;
+  N.xz -= sl * u_look.y * exp(-dist / 160.);
+
+  // the penguin's ripple ring
+  vec2 pr = v_wp.xz - u_peng.xy;
+  float rr = length(pr);
+  float ring = sin(rr * 17. - u_t * 2.3) * exp(-rr * 1.5) * smoothstep(0.1, 0.4, rr) * (1. - smoothstep(2.0, 3.4, rr));
+  N.xz += pr / (rr + 1e-3) * ring * 0.12;
+  N = normalize(N);
+
+  float nvRaw = dot(N, V);
+  if (nvRaw < 0.04) { N = normalize(N + V * (0.04 - nvRaw)); }
+  float NV = clamp(dot(N, V), 0.03, 1.);
+  float F = 0.02 + 0.98 * pow(1. - NV, 5.);
+
+  // sky reflection: the swell tilts the mirror, detail is filtered with distance
+  vec3 Nr = normalize(mix(N, vec3(0.,1.,0.), 1. - exp(-dist / 420.)));
+  vec3 R = reflect(-V, Nr);
+  R.y = abs(R.y);
+  vec3 refl = skyCol(R, 2, false);
+
+  // sun glitter: GGX with roughness growing as the small waves go sub-pixel
+  vec3 L = u_sun;
+  vec3 H = normalize(L + V);
+  float NH = max(dot(N, H), 0.), NL = max(dot(N, L), 0.), VH = max(dot(V, H), 0.);
+  float alpha = mix(0.035, 0.20, 1. - exp(-dist / 380.)) + lost * 0.05;
+  float a2 = alpha * alpha;
+  float dd = NH*NH*(a2 - 1.) + 1.;
+  float D = a2 / (PI * dd * dd);
+  float Fs = 0.02 + 0.98 * pow(1. - VH, 5.);
+  float k = alpha * 0.5;
+  float G = (NL / (NL*(1.-k) + k)) / (4. * (NV*(1.-k) + k));
+  float omega = PI * u_sunP.y * u_sunP.y;
+  vec3 spec = u_sunCol * (u_sunP.x * omega) * D * Fs * G * u_look.x;
+
+  // body colour and subsurface glow on backlit crests
+  float hN = clamp(v_h / 2.4 + 0.45, 0., 1.);
+  float back = pow(max(dot(-V, L), 0.), 3.);
+  float thick = hN * hN * (0.25 + 0.75 * back) * (0.55 + 0.45 * smoothstep(-0.25, 0.35, N.z));
+  vec3 body = vec3(0.010, 0.028, 0.050) + vec3(0.03, 0.012, 0.035) * (0.4 + 0.6 * NV);
+  body += mix(vec3(0.02, 0.17, 0.17), vec3(0.62, 0.24, 0.05), back) * thick * 0.9 * u_look.w;
+
+  vec3 col = refl * F + body * (1. - F) + spec;
+
+  // foam from crest compression (Jacobian) with noisy breakup
+  float jm = 1. - smoothstep(0.05, 0.50, v_j);
+  float fn = noised(v_p0 * vec2(1.0, 2.1) + vec2(0., -u_t * 0.5)).x * 0.6 + noised(v_p0 * vec2(3.3, 5.7) + vec2(0., -u_t * 0.9) + 9.).x * 0.4;
+  float foam = smoothstep(0.38, 0.78, jm * 1.25 + (fn - 0.5) * 0.8) * u_look.z * exp(-dist / 140.);
+  vec3 foamCol = vec3(0.06, 0.04, 0.09) + u_sunCol * (0.10 + 0.9 * smoothstep(-0.1, 0.5, N.z * -1. + 0.2)) * 0.7 + refl * 0.12;
+  col = mix(col, foamCol, clamp(foam, 0., 0.85));
+
+  // haze toward the horizon colour
+  vec3 hv = normalize(vec3(-V.x, 0.002, -V.z));
+  vec3 hz = skyCol(hv, 1, false);
+  float fog = 1. - exp(-dist * 0.00012);
+  fog = max(fog, smoothstep(2500., 7500., dist));
+  col = mix(col, hz, fog);
+
+  o = vec4(finish(col, gl_FragCoord.xy), 1.);
+}`;
+
+const PENG_VS = `#version 300 es
+precision highp float;
+uniform vec4 u_cam;
+uniform vec4 u_pc;   // centre rel. camera xyz, half size
+uniform vec2 u_rot;  // sin, cos of roll
+out vec2 v_q;
+void main(){
+  vec2 c = vec2(float(gl_VertexID & 1) * 2. - 1., float(gl_VertexID >> 1) * 2. - 1.);
+  vec2 q = c * u_pc.w; v_q = q;
+  vec2 r = vec2(u_rot.y*q.x - u_rot.x*q.y, u_rot.x*q.x + u_rot.y*q.y);
+  float sp = u_cam.z, cp = u_cam.w;
+  vec3 wp = u_pc.xyz + vec3(r.x, r.y*cp, -r.y*sp);
+  float vx = wp.x, vy = wp.y*cp - wp.z*sp, depth = -wp.y*sp - wp.z*cp;
+  float n = 0.5, f = 12000.;
+  gl_Position = vec4(vx/u_cam.x, vy/u_cam.y, ((f+n)*depth - 2.*f*n)/(f-n), depth);
+}`;
+const PENG_FS = COMMON + `
+in vec2 v_q; out vec4 o;
+uniform vec4 u_pg;   // scale, facing, turn, flipper angle
+float sdEll(vec2 p, vec2 r){ float k0 = length(p/r), k1 = length(p/(r*r)); return k0*(k0-1.)/k1; }
+float smin(float a, float b, float k){ float h = max(k-abs(a-b), 0.)/k; return min(a,b) - h*h*k*0.25; }
+float sdSeg(vec2 p, vec2 a, vec2 b, float r){ vec2 pa = p-a, ba = b-a; float h = clamp(dot(pa,ba)/dot(ba,ba), 0., 1.); return length(pa-ba*h) - r; }
+vec2 headC(){ return vec2(0.16 - u_pg.z*0.05, 0.150); }
+float beakD(vec2 q){
+  vec2 hc = headC(); float t = u_pg.z;
+  return sdSeg(q, hc + vec2(0.05, -0.012), hc + vec2(0.05 + 0.075*(1.-t*0.9), -0.027), 0.0075);
+}
+float sdf(vec2 q){
+  float back = sdEll(q - vec2(-0.02, 0.0), vec2(0.24, 0.10));
+  float head = length(q - headC()) - 0.056;
+  float d = smin(back, head, 0.06);
+  d = smin(d, sdSeg(q, vec2(-0.23, 0.0), vec2(-0.30, 0.012), 0.01), 0.02);
+  float a = u_pg.w;
+  vec2 sh = vec2(0.07, 0.095);
+  d = smin(d, sdSeg(q, sh, sh + 0.15*vec2(-cos(a), sin(a)), 0.016), 0.012);
+  d = min(d, beakD(q));
+  return max(d, -(q.y + 0.012));   // everything under the waterline is the sea's business
+}
+void main(){
+  vec2 q = vec2(v_q.x * u_pg.y, v_q.y) / u_pg.x;
+  float d = sdf(q);
+  float px = fwidth(d) * 0.9 + 1e-5;
+  float alpha = smoothstep(px, -px, d);
+  if (alpha <= 0.001) discard;
+  float e = 0.004;
+  vec2 g = vec2(sdf(q + vec2(e,0.)) - d, sdf(q + vec2(0.,e)) - d) / e;
+  vec2 n2 = normalize(g + 1e-5); n2.x *= u_pg.y;
+  vec2 Ls = normalize(vec2(0.8, 0.28));
+  float edge = exp(d / 0.014);
+  float rim = pow(clamp(dot(n2, Ls) * 0.5 + 0.5, 0., 1.), 2.2) * edge;
+  float top = max(n2.y, 0.) * exp(d / 0.022);
+  vec3 col = vec3(0.012, 0.010, 0.016) + rim * vec3(2.2, 0.78, 0.20) + top * vec3(0.20, 0.07, 0.22);
+  // orange bill, and a warm ear patch just behind the eye
+  vec2 hc = headC();
+  float bm = smoothstep(0.004, -0.004, beakD(q)) * smoothstep(0.085, 0.10, length(q - hc));
+  col = mix(col, vec3(0.75, 0.24, 0.04), bm * 0.8);
+  float patch_ = smoothstep(0.018, 0.006, length(q - hc - vec2(-0.012, -0.004))) * (1. - u_pg.z * 0.5);
+  col = mix(col, vec3(0.9, 0.42, 0.06), patch_ * 0.45);
+  // a breath of the horizon haze
+  col = mix(col, vec3(0.45, 0.17, 0.12), 0.05);
+  o = vec4(finish(col, gl_FragCoord.xy), alpha);
+}`;
+
+function compile(type, src, label) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error('[ocean] ' + label + ' shader compile failed:\n' + gl.getShaderInfoLog(s));
+    return null;
+  }
+  return s;
+}
+function program(vs, fs, label) {
+  const v = compile(gl.VERTEX_SHADER, vs, label + ' vertex'), f = compile(gl.FRAGMENT_SHADER, fs, label + ' fragment');
+  if (!v || !f) return null;
+  const p = gl.createProgram();
+  gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { console.error('[ocean] ' + label + ' link failed:\n' + gl.getProgramInfoLog(p)); return null; }
+  return p;
+}
+function locs(p, names) { const o = {}; for (const n of names) o[n] = gl.getUniformLocation(p, n); return o; }
+
+const progSky = program(SKY_VS, SKY_FS, 'sky');
+const progWater = program(WATER_VS, WATER_FS, 'water');
+const progPeng = program(PENG_VS, PENG_FS, 'penguin');
+if (!progSky || !progWater || !progPeng) {
+  document.documentElement.classList.add('nogl');
+  document.getElementById('nogl').textContent = 'The ocean shaders did not compile here. Details are in the console.';
+  window.__ocean = { config: CONFIG, error: 'shader compile failed' };
+  return;
+}
+const COMMON_U = ['u_t', 'u_sun', 'u_sunCol', 'u_sunP', 'u_cam', 'u_exp'];
+const uSky = locs(progSky, COMMON_U);
+const uWater = locs(progWater, COMMON_U.concat(['u_np', 'u_wA', 'u_wB', 'u_look', 'u_peng']));
+const uPeng = locs(progPeng, COMMON_U.concat(['u_pc', 'u_rot', 'u_pg']));
+
+// ---------------------------------------------------------------- mesh
+const vaoEmpty = gl.createVertexArray();
+const vaoMesh = gl.createVertexArray();
+let meshIdxCount = 0;
+(function buildMesh() {
+  const C = CONFIG.mesh.cols, R = CONFIG.mesh.rows;
+  const vtx = new Float32Array((C + 1) * (R + 1) * 2);
+  let k = 0;
+  for (let r = 0; r <= R; r++) for (let c = 0; c <= C; c++) { vtx[k++] = (c / C) * 2 - 1; vtx[k++] = r / R; }
+  const idx = new Uint32Array(C * R * 6);
+  k = 0;
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+    const a = r * (C + 1) + c, b = a + 1, d = a + C + 1, e = d + 1;
+    idx[k++] = a; idx[k++] = d; idx[k++] = b; idx[k++] = b; idx[k++] = d; idx[k++] = e;
+  }
+  meshIdxCount = idx.length;
+  gl.bindVertexArray(vaoMesh);
+  const vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vtx, gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(progWater, 'a_g');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
+})();
+
+// ---------------------------------------------------------------- waves (shared by GPU and CPU)
+const NW = 16;
+const wA = new Float32Array(NW * 4), wB = new Float32Array(NW * 4);
+const wDx = new Float64Array(NW), wDz = new Float64Array(NW), wK = new Float64Array(NW), wAmp = new Float64Array(NW),
+      wSt = new Float64Array(NW), wLen = new Float64Array(NW), wOmega = new Float64Array(NW), wPh0 = new Float64Array(NW),
+      wPh = new Float64Array(NW);
+function buildWaves() {
+  let seed = 90210;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  for (let i = 0; i < NW; i++) {
+    const w = CONFIG.waves[i];
+    const wl = w[0], k = 2 * Math.PI / wl;
+    const a = (CONFIG.windDirDeg + w[2]) * Math.PI / 180;
+    wDx[i] = Math.sin(a); wDz[i] = Math.cos(a); wK[i] = k;
+    wAmp[i] = w[1] * CONFIG.amplitude; wSt[i] = Math.min(w[3] * CONFIG.steepness, 0.9); wLen[i] = wl;
+    wOmega[i] = Math.sqrt(9.81 * k); wPh0[i] = rnd() * Math.PI * 2;
+    wA[i*4] = wDx[i]; wA[i*4+1] = wDz[i]; wA[i*4+2] = k; wA[i*4+3] = wAmp[i];
+    wB[i*4+1] = wSt[i]; wB[i*4+2] = wl;
+  }
+}
+buildWaves();
+function updatePhases(t) {
+  const TAU = Math.PI * 2;
+  for (let i = 0; i < NW; i++) {
+    let p = (wPh0[i] - wOmega[i] * t) % TAU; if (p < 0) p += TAU;
+    wPh[i] = p; wB[i*4] = p;
+  }
+}
+// CPU evaluation of the same sum at undisplaced grid point (x, z): same LOD fade as the vertex shader.
+const WS = { h: 0, dx: 0, dz: 0, sx: 0, sz: 0 };
+function evalWaves(x, z) {
+  const d = -z;
+  let h = 0, dx = 0, dz = 0, sx = 0, sz = 0;
+  for (let i = 0; i < NW; i++) {
+    const wl = wLen[i];
+    let u = (d - wl * 6) / (wl * 8); u = u < 0 ? 0 : u > 1 ? 1 : u;
+    const fade = 1 - u * u * (3 - 2 * u);
+    if (fade <= 0) continue;
+    const th = wK[i] * (wDx[i] * x + wDz[i] * z) + wPh[i];
+    const s = Math.sin(th), c = Math.cos(th), amp = wAmp[i] * fade, st = wSt[i] * fade;
+    h += amp * s; dx += wDx[i] * st / wK[i] * c; dz += wDz[i] * st / wK[i] * c;
+    sx += wDx[i] * wK[i] * amp * c; sz += wDz[i] * wK[i] * amp * c;
+  }
+  WS.h = h; WS.dx = dx; WS.dz = dz; WS.sx = sx; WS.sz = sz;
+}
+
+// ---------------------------------------------------------------- camera / layout
+const cam = { tanX: 0.6, tanY: 0.4, pitch: 0.05, sinP: 0.05, cosP: 1, aspect: 1.6, y: 3.2 };
+const camU = new Float32Array(4);
+const npU = new Float32Array(4);
+const peng = { d0: 28, x0: -6, ndcX: 0, ndcY: 0, px: 0, pz: 0, cx: 0, cy: 0, cz: 0, roll: 0, half: 0.7,
+               turn: 0, turnTarget: 0, nextLook: 4, facing: 1, flip: -0.5, flipT: -1, nextFlip: 8, seed: 0.37 };
+function layout() {
+  const W = window.innerWidth, H = window.innerHeight;
+  cam.aspect = W / H;
+  const t0 = Math.tan(CONFIG.camera.fovYDeg * Math.PI / 360);
+  cam.tanX = Math.max(t0 * cam.aspect, CONFIG.camera.minTanX);
+  cam.tanY = cam.tanX / cam.aspect;
+  const hy = 1 - 2 * CONFIG.camera.horizonFrac;
+  cam.pitch = Math.atan(hy * cam.tanY);
+  cam.sinP = Math.sin(cam.pitch); cam.cosP = Math.cos(cam.pitch);
+  // place the penguin so it lands at the configured screen spot
+  const y = CONFIG.penguin.ndcY;
+  const tanA = (cam.sinP - cam.cosP * y * cam.tanY) / (cam.cosP + cam.sinP * y * cam.tanY);
+  peng.d0 = CONFIG.camera.height / tanA;
+  peng.x0 = CONFIG.penguin.ndcX * cam.tanX * peng.d0;
+  const az = Math.min(CONFIG.sun.azimuthDeg * Math.PI / 180, Math.atan(0.5 * cam.tanX));
+  const el = CONFIG.sun.elevationDeg * Math.PI / 180;
+  sunVec[0] = Math.sin(az) * Math.cos(el); sunVec[1] = Math.sin(el); sunVec[2] = -Math.cos(az) * Math.cos(el);
+}
+
+// ---------------------------------------------------------------- penguin behaviour
+function rndRange(r, s) { return r[0] + (r[1] - r[0]) * s; }
+let rs = 12345;
+function rnd01() { rs = (rs * 1664525 + 1013904223) >>> 0; return rs / 4294967296; }
+function updatePenguin(t, dt) {
+  const P = CONFIG.penguin;
+  // slow drift around the spot (the orbital motion of the swell is added on top by the wave sum)
+  const wx = P.wander * (Math.sin(t * 0.021 + 1.3) * 0.7 + Math.sin(t * 0.0073) * 0.5);
+  const wz = P.wander * 0.6 * (Math.sin(t * 0.017 + 4.1) * 0.6 + Math.sin(t * 0.0051 + 2.0) * 0.5) - t * 0.0;
+  const gx = peng.x0 + wx, gz = -peng.d0 + wz;
+  evalWaves(gx, gz);
+  peng.px = gx + WS.dx; peng.pz = gz + WS.dz;
+  peng.cx = peng.px; peng.cz = peng.pz + 0.3; peng.cy = WS.h - cam.y + 0.015;
+  // follows the slope across the screen, a little less than fully (it is not a plank)
+  const targetRoll = Math.atan(WS.sx) * 0.85;
+  peng.roll += (targetRoll - peng.roll) * Math.min(1, dt * 5);
+  // head turns
+  peng.nextLook -= dt;
+  if (peng.nextLook <= 0) {
+    peng.nextLook = rndRange(P.lookEvery, rnd01());
+    const r = rnd01();
+    peng.turnTarget = r < 0.5 ? 0 : (r < 0.8 ? 0.55 + rnd01() * 0.45 : 0);
+    if (r > 0.93) peng.facing = -peng.facing;
+  }
+  peng.turn += (peng.turnTarget - peng.turn) * Math.min(1, dt * 2.6);
+  // flipper twitch
+  peng.nextFlip -= dt;
+  if (peng.nextFlip <= 0 && peng.flipT < 0) { peng.flipT = 0; peng.nextFlip = rndRange(P.flipperEvery, rnd01()); }
+  if (peng.flipT >= 0) {
+    peng.flipT += dt;
+    const u = peng.flipT / 0.55;
+    if (u >= 1) { peng.flipT = -1; peng.flip = -0.5; }
+    else peng.flip = -0.5 + 1.0 * Math.sin(u * Math.PI) * (0.6 + 0.4 * Math.sin(u * Math.PI * 5));
+  }
+}
+
+// ---------------------------------------------------------------- sizing + adaptive quality
+const Q = CONFIG.quality;
+const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+const state = {
+  scale: params.has('scale') ? Math.min(Math.max(+params.get('scale'), 0.25), 1.5) : (coarse ? Q.scaleStartMobile : Q.scaleStartDesktop),
+  lock: params.has('lock') || params.has('scale'), ceil: Q.scaleMax,
+  t: params.has('t') ? +params.get('t') : 0, ema: 16.7, sinceChange: 0, good: 0, sinceCeil: 0,
+  running: false, raf: 0, last: 0, frames: 0, bufW: 0, bufH: 0, needResize: true, lost: false,
+  timeScale: 1, camHeave: 0
+};
+function applyReduced() { state.timeScale = (reduceMQ && reduceMQ.matches) ? CONFIG.reducedMotionScale : 1; }
+applyReduced();
+if (reduceMQ && reduceMQ.addEventListener) reduceMQ.addEventListener('change', applyReduced);
+
+function resize() {
+  state.needResize = false;
+  const dpr = Math.min(window.devicePixelRatio || 1, Q.dprCap);
+  const w = Math.max(2, Math.round(window.innerWidth * dpr * state.scale));
+  const h = Math.max(2, Math.round(window.innerHeight * dpr * state.scale));
+  if (w !== state.bufW || h !== state.bufH) { canvas.width = w; canvas.height = h; state.bufW = w; state.bufH = h; }
+  layout();
+}
+window.addEventListener('resize', () => { state.needResize = true; });
+
+function adapt(dtMs) {
+  if (state.lock || dtMs > 250) return;
+  state.ema += (dtMs - state.ema) * 0.08;
+  state.sinceChange += dtMs; state.sinceCeil += dtMs;
+  if (state.sinceCeil > 30000) { state.ceil = Math.min(Q.scaleMax, state.ceil + Q.step); state.sinceCeil = 0; }
+  if (state.sinceChange < Q.settleMs) return;
+  if (state.ema > Q.slowMs && state.scale > Q.scaleMin) {
+    state.ceil = Math.max(Q.scaleMin, state.scale - Q.step * 0.5);
+    state.scale = Math.max(Q.scaleMin, state.scale - Q.step * (state.ema > 40 ? 2 : 1));
+    state.sinceChange = 0; state.good = 0; state.needResize = true; state.sinceCeil = 0;
+  } else if (state.ema < Q.fastMs && state.scale < Math.min(Q.scaleMax, state.ceil)) {
+    state.good += dtMs;
+    if (state.good > Q.probeMs) { state.scale = Math.min(Q.scaleMax, state.scale + Q.step * 0.7); state.good = 0; state.sinceChange = 0; state.needResize = true; }
+  } else state.good = 0;
+}
+
+// ---------------------------------------------------------------- render
+const sunVec = new Float32Array(3), sunCol = new Float32Array([1.0, 0.45, 0.14]);
+const sunP = new Float32Array(4), lookU = new Float32Array(4), pcU = new Float32Array(4), pgU = new Float32Array(4);
+function sunSetup() {
+  const el = CONFIG.sun.elevationDeg * Math.PI / 180, az = CONFIG.sun.azimuthDeg * Math.PI / 180;
+  sunVec[0] = Math.sin(az) * Math.cos(el); sunVec[1] = Math.sin(el); sunVec[2] = -Math.cos(az) * Math.cos(el);
+}
+sunSetup();
+
+function setCommon(u, t) {
+  gl.uniform1f(u.u_t, t % 4096);
+  gl.uniform3fv(u.u_sun, sunVec);
+  gl.uniform3fv(u.u_sunCol, sunCol);
+  sunP[0] = CONFIG.sun.radiance; sunP[1] = CONFIG.sun.radiusDeg * Math.PI / 180;
+  sunP[2] = (t * CONFIG.look.cirrusDrift) % 64; sunP[3] = (t * CONFIG.look.cirrusDrift * 0.4) % 64;
+  gl.uniform4fv(u.u_sunP, sunP);
+  camU[0] = cam.tanX; camU[1] = cam.tanY; camU[2] = cam.sinP; camU[3] = cam.cosP;
+  gl.uniform4fv(u.u_cam, camU);
+  gl.uniform1f(u.u_exp, CONFIG.look.exposure);
+}
+
+function simulate(dt) {
+  state.t += dt * state.timeScale * CONFIG.timeScale;
+  updatePhases(state.t);
+  evalWaves(0, -8);
+  const calm = state.timeScale < 1 ? 0.5 : 1;
+  cam.y = CONFIG.camera.height + CONFIG.camera.heave * WS.h * calm + 0.06 * Math.sin(state.t * 0.31) * calm;
+  updatePenguin(state.t, dt * state.timeScale * CONFIG.timeScale);
+}
+
+function render() {
+  if (state.lost) return;
+  if (state.needResize) resize();
+  const t = state.t;
+  gl.viewport(0, 0, state.bufW, state.bufH);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+
+  // sky
+  gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+  gl.useProgram(progSky); setCommon(uSky, t);
+  gl.bindVertexArray(vaoEmpty); gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  // water
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  gl.useProgram(progWater); setCommon(uWater, t);
+  npU[0] = CONFIG.mesh.near; npU[1] = CONFIG.mesh.far; npU[2] = cam.tanX * 1.3 + 0.05; npU[3] = cam.y;
+  gl.uniform4fv(uWater.u_np, npU);
+  gl.uniform4fv(uWater.u_wA, wA); gl.uniform4fv(uWater.u_wB, wB);
+  lookU[0] = CONFIG.look.glitter; lookU[1] = CONFIG.look.detail; lookU[2] = CONFIG.look.foam; lookU[3] = CONFIG.look.sss;
+  gl.uniform4fv(uWater.u_look, lookU);
+  gl.uniform3f(uWater.u_peng, peng.px, peng.pz, 0);
+  gl.bindVertexArray(vaoMesh); gl.drawElements(gl.TRIANGLES, meshIdxCount, gl.UNSIGNED_INT, 0);
+
+  // penguin
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(progPeng); setCommon(uPeng, t);
+  pcU[0] = peng.cx; pcU[1] = peng.cy; pcU[2] = peng.cz; pcU[3] = 0.62 * CONFIG.penguin.size;
+  gl.uniform4fv(uPeng.u_pc, pcU);
+  gl.uniform2f(uPeng.u_rot, Math.sin(peng.roll), Math.cos(peng.roll));
+  pgU[0] = CONFIG.penguin.size; pgU[1] = peng.facing; pgU[2] = peng.turn; pgU[3] = peng.flip;
+  gl.uniform4fv(uPeng.u_pg, pgU);
+  gl.bindVertexArray(vaoEmpty); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  state.frames++;
+}
+
+function frame(now) {
+  state.raf = 0;
+  if (!state.running) return;
+  const dt = state.last ? Math.min((now - state.last) / 1000, 0.1) : 1 / 60;
+  if (state.last) adapt(now - state.last);
+  state.last = now;
+  simulate(dt); render();
+  state.raf = requestAnimationFrame(frame);
+}
+function start() { if (state.running || state.lost) return; state.running = true; state.last = 0; state.raf = requestAnimationFrame(frame); }
+function stop() { state.running = false; if (state.raf) cancelAnimationFrame(state.raf); state.raf = 0; }
+document.addEventListener('visibilitychange', () => { document.hidden ? stop() : start(); });
+canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); state.lost = true; stop(); });
+canvas.addEventListener('webglcontextrestored', () => { location.reload(); });
+
+// ---------------------------------------------------------------- debug handle
+window.__ocean = {
+  config: CONFIG,
+  state,
+  penguin: peng,
+  get scale() { return state.scale; },
+  setScale(s, lock) { state.scale = s; if (lock !== false) state.lock = true; state.needResize = true; },
+  setTime(t) { state.t = t; },
+  step(dt) { simulate(dt === undefined ? 1 / 60 : dt); render(); },
+  stop, start,
+  waveAt(x, z) { updatePhases(state.t); evalWaves(x, z); return { h: WS.h, dx: WS.dx, dz: WS.dz, sx: WS.sx, sz: WS.sz }; },
+  stats() { return { ema: state.ema, scale: state.scale, frames: state.frames, w: state.bufW, h: state.bufH }; }
+};
+
+resize();
+if (params.has('still')) { simulate(0.001); render(); } else { start(); }
+})();
+</script>
+</body>
+</html>
