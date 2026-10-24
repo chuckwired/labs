@@ -87,7 +87,7 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
   <h1>Behind the design.</h1>
   <p class="lede">I asked for the most realistic water we could get, in a browser, with no libraries and a frame rate that holds on a phone. Then I asked for a penguin, but only just visible. The water is a long-running joke, so that's where this starts.</p>
 
-  <img class="cover" src="../cover.png" alt="The ocean lab's cover: a golden-hour sea on the left and a magenta sunset sea on the right, split by a slight diagonal" width="1000" height="475">
+  <img class="cover" src="../cover.webp" alt="The ocean lab's cover: a golden-hour sea on the left and a magenta sunset sea on the right, split by a slight diagonal" width="1000" height="475">
 
   <section>
     <div class="n">01</div>
@@ -113,9 +113,9 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <p><b>B, swell mesh.</b> A real grid of triangles, spaced out toward the horizon, pushed around by sixteen Gerstner waves from a 170m swell down to a 0.65m chop. The sun sits right on the horizon. This one was Vice City, or Miami: that exotic, neon-dusk look. With GTA VI round the corner I think it would resonate with a lot of people.</p>
     <p><b>C, baked spectrum.</b> At load it spends about a second building a wave field from a physical wave spectrum, then every frame just reads from it. Cheap per pixel by design. It was the first one I saw and it impressed me, even if it was the more relaxed of the three.</p>
     <div class="pair three">
-      <figure><img src="shots/1-a-raymarched.jpg" alt="Direction A: raymarched sea at golden hour" loading="lazy"><figcaption>A. Raymarched.</figcaption></figure>
-      <figure><img src="shots/1-b-swell-mesh.jpg" alt="Direction B: a magenta and amber sunset over a swell mesh" loading="lazy"><figcaption>B. Swell mesh.</figcaption></figure>
-      <figure><img src="shots/1-c-baked-spectrum.jpg" alt="Direction C: a pale veiled sun over a calm baked-spectrum sea" loading="lazy"><figcaption>C. Baked spectrum.</figcaption></figure>
+      <figure><img src="shots/1-a-raymarched.webp" alt="Direction A: raymarched sea at golden hour" loading="lazy"><figcaption>A. Raymarched.</figcaption></figure>
+      <figure><img src="shots/1-b-swell-mesh.webp" alt="Direction B: a magenta and amber sunset over a swell mesh" loading="lazy"><figcaption>B. Swell mesh.</figcaption></figure>
+      <figure><img src="shots/1-c-baked-spectrum.webp" alt="Direction C: a pale veiled sun over a calm baked-spectrum sea" loading="lazy"><figcaption>C. Baked spectrum.</figcaption></figure>
     </div>
     <p class="say"><b>Rule:</b> build the options, then argue about them.</p>
   </section>
@@ -134,8 +134,8 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <p>My note on B was that when a big swell rose, I could see below the water, and it broke the illusion. I assumed it was just too big. Cutting the swell by about half helped, but the real cause was that the big waves were also sliding the nearest part of the mesh sideways, away from the camera, so the sea opened up in front of you. The sideways push now fades out close to the camera.</p>
     <p>The same pass found the bright seam and the faint contour rings I'd spotted: both were foam firing on every bit of chop. It's calmer now, and a little flatter near the camera. That is the price.</p>
     <div class="pair">
-      <figure><img src="shots/1-b-swell-mesh.jpg" alt="Sunset direction before the change" loading="lazy"><figcaption>Before.</figcaption></figure>
-      <figure><img src="shots/2-b-gentle-swell.jpg" alt="Sunset direction after the change, calmer near the camera" loading="lazy"><figcaption>After. Long swells cut by about half, camera heave halved.</figcaption></figure>
+      <figure><img src="shots/1-b-swell-mesh.webp" alt="Sunset direction before the change" loading="lazy"><figcaption>Before.</figcaption></figure>
+      <figure><img src="shots/2-b-gentle-swell.webp" alt="Sunset direction after the change, calmer near the camera" loading="lazy"><figcaption>After. Long swells cut by about half, camera heave halved.</figcaption></figure>
     </div>
     <p class="say"><b>Rule:</b> when the illusion breaks, find which thing it broke on, not just which number is too big.</p>
   </section>
@@ -146,8 +146,8 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <p>The first penguins were fine and forgettable. I wanted the one I used in a games computing assignment at uni, which I think came from the OGRE graphics engine: a round, slightly startled bird with huge pale eyes and flippers stuck out like it's balancing. So this one floats front-on, waterline across its belly, rides the swell, turns its head now and then and twitches a flipper.</p>
     <p>It is drawn from scratch, in the shader, so there is no model file. At normal size it is about 22 to 25 pixels wide: a dark head, two pale dots, a flick of orange. Add <code>?penguinzoom</code> to the address to see it at 8x. The flippers are still a bit stick-like up close. I can live with that.</p>
     <div class="pair">
-      <figure><img src="shots/2-c-penguin-zoom.jpg" alt="The penguin at eight times scale on the golden look" loading="lazy"><figcaption>Golden hour, at 8x.</figcaption></figure>
-      <figure><img src="shots/2-b-penguin-zoom.jpg" alt="The penguin at eight times scale on the sunset look" loading="lazy"><figcaption>Sunset, at 8x.</figcaption></figure>
+      <figure><img src="shots/2-c-penguin-zoom.webp" alt="The penguin at eight times scale on the golden look" loading="lazy"><figcaption>Golden hour, at 8x.</figcaption></figure>
+      <figure><img src="shots/2-b-penguin-zoom.webp" alt="The penguin at eight times scale on the sunset look" loading="lazy"><figcaption>Sunset, at 8x.</figcaption></figure>
     </div>
     <p class="say"><b>Rule:</b> specific and slightly wrong beats average. The penguin from my degree beats a generic one.</p>
   </section>
@@ -194,12 +194,12 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <p>The final page is a toggle at the bottom (or press T): Golden hour and Sunset. Switching crossfades, the one you leave stops rendering, and your choice is remembered. Add <code>?look=sunset</code> to link straight to one.</p>
     <p>After the iteration the golden hour one almost feels like Final Fantasy X to me: playing blitzball, the Brotherhood sword. Iconic gaming things. I didn't ask for that, it just turned up.</p>
     <div class="pair">
-      <figure><img src="shots/3-final-golden.jpg" alt="The finished page on the golden hour look, with the toggle at the bottom" loading="lazy"><figcaption>Golden hour.</figcaption></figure>
-      <figure><img src="shots/3-final-sunset.jpg" alt="The finished page on the sunset look" loading="lazy"><figcaption>Sunset.</figcaption></figure>
+      <figure><img src="shots/3-final-golden.webp" alt="The finished page on the golden hour look, with the toggle at the bottom" loading="lazy"><figcaption>Golden hour.</figcaption></figure>
+      <figure><img src="shots/3-final-sunset.webp" alt="The finished page on the sunset look" loading="lazy"><figcaption>Sunset.</figcaption></figure>
     </div>
     <div class="pair">
-      <figure class="phone"><img src="shots/3-final-phone-golden.jpg" alt="The golden look at phone width" loading="lazy"><figcaption>Phone width, golden.</figcaption></figure>
-      <figure class="phone"><img src="shots/3-final-phone-sunset.jpg" alt="The sunset look at phone width" loading="lazy"><figcaption>Phone width, sunset.</figcaption></figure>
+      <figure class="phone"><img src="shots/3-final-phone-golden.webp" alt="The golden look at phone width" loading="lazy"><figcaption>Phone width, golden.</figcaption></figure>
+      <figure class="phone"><img src="shots/3-final-phone-sunset.webp" alt="The sunset look at phone width" loading="lazy"><figcaption>Phone width, sunset.</figcaption></figure>
     </div>
     <p>All the screenshots here were rendered by a headless browser in software, so the colours are right and the speed means nothing. The three first directions, and the two follow-ups, are still in the repo under <code>ocean/directions/</code>.</p>
     <p class="say"><b>Rule:</b> keep the road not taken. It's the best part of the story.</p>
