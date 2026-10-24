@@ -37,7 +37,9 @@ figcaption { margin-top: 8px; color: var(--dim); font-size: 12px; max-width: 62c
 .pair figure { margin: 0; }
 .pair.three { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .phone { max-width: 240px; }
-table { border-collapse: collapse; margin: 16px 0 14px; font-size: 12px; width: 100%; max-width: 62ch; }
+table { border-collapse: collapse; margin: 16px 0 14px; font-size: 12px; width: 100%; }
+.tw { overflow-x: auto; }
+th, td { white-space: nowrap; }
 th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); font-weight: 400; }
 th { color: var(--dim); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 td.num { font-variant-numeric: tabular-nums; }
@@ -46,8 +48,8 @@ td.num { font-variant-numeric: tabular-nums; }
 .go:hover { border-color: var(--ink); }
 footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
 .chart { margin: 20px 0 8px; }
-.crow { display: grid; grid-template-columns: 112px 1fr 64px; align-items: center; gap: 0 12px; min-height: 40px; border-bottom: 1px solid var(--line); }
-.crow.chead { min-height: 34px; border-bottom: 0; grid-template-columns: 112px 1fr 64px; }
+.crow { display: grid; grid-template-columns: 150px 1fr 64px; align-items: center; gap: 0 12px; min-height: 40px; border-bottom: 1px solid var(--line); }
+.crow.chead { min-height: 34px; border-bottom: 0; grid-template-columns: 150px 1fr 64px; }
 .crow.chead .track { grid-column: 2; }
 .ct { margin: 22px 0 0; font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
 .cl { font-size: 12px; color: var(--dim); }
@@ -65,7 +67,7 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 .js .chart:not(.in) .bar { width: 0; }
 .cv { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
-@media (max-width: 560px) { .crow, .crow.chead { grid-template-columns: 82px 1fr 54px; gap: 0 8px; } .cl { font-size: 11px; } .ln b { font-size: 9px; } }
+@media (max-width: 560px) { .crow, .crow.chead { grid-template-columns: 104px 1fr 54px; gap: 0 8px; } .cl { font-size: 11px; } .ln b { font-size: 9px; } }
 @media (max-width: 560px) { .lede { font-size: 15px; } .pair { grid-template-columns: 1fr; } .pair.three { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
@@ -152,31 +154,31 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <p>On my Mac every version held a flat 120fps, which is just the ceiling of the display and tells you nothing. So I stopped the animation loop, drew frames back to back and timed them, forcing the GPU to finish each one. That gives a cost per frame, which is what a phone cares about.</p>
     <p>Below, each row is one version. First, how many pixels it was drawing. Then, how long one frame took. In the second chart the two dashed lines are the budgets: miss the left one and you can't hold 120fps, miss the right one and you can't hold 60.</p>
     <h3 class="ct">Pixels drawn per frame</h3>
-    <div class="chart" role="img" aria-label="Bar chart of megapixels drawn. A raymarched 2.56, B swell mesh 1.96, B gentler swell 1.96, C baked spectrum 2.56, C golden light 2.56.">
-      <div class="crow"><span class="cl">A, raymarched</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
-      <div class="crow"><span class="cl">B, swell mesh</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
-      <div class="crow keep sunset"><span class="cl">B, gentler swell</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
-      <div class="crow"><span class="cl">C, baked spectrum</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
-      <div class="crow keep golden"><span class="cl">C, golden light</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
+    <div class="chart" role="img" aria-label="Bar chart of megapixels drawn. A raymarched 2.56, B sunset first go 1.96, B sunset iteration 1.96, C golden hour first go 2.56, C golden hour iteration 2.56.">
+      <div class="crow"><span class="cl">A, raymarched (not taken)</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
+      <div class="crow"><span class="cl">B, sunset (first go)</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
+      <div class="crow keep sunset"><span class="cl">B, sunset (iteration)</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
+      <div class="crow"><span class="cl">C, golden hour (first go)</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
+      <div class="crow keep golden"><span class="cl">C, golden hour (iteration)</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
     </div>
     <h3 class="ct">Time per frame</h3>
-    <div class="chart" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B swell mesh 4.1, B gentler swell 2.4, C baked spectrum 1.9, C golden light 1.9. The 120 frames per second budget is 8.3 milliseconds and the 60 frames per second budget is 16.7 milliseconds.">
+    <div class="chart" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B sunset first go 4.1, B sunset iteration 2.4, C golden hour first go 1.9, C golden hour iteration 1.9. The 120 frames per second budget is 8.3 milliseconds and the 60 frames per second budget is 16.7 milliseconds.">
       <div class="crow chead"><div class="track"><i class="ln l120"><b>120fps &middot; 8.3ms</b></i><i class="ln l60"><b>60fps &middot; 16.7ms</b></i></div></div>
-      <div class="crow"><span class="cl">A, raymarched</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:40.6%"></i></div><span class="cv">7.3 ms</span></div>
-      <div class="crow"><span class="cl">B, swell mesh</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:22.8%"></i></div><span class="cv">4.1 ms</span></div>
-      <div class="crow keep sunset"><span class="cl">B, gentler swell</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms</span></div>
-      <div class="crow"><span class="cl">C, baked spectrum</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
-      <div class="crow keep golden"><span class="cl">C, golden light</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
+      <div class="crow"><span class="cl">A, raymarched (not taken)</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:40.6%"></i></div><span class="cv">7.3 ms</span></div>
+      <div class="crow"><span class="cl">B, sunset (first go)</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:22.8%"></i></div><span class="cv">4.1 ms</span></div>
+      <div class="crow keep sunset"><span class="cl">B, sunset (iteration)</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms</span></div>
+      <div class="crow"><span class="cl">C, golden hour (first go)</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
+      <div class="crow keep golden"><span class="cl">C, golden hour (iteration)</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
     </div>
-    <p class="say">The two coloured bars are the two that shipped: yellow to blue for golden hour, purple to yellow for sunset.</p>
-    <table>
+    <p class="say">The two coloured bars are the iterations that shipped: yellow to blue for golden hour, purple to yellow for sunset.</p>
+    <div class="tw"><table>
       <tr><th>Version</th><th>Pixels</th><th>Per frame</th><th>Per megapixel</th></tr>
-      <tr><td>A, raymarched</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td><td class="num">2.9 ms</td></tr>
-      <tr><td>B, swell mesh</td><td class="num">1.96 MP</td><td class="num">~4.1 ms</td><td class="num">2.1 ms</td></tr>
-      <tr><td>B, gentler swell</td><td class="num">1.96 MP</td><td class="num">~2.4 ms</td><td class="num">1.2 ms</td></tr>
-      <tr><td>C, baked spectrum</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
-      <tr><td>C, golden light</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
-    </table>
+      <tr><td>A, raymarched (not taken)</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td><td class="num">2.9 ms</td></tr>
+      <tr><td>B, sunset (first go)</td><td class="num">1.96 MP</td><td class="num">~4.1 ms</td><td class="num">2.1 ms</td></tr>
+      <tr><td>B, sunset (iteration)</td><td class="num">1.96 MP</td><td class="num">~2.4 ms</td><td class="num">1.2 ms</td></tr>
+      <tr><td>C, golden hour (first go)</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
+      <tr><td>C, golden hour (iteration)</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
+    </table></div>
     <p>A, at 7.3ms, was nearly out of budget for 120fps on a laptop, which is why it worried me. After the second round I was happy with the performance of both. Each look also renders at a lower resolution when frames run slow, steps back up when there's room, and stops when the tab is hidden. Only the visible look runs, and the other is built the first time you ask for it. The FPS button on the lab shows a live readout.</p>
     <p>One honest caveat: these are numbers from one Mac. I haven't tried a phone yet. A phone GPU is a lot slower, so the point is the gaps between rows, not the milliseconds.</p>
     <p class="say"><b>Rule:</b> measure the cost of a frame, not whether it kept up.</p>
