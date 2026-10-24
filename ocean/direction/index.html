@@ -152,7 +152,7 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <div class="n">07</div>
     <h2>Counting milliseconds</h2>
     <p>On my Mac every version held a flat 120fps, which is just the ceiling of the display and tells you nothing. So I stopped the animation loop, drew frames back to back and timed them, forcing the GPU to finish each one. That gives a cost per frame, which is what a phone cares about.</p>
-    <p>Below, each row is one version. First, how many pixels it was drawing. Then, how long one frame took. In the second chart the two dashed lines are the budgets: miss the left one and you can't hold 120fps, miss the right one and you can't hold 60.</p>
+    <p>Below, each row is one version. First, how many pixels it was drawing. Then, how long one frame took. In the second chart the two dashed lines are the time limits. A 120Hz screen wants a new frame every 8.3ms and a 60Hz screen every 16.7ms. If a frame takes longer than that, the screen shows the old one again and the motion stutters. So a bar short of the left line can hold 120fps, a bar short of the right line can hold 60, and the shorter it is the more room there is for everything else the page and phone are doing.</p>
     <h3 class="ct">Pixels drawn per frame</h3>
     <div class="chart" role="img" aria-label="Bar chart of megapixels drawn. A raymarched 2.56, B sunset first go 1.96, B sunset iteration 1.96, C golden hour first go 2.56, C golden hour iteration 2.56.">
       <div class="crow"><span class="cl">A, raymarched (not taken)</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
