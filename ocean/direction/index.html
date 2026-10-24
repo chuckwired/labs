@@ -60,6 +60,8 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 .ln.l120 b { right: 6px; } .ln.l60 b { right: 6px; }
 .bar { position: absolute; left: 0; top: 11px; height: 18px; width: var(--w); background: rgba(232,230,223,.55); border-radius: 0 2px 2px 0; transition: width .9s cubic-bezier(.2,.7,.2,1); }
 .crow.keep .bar { background: #e8b060; }
+.crow.golden .bar { background: linear-gradient(90deg, #f0c060, #2f9aa8); }
+.crow.sunset .bar { background: linear-gradient(90deg, #8a3a9a, #f0b050); }
 .js .chart:not(.in) .bar { width: 0; }
 .cv { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
@@ -153,20 +155,20 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <div class="chart" role="img" aria-label="Bar chart of megapixels drawn. A raymarched 2.56, B swell mesh 1.96, B gentler swell 1.96, C baked spectrum 2.56, C golden light 2.56.">
       <div class="crow"><span class="cl">A, raymarched</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
       <div class="crow"><span class="cl">B, swell mesh</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
-      <div class="crow keep"><span class="cl">B, gentler swell</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
+      <div class="crow keep sunset"><span class="cl">B, gentler swell</span><div class="track"><i class="bar" style="--w:65.3%"></i></div><span class="cv">1.96 MP</span></div>
       <div class="crow"><span class="cl">C, baked spectrum</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
-      <div class="crow keep"><span class="cl">C, golden light</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
+      <div class="crow keep golden"><span class="cl">C, golden light</span><div class="track"><i class="bar" style="--w:85.3%"></i></div><span class="cv">2.56 MP</span></div>
     </div>
     <h3 class="ct">Time per frame</h3>
     <div class="chart" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B swell mesh 4.1, B gentler swell 2.4, C baked spectrum 1.9, C golden light 1.9. The 120 frames per second budget is 8.3 milliseconds and the 60 frames per second budget is 16.7 milliseconds.">
       <div class="crow chead"><div class="track"><i class="ln l120"><b>120fps &middot; 8.3ms</b></i><i class="ln l60"><b>60fps &middot; 16.7ms</b></i></div></div>
       <div class="crow"><span class="cl">A, raymarched</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:40.6%"></i></div><span class="cv">7.3 ms</span></div>
       <div class="crow"><span class="cl">B, swell mesh</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:22.8%"></i></div><span class="cv">4.1 ms</span></div>
-      <div class="crow keep"><span class="cl">B, gentler swell</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms</span></div>
+      <div class="crow keep sunset"><span class="cl">B, gentler swell</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms</span></div>
       <div class="crow"><span class="cl">C, baked spectrum</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
-      <div class="crow keep"><span class="cl">C, golden light</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
+      <div class="crow keep golden"><span class="cl">C, golden light</span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms</span></div>
     </div>
-    <p class="say">Gold bars are the two that shipped.</p>
+    <p class="say">The two coloured bars are the two that shipped: yellow to blue for golden hour, purple to yellow for sunset.</p>
     <table>
       <tr><th>Version</th><th>Pixels</th><th>Per frame</th><th>Per megapixel</th></tr>
       <tr><td>A, raymarched</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td><td class="num">2.9 ms</td></tr>
