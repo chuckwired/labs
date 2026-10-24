@@ -45,6 +45,26 @@ td.num { font-variant-numeric: tabular-nums; }
 .go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
 .go:hover { border-color: var(--ink); }
 footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+.chart { margin: 20px 0 8px; }
+.crow { display: grid; grid-template-columns: 104px 52px 1fr 76px; align-items: center; gap: 0 10px; min-height: 40px; border-bottom: 1px solid var(--line); }
+.crow.chead { min-height: 34px; border-bottom: 0; }
+.cl { font-size: 12px; color: var(--dim); }
+.crow.keep .cl { color: var(--ink); }
+.scr { justify-self: center; width: var(--w); aspect-ratio: 1636 / 1566; border: 1px solid rgba(255,255,255,.35); border-radius: 2px; background: rgba(255,255,255,.07); }
+.crow.keep .scr { border-color: #e8b060; background: rgba(232,176,96,.16); }
+.track { position: relative; height: 40px; }
+.chead .track { height: 34px; }
+.ln { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.22); }
+.ln.l120 { left: 46.3%; } .ln.l60 { left: 92.6%; }
+.ln b { position: absolute; bottom: 4px; font: 400 10px/1.2 var(--mono); letter-spacing: .06em; color: var(--dim); white-space: nowrap; }
+.ln.l120 b { right: 6px; } .ln.l60 b { right: 6px; }
+.bar { position: absolute; left: 0; top: 11px; height: 18px; width: var(--w); background: rgba(232,230,223,.55); border-radius: 0 2px 2px 0; transition: width .9s cubic-bezier(.2,.7,.2,1); }
+.crow.keep .bar { background: #e8b060; }
+.js .chart:not(.in) .bar { width: 0; }
+.cv { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.cv small { display: block; font-size: 10px; color: var(--dim); letter-spacing: .06em; }
+@media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
+@media (max-width: 560px) { .crow { grid-template-columns: 78px 40px 1fr 56px; gap: 0 6px; } .cl { font-size: 11px; } .ln b { font-size: 9px; } .scr { transform: scale(.8); } }
 @media (max-width: 560px) { .lede { font-size: 15px; } .pair { grid-template-columns: 1fr; } .pair.three { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
@@ -58,12 +78,20 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
   </nav>
 
   <h1>Behind the design.</h1>
-  <p class="lede">I asked for the most realistic water we could get, in a browser, with no libraries and a frame rate that holds on a phone. Then I asked for a penguin, but only just visible.</p>
+  <p class="lede">I asked for the most realistic water we could get, in a browser, with no libraries and a frame rate that holds on a phone. Then I asked for a penguin, but only just visible. The water is a long-running joke, so that's where this starts.</p>
 
   <img class="cover" src="../cover.png" alt="The ocean lab's cover: a golden-hour sea on the left and a magenta sunset sea on the right, split by a slight diagonal" width="1000" height="475">
 
   <section>
     <div class="n">01</div>
+    <h2>The joke from games computing</h2>
+    <p>On my games computing course I joked that for my assignment I could just import an ocean. I didn't. I used a water texture and kept it flat, and that was that.</p>
+    <p>So this lab is me closing the loop. The water I couldn't be bothered to build then is now several hundred lines of shader, and I didn't write them by hand. WebGL is something I have no experience in. My world is HTML, CSS, JS, Next.js, React, TypeScript and Node. Seeing what Claude and AI can help me get done in a field I'm new to is the part I'm most pleased about.</p>
+    <p class="say"><b>Rule:</b> an old joke is a decent brief.</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
     <h2>The brief</h2>
     <p>Open ocean. A golden-hour skyline. A penguin floating off in the distance, there if you look, easy to miss if you don't. Everything in raw WebGL2, nothing to install, and it has to hold up on desktop and on a phone.</p>
     <p>The penguin is the point. A good sea makes people say "huh, that looks real". A tiny penguin in it makes them lean toward the screen.</p>
@@ -71,12 +99,12 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
   </section>
 
   <section>
-    <div class="n">02</div>
+    <div class="n">03</div>
     <h2>Three oceans, three ways</h2>
     <p>I can't judge a rendering technique from a paragraph, so I had three built side by side. Same brief, different engines:</p>
-    <p><b>A, raymarched.</b> One shader, no geometry. Every pixel fires a ray at a sea made of summed waves. The nicest close-up water, and the most expensive.</p>
-    <p><b>B, swell mesh.</b> A real grid of triangles, spaced out toward the horizon, pushed around by sixteen Gerstner waves from a 170m swell down to a 0.65m chop. The sun sits right on the horizon.</p>
-    <p><b>C, baked spectrum.</b> At load it spends about a second building a wave field from a physical wave spectrum, then every frame just reads from it. Cheap per pixel by design.</p>
+    <p><b>A, raymarched.</b> One shader, no geometry. Every pixel fires a ray at a sea made of summed waves. It felt like Ratchet &amp; Clank to me, which I loved, but the performance worried me.</p>
+    <p><b>B, swell mesh.</b> A real grid of triangles, spaced out toward the horizon, pushed around by sixteen Gerstner waves from a 170m swell down to a 0.65m chop. The sun sits right on the horizon. This one was Vice City, or Miami: that exotic, neon-dusk look. With GTA VI round the corner I think it would resonate with a lot of people.</p>
+    <p><b>C, baked spectrum.</b> At load it spends about a second building a wave field from a physical wave spectrum, then every frame just reads from it. Cheap per pixel by design. It was the first one I saw and it impressed me, even if it was the more relaxed of the three.</p>
     <div class="pair three">
       <figure><img src="shots/1-a-raymarched.jpg" alt="Direction A: raymarched sea at golden hour" loading="lazy"><figcaption>A. Raymarched.</figcaption></figure>
       <figure><img src="shots/1-b-swell-mesh.jpg" alt="Direction B: a magenta and amber sunset over a swell mesh" loading="lazy"><figcaption>B. Swell mesh.</figcaption></figure>
@@ -86,15 +114,15 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
   </section>
 
   <section>
-    <div class="n">03</div>
+    <div class="n">04</div>
     <h2>Torn between two</h2>
-    <p>From memory I liked C the most, but on a second look I was torn between B and C. A was the one I let go. So I asked for one more round: C with the feel of A's golden light, and B with a gentler swell.</p>
+    <p>From memory I liked C the most, but on a second look I was torn between B and C. A was the one I let go: I loved how it felt, but the performance worried me. So I asked for one more round: C with the feel of A's golden light, and B with a gentler swell.</p>
     <p>Then they were still so close that I asked for both, with a toggle, in the same file. The page is built so I can fold it down to one later: each look is its own engine, with its own script, canvas and button, and nothing else refers to it.</p>
     <p class="say"><b>Rule:</b> if two are this close, ship both and let people vote with a tap.</p>
   </section>
 
   <section>
-    <div class="n">04</div>
+    <div class="n">05</div>
     <h2>The swell that showed the underside</h2>
     <p>My note on B was that when a big swell rose, I could see below the water, and it broke the illusion. I assumed it was just too big. Cutting the swell by about half helped, but the real cause was that the big waves were also sliding the nearest part of the mesh sideways, away from the camera, so the sea opened up in front of you. The sideways push now fades out close to the camera.</p>
     <p>The same pass found the bright seam and the faint contour rings I'd spotted: both were foam firing on every bit of chop. It's calmer now, and a little flatter near the camera. That is the price.</p>
@@ -106,7 +134,7 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
   </section>
 
   <section>
-    <div class="n">05</div>
+    <div class="n">06</div>
     <h2>A penguin from my degree</h2>
     <p>The first penguins were fine and forgettable. I wanted the one I used in a games computing assignment at uni, which I think came from the OGRE graphics engine: a round, slightly startled bird with huge pale eyes and flippers stuck out like it's balancing. So this one floats front-on, waterline across its belly, rides the swell, turns its head now and then and twitches a flipper.</p>
     <p>It is drawn from scratch, in the shader, so there is no model file. At normal size it is about 22 to 25 pixels wide: a dark head, two pale dots, a flick of orange. Add <code>?penguinzoom</code> to the address to see it at 8x. The flippers are still a bit stick-like up close. I can live with that.</p>
@@ -118,26 +146,37 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
   </section>
 
   <section>
-    <div class="n">06</div>
+    <div class="n">07</div>
     <h2>Counting milliseconds</h2>
     <p>On my Mac every version held a flat 120fps, which is just the ceiling of the display and tells you nothing. So I stopped the animation loop, drew frames back to back and timed them, forcing the GPU to finish each one. That gives a cost per frame, which is what a phone cares about.</p>
+    <p>Below, each row is one version. The small screen is how many pixels it was drawing, and the bar is how long one frame took. The two lines are the budgets: miss the left one and you can't hold 120fps, miss the right one and you can't hold 60.</p>
+    <div class="chart" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B swell mesh 4.1, B gentler swell 2.4, C baked spectrum 1.9, C golden light 1.9. The 120 frames per second budget is 8.3 milliseconds and the 60 frames per second budget is 16.7 milliseconds.">
+      <div class="crow chead"><span></span><span></span><div class="track"><i class="ln l120"><b>120fps &middot; 8.3ms</b></i><i class="ln l60"><b>60fps &middot; 16.7ms</b></i></div><span></span></div>
+      <div class="crow"><span class="cl">A, raymarched</span><span class="scr" style="--w:45px" title="2.56 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:40.6%"></i></div><span class="cv">7.3 ms<small>2.56 MP</small></span></div>
+      <div class="crow"><span class="cl">B, swell mesh</span><span class="scr" style="--w:39px" title="1.96 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:22.8%"></i></div><span class="cv">4.1 ms<small>1.96 MP</small></span></div>
+      <div class="crow keep"><span class="cl">B, gentler swell</span><span class="scr" style="--w:39px" title="1.96 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:13.3%"></i></div><span class="cv">2.4 ms<small>1.96 MP</small></span></div>
+      <div class="crow"><span class="cl">C, baked spectrum</span><span class="scr" style="--w:45px" title="2.56 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms<small>2.56 MP</small></span></div>
+      <div class="crow keep"><span class="cl">C, golden light</span><span class="scr" style="--w:45px" title="2.56 million pixels"></span><div class="track"><i class="ln l120"></i><i class="ln l60"></i><i class="bar" style="--w:10.6%"></i></div><span class="cv">1.9 ms<small>2.56 MP</small></span></div>
+    </div>
+    <p class="say">Gold bars are the two that shipped. Screens are drawn to scale by pixel count.</p>
     <table>
-      <tr><th>Version</th><th>Pixels</th><th>Per frame</th></tr>
-      <tr><td>A, raymarched</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td></tr>
-      <tr><td>B, swell mesh</td><td class="num">1.96 MP</td><td class="num">~4.1 ms</td></tr>
-      <tr><td>B, gentler swell</td><td class="num">1.96 MP</td><td class="num">~2.4 ms</td></tr>
-      <tr><td>C, baked spectrum</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td></tr>
-      <tr><td>C, golden light</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td></tr>
+      <tr><th>Version</th><th>Pixels</th><th>Per frame</th><th>Per megapixel</th></tr>
+      <tr><td>A, raymarched</td><td class="num">2.56 MP</td><td class="num">~7.3 ms</td><td class="num">2.9 ms</td></tr>
+      <tr><td>B, swell mesh</td><td class="num">1.96 MP</td><td class="num">~4.1 ms</td><td class="num">2.1 ms</td></tr>
+      <tr><td>B, gentler swell</td><td class="num">1.96 MP</td><td class="num">~2.4 ms</td><td class="num">1.2 ms</td></tr>
+      <tr><td>C, baked spectrum</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
+      <tr><td>C, golden light</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
     </table>
-    <p>Both looks also render at a lower resolution when frames run slow, step back up when there's room, and stop entirely when the tab is hidden. Only the visible look runs, and the other is built the first time you ask for it. Add <code>?fps</code> (or press P) for a readout.</p>
-    <p>One honest caveat: these are numbers from one Mac. I haven't tried a phone yet. A phone GPU is a lot slower, so the point of the table is the gaps between rows, not the milliseconds.</p>
+    <p>A, at 7.3ms, was nearly out of budget for 120fps on a laptop, which is why it worried me. After the second round I was happy with the performance of both. Each look also renders at a lower resolution when frames run slow, steps back up when there's room, and stops when the tab is hidden. Only the visible look runs, and the other is built the first time you ask for it. The FPS button on the lab shows a live readout.</p>
+    <p>One honest caveat: these are numbers from one Mac. I haven't tried a phone yet. A phone GPU is a lot slower, so the point is the gaps between rows, not the milliseconds.</p>
     <p class="say"><b>Rule:</b> measure the cost of a frame, not whether it kept up.</p>
   </section>
 
   <section>
-    <div class="n">07</div>
+    <div class="n">08</div>
     <h2>Two looks, one file</h2>
     <p>The final page is a toggle at the bottom (or press T): Golden hour and Sunset. Switching crossfades, the one you leave stops rendering, and your choice is remembered. Add <code>?look=sunset</code> to link straight to one.</p>
+    <p>After the iteration the golden hour one almost feels like Final Fantasy X to me: playing blitzball, the Brotherhood sword. Iconic gaming things. I didn't ask for that, it just turned up.</p>
     <div class="pair">
       <figure><img src="shots/3-final-golden.jpg" alt="The finished page on the golden hour look, with the toggle at the bottom" loading="lazy"><figcaption>Golden hour.</figcaption></figure>
       <figure><img src="shots/3-final-sunset.jpg" alt="The finished page on the sunset look" loading="lazy"><figcaption>Sunset.</figcaption></figure>
@@ -150,8 +189,24 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     <p class="say"><b>Rule:</b> keep the road not taken. It's the best part of the story.</p>
   </section>
 
+  <section>
+    <div class="n">09</div>
+    <h2>What I'd say to my uni self</h2>
+    <p>You can import an ocean now. It takes a handful of rounds of asking the right questions, a bit of arguing about which of two nearly identical seas is better, and a lot of patience with a penguin's flippers.</p>
+    <p>I knew none of the shader side going in. What I did know was what looked right, what felt like a game I'd loved, and how to say "that breaks the illusion". That turned out to be enough to steer.</p>
+    <p class="say"><b>Rule:</b> taste transfers. The stack doesn't have to.</p>
+  </section>
+
   <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
   <footer>&copy; 2026 Chuck Rice</footer>
 </div>
+<script>
+(function () {
+  var c = document.querySelector('.chart'); if (!c) return;
+  document.documentElement.classList.add('js');
+  if (!('IntersectionObserver' in window)) { c.classList.add('in'); return; }
+  new IntersectionObserver(function (e, o) { if (e[0].isIntersecting) { c.classList.add('in'); o.disconnect(); } }, { threshold: 0.4 }).observe(c);
+})();
+</script>
 </body>
 </html>
