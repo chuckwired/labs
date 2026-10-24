@@ -59,10 +59,9 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 .ln { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.22); }
 .ln.l120 { left: 83.3%; } .ln.l144 { left: 69.4%; }
 .ln b { position: absolute; bottom: 4px; font: 400 10px/1.2 var(--mono); letter-spacing: .06em; color: var(--dim); white-space: nowrap; }
-.ln.l120 b { right: 10px; }
-.ln.l144 b { right: 10px; bottom: 22px; }
-.chead.crow .track { height: 50px; }
-.zl { position: absolute; right: 0; bottom: 4px; width: 16.7%; box-sizing: border-box; padding-left: 10px; text-align: left; font: 400 10px/1.2 var(--mono); letter-spacing: .06em; color: var(--dim); white-space: nowrap; font-style: normal; }
+.ln.l120 b, .ln.l144 b { right: 6px; text-align: right; }
+.chead.crow .track { height: 40px; }
+.zl { position: absolute; right: 0; bottom: 4px; width: 16.7%; box-sizing: border-box; padding-left: 6px; text-align: left; font: 400 10px/1.2 var(--mono); letter-spacing: .06em; color: var(--dim); white-space: nowrap; font-style: normal; }
 .time .crow:not(.chead) .track::after { content: ''; position: absolute; left: 83.3%; right: 0; top: 0; bottom: 0; pointer-events: none;
   background: repeating-linear-gradient(135deg, rgba(255,255,255,.10) 0 1px, transparent 1px 7px); }
 .bar { position: absolute; left: 0; top: 11px; height: 18px; width: var(--w); background: rgba(232,230,223,.55); border-radius: 0 2px 2px 0; transition: width .9s cubic-bezier(.2,.7,.2,1); }
@@ -168,7 +167,7 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
     </div>
     <h3 class="ct">Time per frame</h3>
     <div class="chart time" role="img" aria-label="Bar chart of milliseconds per frame. A raymarched 7.3, B sunset first go 4.1, B sunset iteration 2.4, C golden hour first go 1.9, C golden hour iteration 1.9. The 144 frames per second budget is 6.9 milliseconds and the 120 frames per second budget is 8.3 milliseconds.">
-      <div class="crow chead"><div class="track"><i class="ln l144"><b>144fps &middot; 6.9ms</b></i><i class="ln l120"><b>120fps &middot; 8.3ms</b></i><i class="zl">stutter zone</i></div></div>
+      <div class="crow chead"><div class="track"><i class="ln l144"><b>144fps<br>6.9ms</b></i><i class="ln l120"><b>120fps<br>8.3ms</b></i><i class="zl">stutter zone</i></div></div>
       <div class="crow"><span class="cl">A, raymarched (not taken)</span><div class="track"><i class="ln l144"></i><i class="ln l120"></i><i class="bar" style="--w:73%"></i></div><span class="cv">7.3 ms</span></div>
       <div class="crow"><span class="cl">B, sunset (first go)</span><div class="track"><i class="ln l144"></i><i class="ln l120"></i><i class="bar" style="--w:41%"></i></div><span class="cv">4.1 ms</span></div>
       <div class="crow keep sunset"><span class="cl">B, sunset (iteration)</span><div class="track"><i class="ln l144"></i><i class="ln l120"></i><i class="bar" style="--w:24%"></i></div><span class="cv">2.4 ms</span></div>
