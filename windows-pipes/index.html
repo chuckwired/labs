@@ -5,11 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#04050a">
 <meta name="description" content="The Windows XP 3D Pipes screensaver, rebuilt in WebGL. Pipes grow, turn and fill the void.">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/windows-pipes/">
+<meta property="og:site_name" content="Chuck Rice Labs">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pipes · Chuck Rice Labs">
+<meta property="og:description" content="The Windows XP 3D Pipes screensaver, rebuilt in WebGL. Pipes grow, turn and fill the void.">
+<meta property="og:url" content="https://labs.chuckwired.com/windows-pipes/">
+<meta property="og:image" content="https://labs.chuckwired.com/windows-pipes/cover.og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"CreativeWork","name":"Pipes","url":"https://labs.chuckwired.com/windows-pipes/","description":"The Windows XP 3D Pipes screensaver, rebuilt in WebGL. Pipes grow, turn and fill the void.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"datePublished":"2026-10-19","isPartOf":{"@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/"},"inLanguage":"en-GB","image":"https://labs.chuckwired.com/windows-pipes/cover.og.jpg"}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2304050a'/%3E%3Cpath d='M6 24V12h10v10h10' fill='none' stroke='%23c98a4e' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M6 8h14v8' fill='none' stroke='%2328d0e6' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
-<title>Pipes</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<title>Pipes · Chuck Rice Labs</title>
+<link rel="preload" href="../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../shared/base.css">
 <style>
 :root {
   color-scheme: dark;
@@ -84,9 +93,9 @@ body { margin: 0; background: var(--void); color: var(--ink); font: 12px/1.4 var
 <script type="speculationrules">{"prefetch":[{"urls":["../"],"eagerness":"moderate"}]}</script>
 </head>
 <body>
-<div id="stage" aria-label="Growing 3D pipes">
+<div id="stage">
   <canvas id="dots" aria-hidden="true"></canvas>
-  <canvas id="gl"></canvas>
+  <canvas id="gl" role="img" aria-label="Growing 3D pipes"></canvas>
 </div>
 <a class="back" href="../">&larr; Labs</a>
 <div class="fps" id="fps" hidden></div>

@@ -1,0 +1,24 @@
+/* Shared layout for the "Behind the design" pages: narrow reading column, numbered sections, rule lines. Needs base.css. Page-specific bits (charts, figures, tables) stay in each page. */
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 720px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px) max(20px, env(safe-area-inset-left, 0px)); }
+.top { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.top a { color: var(--dim); text-decoration: none; transition: color .2s; }
+.top a:hover { color: var(--ink); }
+h1 { margin: clamp(48px, 10vw, 96px) 0 0; font: italic 400 clamp(44px, 9vw, 84px)/0.95 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
+.lede { margin: 24px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
+section { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
+.n { font-size: 11px; letter-spacing: .16em; color: var(--dim); }
+h2 { margin: 6px 0 12px; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif); }
+p { margin: 0 0 12px; max-width: 62ch; }
+.say { color: var(--dim); font-size: 12px; }
+.say b { color: var(--ink); font-weight: 500; }
+.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
+.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
+.go:hover { border-color: var(--ink); }
+footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+.by { margin: 14px 0 0; color: var(--dim); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.by a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .by a:hover { color: var(--ink); border-color: var(--ink); }
+.more { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.more span { color: var(--dim); } .more a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .more a:hover { border-color: var(--ink); }

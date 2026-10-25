@@ -2,7 +2,7 @@
 
 The shared look of the index, `404.html` and every lab's own notes pages. Individual labs may have their own world (the capes lab has its own void palette; see CLAUDE.md for lab-specific decisions), but anything that sits on the index, or links back to it, follows this.
 
-No build step and no shared stylesheet yet, so each page repeats these tokens in its own `<style>`. **Change a token here first, then in every page.** If a fourth page appears, extract a `labs.css` (mind the relative paths).
+No build step. Tokens and fonts live in `shared/base.css` (every page links it); the "Behind the design" layout lives in `shared/notes.css`. **Change a token in `shared/base.css` first**, then here. Pages that override a token (the 404, the index's own rules, labs with their own world) do it inline after the link. Relative paths: `../shared/` from a lab, `../../shared/` from its notes page; the 404 uses `/shared/` because it is served from any depth.
 
 ## Principles
 - **Quiet dark void.** Content floats in near-black; colour comes from the work, not the chrome.
@@ -21,7 +21,7 @@ No build step and no shared stylesheet yet, so each page repeats these tokens in
 Single dark look by choice (`color-scheme: dark`). Background dots: sparse, `#e8e6df` at 5 to 35% alpha, 1 to 1.6px.
 
 ## Type
-Fonts: `Instrument Serif` (italic only), `JetBrains Mono` 400/500. Google Fonts `<link>` pattern, with Georgia and system-mono fallbacks.
+Fonts: `Instrument Serif` (italic only), `JetBrains Mono` 400/500. Self-hosted woff2 in `shared/fonts/` (declared in `shared/base.css`, `font-display: swap`), with Georgia and system-mono fallbacks.
 
 | Role | Face | Size | Notes |
 |---|---|---|---|

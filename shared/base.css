@@ -1,0 +1,9 @@
+/* Shared base for every page: fonts, tokens, the few global rules. Change a token here first. See DESIGN.md. */
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap; src: url(fonts/instrument-serif-italic-latin.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400 500; font-display: swap; src: url(fonts/jetbrains-mono-latin.woff2) format('woff2'); }
+
+:root { --bg:#07070a; --ink:#e8e6df; --dim:#8b8a93; --line:rgba(255,255,255,0.10); --serif:'Instrument Serif', Georgia, serif; --mono:'JetBrains Mono', ui-monospace, Menlo, monospace; }
+* { box-sizing: border-box; }
+html { background: var(--bg); color-scheme: dark; }
+a { color: inherit; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }

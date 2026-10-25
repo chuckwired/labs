@@ -38,13 +38,13 @@ This is how I (Chuck) work on labs, written down so it can be repeated and impro
 - If the lab should feel at home on the index, follow `DESIGN.md`. If it is its own world, say so and keep its tokens in its own file.
 
 ## 4. Build the chosen one
-- It lives at `<lab>/index.html`, relative paths only, a "← Labs" back link, doctype, viewport and theme-color.
+- It lives at `<lab>/index.html`, relative paths only, link `../shared/base.css` (self-hosted fonts and tokens; never Google Fonts), a unique title, description, canonical, `og:*` tags and JSON-LD copied from a neighbour, a "← Labs" back link, doctype, viewport and theme-color.
 - Tunables go in a `CONFIG` object at the top of the script. Expose a small debug handle if it helps headless testing.
 - Pause render loops when the tab is hidden. Cap pixel ratio. Provide a plain fallback if WebGL or a permission fails.
 - Ask for permissions (microphone, camera, motion) only when the experience needs them, and handle refusal gracefully.
 - Make the primary interaction forgiving: generous hit areas, nothing that needs precision.
 - When I can't describe a number in words (a height, an angle), add a temporary slider behind a query string, let me set it by eye, then remove it.
-- Keep the original directions: archive them under `<lab>/directions/` so the thinking stays visible, and tag the checkpoint.
+- Keep the original directions: archive them under `<lab>/archive/` so the thinking stays visible, and tag the checkpoint.
 
 ## 5. Test honestly
 - Check at desktop and phone width. Read the console. Step animations in a headless browser if the pane is throttled.
@@ -62,7 +62,7 @@ This repo is public. Before asking to merge:
 - No real people's details beyond what I've said is fine to show. Personal pages (a gift, a private joke) get `noindex`.
 - External scripts and fonts: pinned versions, from known CDNs. Found images or assets: licence and credit recorded.
 - Don't commit the contents of any `.env`, credentials file, or machine config. Don't add tool or agent config that reveals more than the method.
-- Run `node tools/optimise-images.mjs --check` so every image has a current `.webp`, and confirm no page links into `originals/`.
+- Run `node tools/check.mjs` (links, alt text, head tags, image copies) and `node tools/sync-seo.mjs` (sitemap and the crawlable list). Run `node tools/optimise-images.mjs --check` so every image has a current `.webp`, and confirm no page links into `originals/`.
 - Show me `git status` and a short summary of what will go public.
 
 ## 8. Wrap up
