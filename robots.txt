@@ -1,0 +1,6 @@
+# Everything public is open to search engines and AI crawlers on purpose. Unlisted pages carry noindex.
+User-agent: *
+Allow: /
+Disallow: /originals/
+
+Sitemap: https://labs.chuckwired.com/sitemap.xml

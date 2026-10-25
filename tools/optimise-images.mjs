@@ -1,5 +1,6 @@
 // Makes the web copies of every source image.
 //   originals/<path>/name.png|jpg  ->  <path>/name.webp
+//   originals/<lab>/cover.png      ->  also <lab>/cover.og.jpg (JPEG for og:image: social crawlers are patchy with WebP)
 // Originals are the source of truth (kept in git, never linked from a page, excluded from the deploy).
 // Pages only ever reference the .webp. Needs cwebp: brew install webp
 //
@@ -39,8 +40,8 @@ let before = 0, after = 0, done = 0;
 for (const src of walk(SRC)) {
   const rel = relative(SRC, src);
   const out = join(ROOT, dirname(rel), basename(rel, extname(rel)) + '.webp');
-  const have = existsSync(out);
-  const fresh = have && statSync(out).mtimeMs >= statSync(src).mtimeMs;
+  const og = /(^|\/)cover\.[a-z]+$/i.test(rel) ? out.replace(/\.webp$/, '.og.jpg') : null;
+  const fresh = [out, og].filter(Boolean).every(o => existsSync(o) && statSync(o).mtimeMs >= statSync(src).mtimeMs);
   if (fresh && !flag('--force')) { before += statSync(src).size; after += statSync(out).size; continue; }
   stale.push(rel);
   if (flag('--check')) continue;
@@ -50,6 +51,7 @@ for (const src of walk(SRC)) {
   const wide = Number(execFileSync('sips', ['-g', 'pixelWidth', src]).toString().match(/pixelWidth: (\d+)/)?.[1] ?? 0) > CONFIG.maxWidth;
   execFileSync('cwebp', ['-q', String(q), '-alpha_q', String(CONFIG.alphaQuality), '-m', '6', '-quiet',
     ...(wide ? ['-resize', String(CONFIG.maxWidth), '0'] : []), src, '-o', out]);
+  if (og) execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '88', '-Z', '1200', src, '--out', og], { stdio: 'ignore' });
   before += statSync(src).size; after += statSync(out).size; done++;
   console.log(`${rel}  ${(statSync(src).size / 1024) | 0} KB -> ${(statSync(out).size / 1024) | 0} KB  (q${q}${wide ? `, resized to ${CONFIG.maxWidth}px` : ''})`);
 }

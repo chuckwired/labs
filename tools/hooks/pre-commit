@@ -1,3 +1,5 @@
 #!/bin/sh
-# Keep hackers-delight/index.html in step with 404.html.
+# Keep generated files in step, then sanity-check the site. Install once: git config core.hooksPath tools/hooks
 node tools/sync-404.mjs && git add hackers-delight/index.html
+node tools/sync-seo.mjs && git add index.html sitemap.xml llms.txt
+node tools/check.mjs

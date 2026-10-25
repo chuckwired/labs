@@ -1,0 +1,17 @@
+# Chuck Rice Labs
+
+> Interactive experiments by Chuck Rice, a product designer who ships production code. Each lab is a small, dependency-free web page; every one has a "Behind the design" write-up explaining the choices. Source: https://github.com/chuckwired/labs
+
+## Labs
+- [RuneScape Capes of Accomplishment](https://labs.chuckwired.com/rs2-capes/): As a kid, I spent hours fawning over digital capes you get from making unreasonable commitments to clicking stuff. Now I can just code 'em up. Who'd have thought!?
+- [Ocean](https://labs.chuckwired.com/ocean/): As realistic a sea as I could get without a single library, at golden hour or sunset. Somewhere out there, a penguin. Look for it.
+- [Pipes](https://labs.chuckwired.com/windows-pipes/): The Windows XP screensaver I could have watched for hours. Copper and cyan pipes grow, turn and fill the void.
+
+## Behind the design
+- [RuneScape Capes of Accomplishment: behind the design](https://labs.chuckwired.com/rs2-capes/direction/)
+- [Ocean: behind the design](https://labs.chuckwired.com/ocean/direction/)
+- [Pipes: behind the design](https://labs.chuckwired.com/windows-pipes/direction/)
+
+## About the site
+- [By the numbers](https://labs.chuckwired.com/by-the-numbers/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.
+- [Portfolio](https://chuckwired.com) and [writing](https://chuckwired.medium.com) by the same author.
