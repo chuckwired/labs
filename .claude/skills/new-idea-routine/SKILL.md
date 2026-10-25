@@ -51,7 +51,7 @@ This is how I (Chuck) work on labs, written down so it can be repeated and impro
 - Real hardware (phone, microphone, GPU) is mine to confirm. Say that plainly, then fix what I report.
 
 ## 6. Document
-- Save screenshots to `<lab>/direction/shots/`: the three directions, the chosen one, and any tuning tools while they exist.
+- Save full-quality screenshots (PNG) to `originals/<lab>/direction/shots/`: the three directions, the chosen one, and any tuning tools while they exist. Same for `cover.png` (`originals/<lab>/cover.png`). Then run `node tools/optimise-images.mjs` and reference the `.webp` copies in pages and `LABS`. Never link `originals/`. See `IMAGES.md`.
 - Write `<lab>/direction/index.html`, a "Behind the design" page in my voice: first person, plain, a bit wry. Numbered sections, each ending with a one-line "Rule:". Include my actual reasons, in my words, including the unscientific ones.
 - Register the lab in `LABS` in the root `index.html` (with a cover and `notes`), add it to `README.md`, and add a section to `CLAUDE.md` with the decisions I made.
 
@@ -62,6 +62,7 @@ This repo is public. Before asking to merge:
 - No real people's details beyond what I've said is fine to show. Personal pages (a gift, a private joke) get `noindex`.
 - External scripts and fonts: pinned versions, from known CDNs. Found images or assets: licence and credit recorded.
 - Don't commit the contents of any `.env`, credentials file, or machine config. Don't add tool or agent config that reveals more than the method.
+- Run `node tools/optimise-images.mjs --check` so every image has a current `.webp`, and confirm no page links into `originals/`.
 - Show me `git status` and a short summary of what will go public.
 
 ## 8. Wrap up
