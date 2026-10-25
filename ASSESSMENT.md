@@ -58,7 +58,7 @@ Role: [granola.ai/jobs/design-engineer-web-brand](https://www.granola.ai/jobs/de
 2. **Make the infrastructure real.** Turn the notes pages into a template (data file plus one layout) so a new write-up is content, not markup. That is "reusable components and publishing workflows" in miniature.
 3. **Measure on real traffic.** Add privacy-friendly analytics and Search Console, then run one honest experiment (two hero lines, two covers) and write up the result. That covers measurement and A/B in one move.
 4. **Add a conversion-shaped page.** A small product-style landing page with pricing-ish content and a call to action, built to be measured, shows the "everyday polish" half.
-5. **Finish the audits.** Real-phone testing, a screen-reader pass and Lighthouse against the live site, recorded on the "By the numbers" page.
+5. **Finish the audits.** Real-phone testing, a screen-reader pass and Lighthouse against the live site, recorded on the "Performance" page.
 
 Overall: the design half of the posting is clearly met. The engineering half is met in judgement and in craft on the web platform, and unproven here for the specific stack, for components and CMS, and for measurement. All of those are cheap to prove with work he is already inclined to do.
 

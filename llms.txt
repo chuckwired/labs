@@ -13,5 +13,5 @@
 - [Pipes: behind the design](https://labs.chuckwired.com/windows-pipes/direction/)
 
 ## About the site
-- [By the numbers](https://labs.chuckwired.com/by-the-numbers/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.
+- [Performance](https://labs.chuckwired.com/performance/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.
 - [Portfolio](https://chuckwired.com) and [writing](https://chuckwired.medium.com) by the same author.

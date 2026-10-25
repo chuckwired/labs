@@ -18,3 +18,7 @@ p { margin: 0 0 12px; max-width: 62ch; }
 footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+.by { margin: 14px 0 0; color: var(--dim); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.by a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .by a:hover { color: var(--ink); border-color: var(--ink); }
+.more { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.more span { color: var(--dim); } .more a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .more a:hover { border-color: var(--ink); }

@@ -15,6 +15,7 @@ const walk = d => readdirSync(d, { withFileTypes: true }).flatMap(e =>
   e.isDirectory() ? (SKIP.has(e.name) ? [] : walk(join(d, e.name))) : e.name.endsWith('.html') ? [join(d, e.name)] : []);
 
 const errors = [];
+const titles = new Map();
 const err = (f, m) => errors.push(`${relative(ROOT, f)}: ${m}`);
 
 for (const f of walk(ROOT)) {
@@ -40,6 +41,11 @@ for (const f of walk(ROOT)) {
   if (!/<title>[^<]+<\/title>/.test(head)) err(f, 'no <title>');
   if (!/rel="icon"/.test(head) && !f.includes('/archive/')) err(f, 'no favicon');
   if (!noindex) {
+    const t = head.match(/<title>([^<]+)<\/title>/)?.[1], d = head.match(/name="description" content="([^"]+)/)?.[1];
+    if (t && titles.has(t)) err(f, `same title as ${titles.get(t)}: "${t}"`); else if (t) titles.set(t, relative(ROOT, f));
+    if (t && t.length > 70) err(f, `title is ${t.length} characters (keep it under 70)`);
+    if (d && d.length > 170) err(f, `description is ${d.length} characters (keep it under 170)`);
+    if (!/name="author"/.test(head)) err(f, 'no author meta');
     if (!/name="description" content="[^"]+/.test(head)) err(f, 'no meta description');
     if (!/rel="canonical"/.test(head)) err(f, 'no canonical link');
     if (!/property="og:title"/.test(head)) err(f, 'no og:title');

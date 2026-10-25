@@ -4,17 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07070a">
-<meta name="description" content="How this site is built and measured: page weights, self-hosted fonts, image pipeline, accessibility, SEO and answer-engine setup, with Lighthouse scores and what has not been tested.">
-<link rel="canonical" href="https://labs.chuckwired.com/by-the-numbers/">
+<meta name="description" content="How this site is built and measured: page weights, fonts, images, accessibility, SEO and answer-engine setup, Lighthouse scores, and what is untested.">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/performance/">
 <meta property="og:site_name" content="Chuck Rice Labs">
 <meta property="og:type" content="article">
-<meta property="og:title" content="By the numbers · Chuck Rice Labs">
-<meta property="og:description" content="How this site is built and measured: page weights, self-hosted fonts, image pipeline, accessibility, SEO and answer-engine setup, with Lighthouse scores and what has not been tested.">
-<meta property="og:url" content="https://labs.chuckwired.com/by-the-numbers/">
+<meta property="og:title" content="Performance · Chuck Rice Labs">
+<meta property="og:description" content="How this site is built and measured: page weights, fonts, images, accessibility, SEO and answer-engine setup, Lighthouse scores, and what is untested.">
+<meta property="og:url" content="https://labs.chuckwired.com/performance/">
 <meta property="og:image" content="https://labs.chuckwired.com/ocean/cover.og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"By the numbers","url":"https://labs.chuckwired.com/by-the-numbers/","description":"How this site is built and measured: page weights, fonts, images, accessibility, SEO and answer-engine setup.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"datePublished":"2026-10-25","isPartOf":{"@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/"},"inLanguage":"en-GB"}</script>
-<title>By the numbers · Chuck Rice Labs</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Performance","url":"https://labs.chuckwired.com/performance/","description":"How this site is built and measured: page weights, fonts, images, accessibility, SEO and answer-engine setup.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"datePublished":"2026-10-25","isPartOf":{"@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/"},"inLanguage":"en-GB"}</script>
+<title>Performance · Chuck Rice Labs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M12 6h8v6l5 11a3 3 0 0 1-3 4H10a3 3 0 0 1-3-4l5-11z' fill='none' stroke='%23e8e6df' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preload" href="../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -51,8 +52,9 @@ code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padd
     <a href="https://github.com/chuckwired/labs" rel="noopener">Source &#8599;</a>
   </nav>
 
-  <h1>By the numbers.</h1>
+  <h1>Performance.</h1>
   <p class="lede">The labs are the fun part. This is the other half: how the site is put together, what each page costs to load, and what I have and haven't checked. Numbers measured on 25 October 2026.</p>
+  <p class="by">By <a href="https://chuckwired.com" rel="author">Chuck Rice</a> · <time datetime="2026-10-25">25 Oct 2026</time></p>
 
   <div class="stats">
     <div class="stat"><b>0</b><span>frameworks, bundlers, build steps</span></div>
@@ -135,7 +137,7 @@ code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padd
 <tr><td>Cape Void notes</td><td class="num">100 / 100 / 100 / 100</td><td class="num">100 / 100 / 100 / 100</td></tr>
 <tr><td>Ocean notes</td><td class="num">99 / 100 / 100 / 100</td><td class="num">100 / 100 / 100 / 100</td></tr>
 <tr><td>Pipes notes</td><td class="num">100 / 100 / 100 / 100</td><td class="num">100 / 100 / 100 / 100</td></tr>
-<tr><td>By the numbers</td><td class="num">100 / 100 / 100 / 100</td><td class="num">100 / 100 / 100 / 100</td></tr>
+<tr><td>Performance</td><td class="num">100 / 100 / 100 / 100</td><td class="num">100 / 100 / 100 / 100</td></tr>
 </table></div>
 <p class="say">Each cell is performance / accessibility / best practices / SEO. Unlisted pages score lower on SEO because they are set to <code>noindex</code> on purpose, and the 404 has no description.</p>
 <p>The honest low points, all on mobile: the ocean scores 73 and the birthday card 61 because Lighthouse throttles the CPU four times and the software renderer does the 3D work, so blocking time balloons (1.7 s and 4.6 s). That is the test rig, not a phone, but the birthday card is also the page that pulls in three.js, so it is the one I would test on a real device first. Lighthouse also flags small text on phones for the three labs with compact control labels (10 to 12 px by design); I may nudge those up.</p>
@@ -155,6 +157,9 @@ code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padd
     <p class="say"><b>Rule:</b> say what you haven't checked as plainly as what you have.</p>
   </section>
 
+  <!--more-->
+  <nav class="more" aria-label="More write-ups"><span>Also read</span> <a href="../rs2-capes/direction/">Cape Void</a> <a href="../windows-pipes/direction/">Pipes</a> <a href="../ocean/direction/">Ocean</a></nav>
+  <!--/more-->
   <div class="actions"><a class="go" href="../">&larr; Back to labs</a><a class="go" href="https://github.com/chuckwired/labs" rel="noopener">View source &#8599;</a></div>
   <footer>&copy; 2026 Chuck Rice</footer>
 </div>

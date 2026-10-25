@@ -16,7 +16,7 @@ const indexable = f => existsSync(p(f)) && !/noindex/.test(readFileSync(p(f), 'u
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 const labs = LABS.filter(l => !l.secret && indexable(l.path + 'index.html'));
-const extra = [['by-the-numbers/', null]]; // site pages that are not labs
+const extra = [['performance/', null]]; // site pages that are not labs
 
 // sitemap.xml
 const urls = [['', labs.map(l => l.date).sort().pop()], ...labs.flatMap(l => [[l.path, l.date], ...(l.notes && indexable(l.notes + 'index.html') ? [[l.notes, l.date]] : [])]), ...extra.map(([u]) => [u, null])];
@@ -34,7 +34,7 @@ ${labs.map(l => `- [${l.title}](${ORIGIN}/${l.path}): ${l.blurb.replace(/\s+/g, 
 ${labs.filter(l => l.notes && indexable(l.notes + 'index.html')).map(l => `- [${l.title}: behind the design](${ORIGIN}/${l.notes})`).join('\n')}
 
 ## About the site
-- [By the numbers](${ORIGIN}/by-the-numbers/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.
+- [Performance](${ORIGIN}/performance/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.
 - [Portfolio](https://chuckwired.com) and [writing](https://chuckwired.medium.com) by the same author.
 `);
 
