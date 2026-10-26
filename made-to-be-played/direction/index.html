@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<meta name="description" content="Behind the design of Made to be played: a stained-glass street scene, a flat poster, and the one neon sign that survived.">
+<title>Behind the design of Made to be played · Chuck Rice Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M7 22V10l5 7 5-7v12M23 10v12' fill='none' stroke='%23ff3d94' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preload" href="../../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../shared/base.css">
+<link rel="stylesheet" href="../../shared/notes.css">
+<style>
+.shot { display: block; width: 100%; height: auto; margin: 22px 0 8px; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); }
+.cap { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
+@media (max-width: 560px) { .lede { font-size: 15px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../../">&larr; Labs</a>
+    <a href="../">Dive in &rarr;</a>
+  </nav>
+
+  <h1>Behind the design.</h1>
+  <p class="lede">I wanted a hero that says "made to be played". It took three goes, and the first two are in the bin. This is why, and what's left.</p>
+  <p class="by">By <a href="https://chuckwired.com" rel="author">Chuck Rice</a> · <time datetime="2026-10-26">26 Oct 2026</time></p>
+
+  <section>
+    <div class="n">01</div>
+    <h2>The big idea</h2>
+    <p>Hong Kong at night, in layers. Dim sum and hot milk tea being sold on the street up front, a red taxi and a big neon sign in the middle, skyscrapers and the Peak with its tram climbing behind. Stained glass, but not realistic: like layered glass paintings or sculptures, a bit comic book without going full Borderlands. Moody, with the neon doing the shouting.</p>
+    <p class="say"><b>Rule:</b> say the whole scene out loud before drawing any of it.</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
+    <h2>Stained glass</h2>
+    <p>The first build was sheets of leaded glass with a gap between each, so moving the mouse slid them against each other. Every pane had a lead line and a glow behind it. The neon worked, the street felt right, and the people looked like gems with faces.</p>
+    <img class="shot" src="shots/1-stained-glass.webp" alt="A Hong Kong street at night built from leaded-glass panes: a neon sign over a dim sum stall, a vendor and customer in the foreground, a red taxi, skyscrapers and the Peak behind." width="1600" height="900" loading="lazy">
+    <p class="cap">First go. I said it did great, all things considered, and asked for a different style.</p>
+    <p class="say"><b>Rule:</b> "great, all things considered" means start again.</p>
+  </section>
+
+  <section>
+    <div class="n">03</div>
+    <h2>Flat poster</h2>
+    <p>I sent three references: flat, graphic Hong Kong illustrations, a red-and-white taxi in three-quarter view, banded pink tenements, a retro poster. The second go took that: flat colour, thin outlines, halftone, a proper taxi. It was better, and it was still every part drawn by typing in coordinates.</p>
+    <img class="shot" src="shots/2-flat-poster.webp" alt="The same street redrawn as a flat vector poster: bold flat colour, thin outlines, halftone sky, a large red and white taxi, and the neon sign above." width="1600" height="900" loading="lazy">
+    <p class="cap">Second go. Closer to the references, and about as far as hand-typed shapes go.</p>
+    <p class="say"><b>Rule:</b> know what your tools can't draw before you ask them to.</p>
+  </section>
+
+  <section>
+    <div class="n">04</div>
+    <h2>Doing less</h2>
+    <p>I asked how it was made. The honest answer was a few thousand polygons, placed by hand. A scene like the references needs real illustrated layers, and generating those is its own project. So I went the other way: just the sign. Slightly askew instead of flat, on the side of a building that fades out in an irregular shape, with the glow escaping the cutout. Text on the right.</p>
+    <p class="say"><b>Rule:</b> when the scene can't carry the idea, cut to the one part that already does.</p>
+  </section>
+
+  <section>
+    <div class="n">05</div>
+    <h2>Tracing the characters</h2>
+    <p>Hand-drawing Chinese neon would look wrong to anyone who can read it. So each character is rendered in a bold sans, thinned down to a centreline, and only that path is kept: a tube, not a letter shape. 機舖 is Cantonese for arcade, so the sign says 機舖派對, arcade party, with MADE TO BE PLAYED in English underneath. <code>?cn=arcade</code> shows just 機舖.</p>
+    <img class="shot" src="shots/3-neon-sign.webp" alt="A tilted neon sign on a faded tenement wall reading 機舖派對 in pink tubes and Made to be played in cyan, with an air conditioner dripping below it." width="1600" height="900" loading="lazy">
+    <p class="cap">Where it landed.</p>
+    <p class="say"><b>Rule:</b> if you can't draw it, trace it.</p>
+  </section>
+
+  <section>
+    <div class="n">06</div>
+    <h2>The aircon</h2>
+    <p>I asked for an air conditioner somewhere in the picture, because it would make it feel mega authentic. It's a window unit bolted to the wall, grimy, with a small green light and a drip.</p>
+    <p class="say"><b>Rule:</b> the authentic detail is the boring one.</p>
+  </section>
+
+  <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
+  <footer>&copy; 2026 Chuck Rice</footer>
+</div>
+</body>
+</html>

@@ -105,3 +105,12 @@ Treat as a highly experienced peer. Terse, direct, no padding. Challenge him whe
 
 ## Git
 Default branch `main`. Commit messages end with the Co-Authored-By trailer if Claude wrote the change.
+
+## made-to-be-played lab (standalone hero, not yet on the index)
+A tilted Hong Kong neon sign on a faded tenement wall, copy on the right. Meant to become the index hero ("made to be played"). `noindex`, not in `LABS` yet; notes page at `made-to-be-played/direction/`.
+- Built in code, no image files. Four stacked SVG layers in a CSS 3D plane (wall, glow, steel backing + shadow + aircon, tubes) so the pointer slides the tubes against their own shadow. The wall is masked by an irregular displaced+blurred blob; the glow layer is not masked, so light spills past the cutout.
+- Chinese tubes are stroke centrelines traced from a rendered bold sans (render, Zhang-Suen thin, trace, simplify), pasted in as path data (`CN_ALL`); no font is shipped. Text is `機舖派對` (arcade party); `?cn=arcade` shows `機舖`. The English line uses hand-drawn single-stroke capitals (`GLYPH`).
+- Tunables in `CONFIG` at the top of the script (tilt, boost reach, sign roll). Click the sign to make it stutter; one character flickers on its own; the aircon drips. Reduced motion: no flicker, drip, breathing or tilt.
+- Decisions Chuck made: stained glass dropped ("great, all things considered", then a flat-poster try from references), then cut down to just the sign; sign slightly askew not flat; building cutout fading irregularly with glow escaping it; Chinese main, English smaller underneath; 機舖 / 機舖派對 over 為玩而造; an aircon in the picture for authenticity.
+- Checkpoint: tag `made-to-be-played-three-directions` holds both abandoned scenes (stained glass, flat poster) as working pages. Screenshots are in the notes page.
+- Open: mobile layout and tilt on touch, real-device perf (several large blurred layers), whether 派 reads well to a Cantonese reader (its traced strokes are the roughest), the exact index-hero integration.

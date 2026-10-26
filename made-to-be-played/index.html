@@ -40,6 +40,9 @@ body { font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
 }
 .z { position: absolute; inset: 0; transform: translateZ(var(--z, 0px)); pointer-events: none; }
 .z > svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; display: block; }
+@keyframes drip { 0% { opacity: 0; transform: translateY(-4px) scale(.5); } 12% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(150px) scale(1); } }
+.drip { transform-box: fill-box; transform-origin: 50% 0; opacity: 0; animation: drip 1.7s cubic-bezier(.5,0,.9,.6) infinite; }
+@media (prefers-reduced-motion: reduce) { .drip { animation: none; opacity: .8; } }
 #hit { position: absolute; left: 14%; top: 26%; width: 72%; height: 46%; background: none; border: 0; padding: 0; cursor: pointer; transform: translateZ(60px); border-radius: 14px; }
 #hit:focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
 #tube-main { animation: hum 6s ease-in-out infinite; }
@@ -91,9 +94,9 @@ body { font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
   </defs></svg>
 
   <div class="hero">
-    <h1 class="sr">Made to be played. 為玩而造.</h1>
+    <h1 class="sr">Made to be played. 機舖派對 (arcade party).</h1>
     <div id="pw">
-      <div id="plate" role="img" aria-label="A Hong Kong neon sign on the side of an old building. In pink tubes it reads 為玩而造; below, in cyan, Made to be played.">
+      <div id="plate" role="img" aria-label="A Hong Kong neon sign on the side of an old building. In pink tubes it reads 機舖派對, arcade party; below, in cyan, Made to be played.">
         <div class="z" style="--z:0px" id="z-wall"></div>
         <div class="z" style="--z:12px" id="z-glow"></div>
         <div class="z" style="--z:26px" id="z-back"></div>
@@ -105,7 +108,7 @@ body { font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
       <div class="label">Chuck Rice Labs</div>
       <p class="display">Small things made to be played.</p>
       <p class="lede">An ocean in raw WebGL, the Windows pipes screensaver rebuilt, RuneScape capes you can tilt, a birthday card with a dog. Each one is a single page, and none of them needs an install.</p>
-      <div class="actions"><a class="go" href="../">Open the labs</a><a class="go quiet" href="archive/flat-poster/">Earlier takes</a></div>
+      <div class="actions"><a class="go" href="../">Open the labs</a><a class="go quiet" href="direction/">Behind the design</a></div>
     </div>
   </div>
   <div id="fade"></div>
@@ -143,12 +146,18 @@ const pane = (pts, fill, lw = 3) => `<path d="${P(pts)}" fill="${fill}" stroke-w
 const mount = (id, html) => { document.getElementById(id).insertAdjacentHTML('afterbegin', html); };
 
 /* ---------------------------------------------------------------- the characters: stroke centrelines traced from a bold sans, 100x100 each */
-const CN = [
-  { id: 'wei', d: 'M47.2 5.7L46.4 10.7M26.4 12.1L29.7 16.8M45 15.7L44.2 19.1M43.9 19.6L43.3 23.2M43.3 23.2L73.6 23.5M13.3 23.5L41.7 23.5M41.9 23.8L37.8 35.7M73.9 23.8L72.5 31.6M71.1 36.3L70.6 40.7M36.4 40.7L70.3 41M70.8 41L82.2 41M82.5 41.3L81.7 47.1M81.1 48.8L79.2 59.6M23.9 59.3L78.9 59.9M79.4 59.9L88.6 59.9M88.9 60.2L88.6 77.4L85.8 89.1M21.1 60.7L16.7 65.2M15.8 65.7L7.2 72.7M69.7 70.4L74.2 81M53.6 71.3L56.7 78.5M25.6 73.5L18.1 87.4M39.7 75.2L42.2 88.2M82.8 91.8L78.9 93.2L68.3 93.2' },
-  { id: 'wan', d: 'M47.2 13.5L83.9 13.5M10 15.2L21.1 15.4M32.5 15.2L21.4 15.4M21.1 15.7L21.1 44.9M43.9 41L53.6 41M54.2 41L73.3 41M73.9 41L87.5 41M53.9 41.3L53.6 57.4L50.3 72.1M73.6 41.3L73.6 83.8L74.7 87.4M10.8 45.2L20.8 45.2M21.4 45.2L30 45.2M21.1 45.4L21.1 72.7M31.4 71L21.4 72.9M19.7 75.4L15.3 76.8M92.2 77.7L90 86.8M46.4 80.2L43.3 84.3M89.2 88.2L84.4 89.6L75.8 88.8M35 89.1L38.6 89.3' },
-  { id: 'er', d: 'M10 14.1L48.1 14.9M89.4 14.1L48.9 14.3M48.1 15.2L45 34.9M45 34.9L60.8 35.7M44.2 35.4L38.6 35.7M38.1 35.7L15.8 36L15.8 89.9M61.4 35.7L84.2 35.7M38.3 36L38.3 86.8M61.1 36L61.1 86.8M84.4 36L83.6 87.1M70 86L76.1 90.2L81.4 89.6L83.3 87.7' },
-  { id: 'zao', d: 'M65 6.6L65 19.3M47.8 7.9L45.8 14.3M44.7 19.6L64.7 19.6M65.3 19.6L86.4 19.6M65 19.9L65 38.8M43.3 20.4L37.2 30.2M7.5 32.1L24.2 32.4M24.2 32.7L23.3 36M35.3 39.1L64.7 39.1M65.3 39.1L91.4 39.1M65 39.3L65 53.5M15 47.9L10.8 54.6M45 53.8L64.7 53.8M65.3 53.8L83.3 54.1L83.3 75.4M44.7 54.1L44.7 75.7M10.8 54.6L26.7 54.9L26.1 60.4M25.6 62.1L21.4 75.2M21.1 75.7L20 79.3M45 76L82.8 76M19.7 79.6L15 81.8M13.3 83.5L7.5 92.9M26.4 84.3L30.3 87.4M34.2 89.3L38.3 90.4M38.9 90.7L53.9 92.1L93.6 91.8' },
-];
+const CN_ALL = {   // stroke centrelines, 100x100 each
+  wei: 'M47.2 5.7L46.4 10.7M26.4 12.1L29.7 16.8M45 15.7L44.2 19.1M43.9 19.6L43.3 23.2M43.3 23.2L73.6 23.5M13.3 23.5L41.7 23.5M41.9 23.8L37.8 35.7M73.9 23.8L72.5 31.6M71.1 36.3L70.6 40.7M36.4 40.7L70.3 41M70.8 41L82.2 41M82.5 41.3L81.7 47.1M81.1 48.8L79.2 59.6M23.9 59.3L78.9 59.9M79.4 59.9L88.6 59.9M88.9 60.2L88.6 77.4L85.8 89.1M21.1 60.7L16.7 65.2M15.8 65.7L7.2 72.7M69.7 70.4L74.2 81M53.6 71.3L56.7 78.5M25.6 73.5L18.1 87.4M39.7 75.2L42.2 88.2M82.8 91.8L78.9 93.2L68.3 93.2',
+  ji: 'M79.4 6L77.5 9.9M19.2 6.3L19.2 26.8M45.6 6.3L40.6 17.1M62.8 6.8L64.4 49.3M89.2 15.4L85.3 22.4M55.3 16.6L53.3 20.2M70.8 21.3L69.7 25.2L79.7 23.8M83.6 23.2L80.3 23.5M36.7 24.1L36.1 26.8L49.2 24.9M6.9 27.1L18.9 27.1M19.4 27.1L29.2 27.1M19.2 27.4L18.3 38.5M87.5 32.7L90.3 40.7M53.3 36.6L55.3 42.9M16.1 40.4L12.8 51.6M19.7 40.7L23.9 44.3M19.4 41L19.2 93.2M90 41L73.1 43.2M90.6 41L93.1 46.8M55 43.2L50.3 44.1M55.6 43.2L57.5 49.1L59.2 50.2M44.7 45.4L41.1 46M36.7 46.3L40.6 46.3M80 49.6L83.3 54.9M64.7 49.9L65.3 59.3M36.7 59.6L46.4 59.9M65 59.6L46.7 59.6M66.1 59.6L84.4 59.6M85 59.6L92.5 59.6M46.4 59.9L45 70.4M65.8 59.9L66.7 66.3M7.2 64.3L5 68.2L5 71.6M67.2 68.2L70 78.2M44.2 71.6L41.1 79.6M54.2 75.7L59.4 80.2M78.6 76.6L74.7 80.4M91.4 82.7L89.7 86.3M36.4 86.6L32.8 90.2M74.7 87.7L77.8 91M78.6 91.6L85 92.1',
+  pu: 'M69.2 6L69.2 19.3M82.8 9.1L86.7 14.3M48.3 19.6L68.9 19.6M69.4 19.6L92.5 19.6M69.2 19.9L69.2 35.2M10.8 27.4L6.4 31.6M14.4 31.6L25.6 31.6M26.1 31.6L36.9 31.6M25.8 31.8L25.8 47.7M50 35.4L68.9 35.4M69.4 35.4L88.6 35.4M49.7 35.7L49.7 52.9M69.2 35.7L69.2 52.9M88.9 35.7L88.9 52.9M9.4 47.9L25.6 47.9M26.1 47.9L41.4 47.9M25.8 48.2L25.8 64.6M50 53.2L68.9 53.2M69.4 53.2L88.6 53.2M49.7 53.5L49.7 70.4M69.2 53.5L69.2 70.4M88.9 53.5L88.9 70.4M13.1 64.9L25.6 64.9M26.1 64.9L39.2 64.9M12.8 65.2L12.8 86.6M39.4 65.2L39.4 86.6M50 70.7L68.9 70.7M69.4 70.7L88.6 70.7M49.7 71L49.7 93.2M69.2 71L69.2 92.7M88.9 71L88.3 91L86.1 92.9L80.3 93.2M13.1 86.8L39.2 86.8M12.8 87.1L12.8 92.9M39.4 87.1L39.4 92.4',
+  paai: 'M86.1 10.4L80 9.3L70.3 12.1M13.1 11.3L16.7 13.2M66.1 13.2L40 17.1M19.2 15.2L23.6 19.6M39.7 17.4L39.4 51L36.4 72.7M85.3 27.1L78.1 30.2L56.9 34.6M11.4 34.6L8.1 34.9M11.9 34.9L15 37.9M56.4 35.2L56.1 86.3M15.6 38.2L20.3 43.2M73.3 44.9L74.7 55.7L76.7 57.4M82.8 55.2L77.2 57.1M76.7 57.7L77.8 64.6M23.9 61.3L22.2 64.9M36.1 73.2L34.4 78.8M83.1 76L88.9 86M33.1 82.4L30.3 88.2L31.1 94.1M71.1 83.2L64.2 86L56.1 86.6M90.6 88.5L90 91.8',
+  deoi: 'M22.8 6.6L22.8 32.4M37.2 6.6L37.2 32.4M82.5 6.6L82.5 27.9M52.5 10.2L51.1 14.1M7.2 10.4L9.2 13.8M9.7 14.9L11.9 19.3M49.4 17.7L46.4 23.5M58.6 28.2L82.2 28.2M82.8 28.2L92.5 28.2M82.5 28.5L81.7 90.7M7.5 32.7L17.2 32.7M17.8 32.7L22.5 32.7M23.1 32.7L36.9 32.7M37.5 32.7L43.1 32.7M43.6 32.7L50.3 32.7M17.5 32.9L17.8 36.6M43.3 32.9L38.1 51.6M21.1 48.2L21.4 51.6M9.7 51.8L21.1 51.8M21.7 51.8L29.7 51.8M30.3 51.8L37.8 51.8M38.3 51.8L49.4 51.8M30 52.1L30 68.5M63.3 53.8L65 56.8M65.6 57.9L69.2 66M12.2 68.8L29.7 68.8M30.3 68.8L47.8 68.8M30 69.1L30 88.5M51.4 86L48.1 86.6M45.6 87.1L30.3 88.8M29.7 88.8L8.1 90.4M64.4 92.1L68.6 93.5L78.3 93.2',
+};
+// 機舖 is Cantonese for an arcade; 機舖派對 is arcade party. ?cn=arcade shows the short one.
+const CN_SETS = { party: ['ji', 'pu', 'paai', 'deoi'], arcade: ['ji', 'pu'] };
+const CN_TEXT = { party: '機舖派對', arcade: '機舖' };
+const CN_KEY = new URLSearchParams(location.search).get('cn') === 'arcade' ? 'arcade' : 'party';
+const CN = CN_SETS[CN_KEY].map(id => ({ id, d: CN_ALL[id] }));
 const GLYPH = {   // the English line: single-stroke capitals on a 100-tall grid
   M: [80, 'M0 100V0L40 58L80 0V100'], A: [72, 'M0 100L36 0L72 100M12 66H60'], D: [66, 'M0 0H24C52 0 66 22 66 50C66 78 52 100 24 100H0Z'],
   E: [56, 'M56 0H0V100H56M0 50H44'], T: [64, 'M0 0H64M32 0V100'], O: [72, 'M24 0H48C66 0 72 24 72 50C72 76 66 100 48 100H24C6 100 0 76 0 50C0 24 6 0 24 0Z'],
@@ -163,8 +172,8 @@ function layoutRow(text, H, cx, top) {
   items.forEach((it, i) => { if (it.sp) { x += space * s; return; } out.push({ ch: it.ch, x, top, s }); x += it.w * s + ((i < items.length - 1 && !items[i + 1].sp) ? gap * s : 0); });
   return out;
 }
-const CN_S = 1.5, CN_GAP = 24, CN_Y = 262, CN_X = 500 - (4 * 100 * CN_S + 3 * CN_GAP) / 2;
-const EN_H = 38, EN = layoutRow('MADE TO BE PLAYED', EN_H, 500, 452);
+const CN_N = CN.length, CN_S = CN_N === 2 ? 1.95 : 1.5, CN_GAP = CN_N === 2 ? 44 : 24, CN_Y = CN_N === 2 ? 240 : 262, CN_X = 500 - (CN_N * 100 * CN_S + (CN_N - 1) * CN_GAP) / 2;
+const EN_H = 36, EN = layoutRow('MADE TO BE PLAYED', EN_H, 500, 452);
 const cnPos = i => [CN_X + i * (100 * CN_S + CN_GAP), CN_Y];
 const SIGN_T = `rotate(${CONFIG.signRoll} 500 400)`;
 const BX = 150, BY = 214, BW = 700, BH = 364;       // the sign's backing box
@@ -188,7 +197,7 @@ function buildTubes() {
       `<g filter="url(#fT)" opacity=".95">${tubes(PINK, CYAN, 1.7)}<path d="${BORDER}" ${BASE} stroke="${AMBER}" stroke-width="8"/></g>` +
       tubes(PINK, CYAN, 1) + tubes(tint(PINK, .8), tint(CYAN, .85), .32) +
       `<path d="${BORDER}" ${BASE} stroke="${AMBER}" stroke-width="4.2"/><path d="${BORDER}" ${BASE} stroke="#fff0c8" stroke-width="1.4"/>` + chevs(AMBER, 1));
-  const dead = tubeDefs + w(`<g ${BASE} stroke="#2b2a3e" stroke-width="${f1(CN_PX * 1.4 / CN_S)}">${cnUses(2)}</g><g opacity=".85" ${BASE} stroke="#12101f" stroke-width="${f1(CN_PX * 5 / CN_S)}" style="mix-blend-mode:multiply">${cnUses(2)}</g>`);
+  const dead = tubeDefs + w(`<g ${BASE} stroke="#2b2a3e" stroke-width="${f1(CN_PX * 1.4 / CN_S)}">${cnUses(CN_N - 2)}</g><g opacity=".85" ${BASE} stroke="#12101f" stroke-width="${f1(CN_PX * 5 / CN_S)}" style="mix-blend-mode:multiply">${cnUses(CN_N - 2)}</g>`);
   mount('z-tube', svg(main, 'id="tube-main"') + svg(dead, 'id="tube-dead"'));
 }
 
@@ -226,8 +235,21 @@ function buildBack() {
     bolts([[BX + 52, BY + BH + 66], [BX + 178, BY + BH + 66]]) +
     `<path d="M${BX + 110} ${BY + BH + 56}Q${BX + 90} ${BY + BH + 20} ${BX + 120} ${BY + BH - 4}M${BX + 160} ${BY + BH + 56}Q${BX + 200} ${BY + BH + 20} ${BX + 230} ${BY + BH}" fill="none" stroke="#08081c" stroke-width="4"/>` +
     `<path d="M${BX + 190} ${BY + BH + 100}Q${BX + 300} ${BY + BH + 150} ${BX + 460} ${BY + BH + 120}T${BX + 760} ${BY + BH + 150}" fill="none" stroke="#08081c" stroke-width="3"/>`;
+
+  // the air conditioner: a window unit bolted to the wall, grimy, dripping onto whoever is underneath
+  g += `<g transform="rotate(1.1 795 690)">` +
+    `<path d="M730 750L708 778M866 748L888 776" stroke="#08081c" stroke-width="12" stroke-linecap="round"/><path d="M730 750L708 778M866 748L888 776" stroke="#4d5374" stroke-width="6" stroke-linecap="round"/>` +
+    pane([[700, 630], [890, 628], [892, 738], [702, 742]], '#c3c8dc', 3.4) + pane([[706, 620], [886, 618], [890, 630], [702, 632]], '#e4e8f4', 2.4) +
+    pane([[712, 642], [879, 640], [881, 724], [714, 726]], '#aeb3cc', 2.6) + pane([[714, 642], [768, 641], [770, 725], [716, 726]], '#8f95b2', 2.6) +
+    [0, 1, 2, 3, 4, 5, 6].map(i => `<path d="M780 ${654 + i * 10.4}H868" stroke="#5e6486" stroke-width="3.6" stroke-linecap="round"/>`).join('') +
+    `<circle cx="741" cy="668" r="10" fill="#4d5374" stroke-width="2.6"/><path d="M741 668L747 661" stroke="#e4e8f4" stroke-width="2.6" stroke-linecap="round"/>` +
+    pane(rect(727, 690, 30, 12), '#3a3f5e', 2.2) + `<circle cx="741" cy="712" r="4" fill="#7dff9a" stroke-width="1.6"/><circle cx="741" cy="712" r="12" fill="#7dff9a" opacity=".5" stroke="none" filter="url(#sh)"/>` +
+    pane([[704, 738], [890, 736], [897, 749], [699, 751]], '#8a90ac', 3) +
+    `<path d="M702 640Q696 690 706 735M884 636Q890 690 882 734" stroke="#8a4a2a" stroke-width="7" opacity=".55" fill="none" stroke-linecap="round"/><path d="M735 742Q737 760 733 780M820 744Q822 766 818 790" stroke="#2a1a22" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>` +
+    `<path d="M880 750V802" stroke="#08081c" stroke-width="9" stroke-linecap="round"/><path d="M880 750V802" stroke="#7f8fb2" stroke-width="4" stroke-linecap="round"/>` +
+    `<path d="M892 664Q936 650 944 560Q948 470 930 410" fill="none" stroke="#08081c" stroke-width="5"/>` + `</g>`;
   g += '</g>';
-  mount('z-back', svg(g));
+  mount('z-back', svg(g) + svg(`<g fill="#9cc2ff" stroke="#08081c" stroke-width="1.8">${[[880, 806, 0], [706, 752, .55], [880, 806, 1.1]].map(([x, y, dl]) => `<path class="drip" style="animation-delay:${dl}s" d="M${x} ${y}c-5 7-6 11-6 14a6 6 0 0 0 12 0c0-3-1-7-6-14z"/>`).join('')}</g>`));
 }
 
 /* ---------------------------------------------------------------- the building: a piece of a tong lau side wall, fading out unevenly */
@@ -261,6 +283,7 @@ function buildWall() {
       for (let k = 0; k < 3; k++) { const sx = x + 60 + k * 34, sy = y - 8 - k * 4; g += pane([[sx, sy], [sx + 22, sy], [sx + 28, sy + 18], [sx + 22, sy + 16], [sx + 22, sy + 40], [sx, sy + 40], [sx, sy + 16], [sx - 6, sy + 18]], pick(['#f0e6d6', '#ff8fb8', '#8fd0ff', '#ffd66b']), 2.4); }
     }
   }
+  g += `<path d="M706 744Q700 800 712 860L738 860Q730 800 736 744Z M860 744Q856 810 868 870L894 870Q884 800 890 744Z" fill="#05041a" opacity=".32" stroke="none"/>`;
   g += pane(rect(38, -200, 18, 1100), '#7d8ca4', 3) + pane(rect(930, -200, 14, 1100), '#7d8ca4', 3);
   for (let y = 30; y < 780; y += 130) g += pane(rect(32, y, 30, 10), '#4a5670', 2.4) + pane(rect(924, y, 26, 10), '#4a5670', 2.4);
   // a dead blade sign hanging off the right edge
