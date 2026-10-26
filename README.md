@@ -15,7 +15,7 @@ Each lab is a folder with its own `index.html`. Register it in the `LABS` array 
 | Happy Birthday, Mama Candy (birthday card) | `/birthday-dog/` |
 | Ocean (realistic sea, WebGL2, two looks) | `/ocean/` |
 
-Shared styles and fonts: `shared/`. Checks: `node tools/check.mjs` (runs on commit). Search files are generated: `node tools/sync-seo.mjs`. Per-page weight: `node tools/weigh.mjs`. Install the hook once with `git config core.hooksPath tools/hooks`.
+The index opens on a neon-sign hero (see `made-to-be-played/direction/`); it is not a lab. Shared styles and fonts: `shared/`. Checks: `node tools/check.mjs` (runs on commit; includes `tools/lint-pages.mjs`, which holds every lab and "Behind the design" page to a standard; start new write-ups from `tools/templates/direction.html`). Search files are generated: `node tools/sync-seo.mjs`. Per-page weight: `node tools/weigh.mjs`. Install the hook once with `git config core.hooksPath tools/hooks`.
 
 Images: keep full-quality originals in `originals/` (mirrors the site tree), run `node tools/optimise-images.mjs` to make the `.webp` copies pages use. See [`IMAGES.md`](IMAGES.md).
 

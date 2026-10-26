@@ -12,9 +12,9 @@
 <meta property="og:title" content="Made to be played · Chuck Rice Labs">
 <meta property="og:description" content="Made to be played: interactive experiments by Chuck Rice, a product designer who ships production code.">
 <meta property="og:url" content="https://labs.chuckwired.com/">
-<meta property="og:image" content="https://labs.chuckwired.com/ocean/cover.og.jpg">
+<meta property="og:image" content="https://labs.chuckwired.com/made-to-be-played/cover.og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/","description":"Made to be played: interactive experiments by Chuck Rice, a product designer who ships production code.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"inLanguage":"en-GB","image":"https://labs.chuckwired.com/ocean/cover.og.jpg"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/","description":"Made to be played: interactive experiments by Chuck Rice, a product designer who ships production code.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"inLanguage":"en-GB","image":"https://labs.chuckwired.com/made-to-be-played/cover.og.jpg"}</script>
 <title>Made to be played · Chuck Rice Labs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M12 6h8v6l5 11a3 3 0 0 1-3 4H10a3 3 0 0 1-3-4l5-11z' fill='none' stroke='%23e8e6df' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preload" href="shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -44,19 +44,6 @@ body {
 .links a[aria-current] { color: var(--ink); }
 
 main { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 0 max(20px, env(safe-area-inset-left, 0px)) 80px; }
-
-.hero { padding: clamp(56px, 12vw, 120px) 0 clamp(36px, 7vw, 72px); }
-.hero h1 {
-  margin: 0; font: italic 400 clamp(48px, 9vw, 104px)/0.95 var(--serif);
-  letter-spacing: -0.01em; text-wrap: balance;
-}
-.hero p { margin: 22px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
-
-.hero .src { display: inline-block; margin-top: 26px; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
-.hero .src:hover { border-color: var(--ink); }
-.hero .src.alt { margin-left: 28px; color: var(--dim); }
-.hero .src.alt:hover { color: var(--ink); }
-@media (max-width: 420px) { .hero .src.alt { margin-left: 0; display: table; } }
 
 .grid { display: flex; flex-direction: column; gap: clamp(56px, 9vw, 96px); padding: 0; margin: 0; list-style: none; }
 .lab[hidden] { display: none; }
@@ -122,9 +109,6 @@ footer a:hover { color: var(--ink); }
   .art { aspect-ratio: 1.55; }
 }
 @media (max-width: 560px) {
-  .hero p { font-size: 15px; }
-}
-@media (max-width: 560px) {
   .nav { flex-wrap: wrap; gap: 12px 0; }
   .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
   .links { width: 100%; gap: 20px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }   /* second line under the wordmark: Portfolio, Source, Performance */
@@ -141,7 +125,7 @@ footer a:hover { color: var(--ink); }
 }
 #pw { perspective: 1500px; perspective-origin: 50% 46%; position: relative; }
 #plate { position: relative; width: 100%; aspect-ratio: 1000 / 800; transform-style: preserve-3d; will-change: transform;
-  transform: rotateY(calc(-14deg + var(--ry, 0deg))) rotateX(calc(3deg + var(--rx, 0deg))) rotateZ(-1.5deg); }
+  transform: rotateY(-14deg) rotateX(3deg) rotateZ(-1.5deg); }   /* script takes over from here (inline transform, not custom properties: those restyle every descendant each frame) */
 #plate .mz { position: absolute; inset: 0; transform: translateZ(var(--z, 0px)); pointer-events: none; }
 #plate .mz > svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; display: block; }
 #hit { position: absolute; left: 14%; top: 26%; width: 72%; height: 46%; background: none; border: 0; padding: 0; cursor: pointer; transform: translateZ(60px); border-radius: 14px; -webkit-tap-highlight-color: transparent; }
@@ -168,7 +152,7 @@ footer a:hover { color: var(--ink); }
 @media (max-width: 860px) {
   #mtbp .mt-grid { grid-template-columns: 1fr; gap: 0; padding-top: 8px; min-height: 0; }
   #mtbp .mt-copy { order: 0; }
-  #plate { transform: rotateY(calc(-10deg + var(--ry, 0deg))) rotateX(calc(2deg + var(--rx, 0deg))) rotateZ(-1.5deg); }
+  #plate { transform: rotateY(-10deg) rotateX(2deg) rotateZ(-1.5deg); }
   #mtbp .mt-lede { font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) { #tube-main, #tube-dead, #mtbp .chev { animation: none; } #mtbp .chev { opacity: .85; } #mtbp .drip { animation: none; opacity: .8; } }
@@ -667,7 +651,7 @@ buildWall(); buildGlow(); buildBack(); buildTubes();
 const stage = document.getElementById('mtbp'), plate = document.getElementById('plate'), pw = document.getElementById('pw');
 const tubeMain = document.getElementById('tube-main'), boostEl = document.getElementById('glow-boost'), hit = document.getElementById('hit');
 let px = 0, py = 0, cx = 0, cy = 0, inside = false, boost = 0, mx = 0, my = 0, running = false, raf = 0, visible = true;
-const t0 = performance.now();
+const t0 = performance.now(), narrowMQ = matchMedia('(max-width: 860px)');
 stage.addEventListener('pointermove', e => {
   if (e.pointerType === 'touch') return;
   const r = stage.getBoundingClientRect(); mx = e.clientX; my = e.clientY;
@@ -679,8 +663,8 @@ function tick(now) {
   cx += (px - cx) * CONFIG.follow; cy += (py - cy) * CONFIG.follow;
   const th = (now - t0) / CONFIG.breathe.period * Math.PI * 2;
   const by = reduce ? 0 : Math.sin(th) * CONFIG.breathe.y, bx = reduce ? 0 : Math.sin(th * 1.6 + 1) * CONFIG.breathe.x;
-  plate.style.setProperty('--ry', (cx * CONFIG.tilt.y + by).toFixed(2) + 'deg');
-  plate.style.setProperty('--rx', (-cy * CONFIG.tilt.x + bx).toFixed(2) + 'deg');
+  const narrow = narrowMQ.matches;
+  plate.style.transform = `rotateY(${((narrow ? -10 : -14) + cx * CONFIG.tilt.y + by).toFixed(2)}deg) rotateX(${((narrow ? 2 : 3) - cy * CONFIG.tilt.x + bx).toFixed(2)}deg) rotateZ(-1.5deg)`;
   const r = plate.getBoundingClientRect(), d = inside ? Math.hypot(mx - (r.left + r.width / 2), my - (r.top + r.height / 2)) : 1e4;
   boost += ((reduce ? 0 : 1 - sstep(r.width * .15, CONFIG.boostReach + r.width * .3, d)) - boost) * .08;
   boostEl.style.opacity = (boost * .6).toFixed(3);

@@ -16,10 +16,10 @@ const indexable = f => existsSync(p(f)) && !/noindex/.test(readFileSync(p(f), 'u
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 const labs = LABS.filter(l => !l.secret && indexable(l.path + 'index.html'));
-const extra = [['performance/', null]]; // site pages that are not labs
+const extra = [['performance/', null], ['made-to-be-played/direction/', '2026-10-26']].filter(([u]) => indexable(u + 'index.html')); // site pages that are not labs (the index hero's write-up has no lab of its own)
 
 // sitemap.xml
-const urls = [['', labs.map(l => l.date).sort().pop()], ...labs.flatMap(l => [[l.path, l.date], ...(l.notes && indexable(l.notes + 'index.html') ? [[l.notes, l.date]] : [])]), ...extra.map(([u]) => [u, null])];
+const urls = [['', labs.map(l => l.date).sort().pop()], ...labs.flatMap(l => [[l.path, l.date], ...(l.notes && indexable(l.notes + 'index.html') ? [[l.notes, l.date]] : [])]), ...extra];
 writeFileSync(p('sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(([u, d]) => `  <url><loc>${ORIGIN}/${u}</loc>${d ? `<lastmod>${d}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`);
 
 // llms.txt: a plain-text map for language-model crawlers (llmstxt.org format)
@@ -31,7 +31,7 @@ writeFileSync(p('llms.txt'), `# Chuck Rice Labs
 ${labs.map(l => `- [${l.title}](${ORIGIN}/${l.path}): ${l.blurb.replace(/\s+/g, ' ')}`).join('\n')}
 
 ## Behind the design
-${labs.filter(l => l.notes && indexable(l.notes + 'index.html')).map(l => `- [${l.title}: behind the design](${ORIGIN}/${l.notes})`).join('\n')}
+${[...labs.filter(l => l.notes && indexable(l.notes + 'index.html')).map(l => `- [${l.title}: behind the design](${ORIGIN}/${l.notes})`), ...extra.filter(([u]) => u.endsWith('/direction/')).map(([u]) => `- [Made to be played (the hero): behind the design](${ORIGIN}/${u})`)].join('\n')}
 
 ## About the site
 - [Performance](${ORIGIN}/performance/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.

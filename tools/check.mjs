@@ -8,6 +8,7 @@ import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { lintPages } from './lint-pages.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SKIP = new Set(['node_modules', '.git', 'originals', 'tools']);
@@ -56,6 +57,8 @@ for (const m of readFileSync(join(ROOT, 'sitemap.xml'), 'utf8').matchAll(/<loc>h
   const t = join(ROOT, m[1], m[1] === '' || m[1].endsWith('/') ? 'index.html' : '');
   if (!existsSync(t)) err(join(ROOT, 'sitemap.xml'), `lists a page that doesn't exist: /${m[1]}`);
 }
+
+lintPages((f, m) => errors.push(`${f}: ${m}`), (f, m) => console.warn(`warn  ${f}: ${m}`));
 
 const img = spawnSync('node', [join(ROOT, 'tools/optimise-images.mjs'), '--check'], { encoding: 'utf8' });
 if (img.status !== 0) errors.push(img.stderr.trim() || 'image check failed');
