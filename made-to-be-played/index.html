@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<meta name="description" content="Made to be played: a Hong Kong neon sign on the side of a building, and a pile of small interactive experiments.">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/made-to-be-played/">
+<meta property="og:site_name" content="Chuck Rice Labs">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Made to be played · Chuck Rice Labs">
+<meta property="og:description" content="A Hong Kong neon sign on the side of a building, and a pile of small interactive experiments.">
+<meta property="og:url" content="https://labs.chuckwired.com/made-to-be-played/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M7 22V10l5 7 5-7v12M23 10v12' fill='none' stroke='%23ff3d94' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Made to be played · Chuck Rice Labs</title>
+<link rel="preload" href="../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+:root { color-scheme: dark; --pink:#ff3d6e; --cyan:#43e8ff; --amber:#ffb638; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+#stage { view-transition-name: lab-art; position: relative; min-height: 100svh; overflow: hidden; background: var(--bg); }
+.hero {
+  position: relative; box-sizing: border-box; min-height: 100svh; max-width: 1360px; margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 72px) max(24px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px) max(24px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .7fr); align-items: center; gap: clamp(8px, 3vw, 56px);
+}
+
+/* ---- the sign on its wall: real depth, so the tubes slide against their own shadow */
+#pw { perspective: 1500px; perspective-origin: 50% 46%; position: relative; }
+#plate {
+  position: relative; width: 100%; aspect-ratio: 1000 / 800; transform-style: preserve-3d;
+  transform: rotateY(calc(-14deg + var(--ry, 0deg))) rotateX(calc(3deg + var(--rx, 0deg))) rotateZ(-1.5deg);
+  will-change: transform;
+}
+.z { position: absolute; inset: 0; transform: translateZ(var(--z, 0px)); pointer-events: none; }
+.z > svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; display: block; }
+#hit { position: absolute; left: 14%; top: 26%; width: 72%; height: 46%; background: none; border: 0; padding: 0; cursor: pointer; transform: translateZ(60px); border-radius: 14px; }
+#hit:focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
+#tube-main { animation: hum 6s ease-in-out infinite; }
+@keyframes hum { 0%,100% { opacity: 1; } 47% { opacity: .97; } 50% { opacity: .9; } 53% { opacity: .98; } }
+#tube-dead { opacity: 0; animation: dead 9s steps(1) infinite; }
+@keyframes dead { 0%,91% { opacity: 0; } 91.4% { opacity: 1; } 92.2% { opacity: 0; } 93% { opacity: 1; } 94.6% { opacity: 0; } 95.4% { opacity: 1; } 99% { opacity: 0; } }
+#glow-boost { opacity: 0; }
+.chev { animation: chase 1.5s steps(1) infinite; } .chev.c2 { animation-delay: .5s; } .chev.c3 { animation-delay: 1s; }
+@keyframes chase { 0% { opacity: 1; } 33% { opacity: .15; } 100% { opacity: .15; } }
+
+/* ---- copy */
+.copy { position: relative; z-index: 2; }
+.label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.display { margin: 18px 0 0; font: italic 400 clamp(46px, 6.2vw, 92px)/.95 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.lede { margin: 24px 0 0; max-width: 40ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
+.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 36px; }
+.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; color: var(--ink); border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
+.go:hover { border-color: var(--ink); }
+.go.quiet { color: var(--dim); }
+
+.back {
+  position: absolute; z-index: 50; top: calc(env(safe-area-inset-top, 0px) + 14px); left: calc(env(safe-area-inset-left, 0px) + 16px);
+  font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); text-decoration: none;
+  padding: 9px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(10,10,14,.55); transition: color .2s, border-color .2s;
+}
+.back:hover, .back:focus-visible { color: var(--ink); border-color: rgba(255,255,255,.35); outline: none; }
+#fade { position: absolute; left: 0; right: 0; bottom: 0; height: 14%; pointer-events: none; background: linear-gradient(to bottom, rgba(7,7,10,0), var(--bg)); }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-top: calc(env(safe-area-inset-top, 0px) + 64px); gap: 0; }
+  #plate { transform: rotateY(calc(-10deg + var(--ry, 0deg))) rotateX(calc(2deg + var(--rx, 0deg))) rotateZ(-1.5deg); }
+  .lede { font-size: 15px; }
+}
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+@media (prefers-reduced-motion: reduce) { #tube-main, #tube-dead, .chev { animation: none; } .chev { opacity: .85; } }
+</style>
+</head>
+<body>
+
+<header id="stage">
+  <a class="back" href="../">← Labs</a>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+    <filter id="fT" filterUnits="userSpaceOnUse" x="-300" y="-300" width="1600" height="1400" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="gM" filterUnits="userSpaceOnUse" x="-400" y="-400" width="1800" height="1600" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="gW" filterUnits="userSpaceOnUse" x="-500" y="-500" width="2000" height="1800" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="52"/></filter>
+    <filter id="sh" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1200" height="1000"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs></svg>
+
+  <div class="hero">
+    <h1 class="sr">Made to be played. 為玩而造.</h1>
+    <div id="pw">
+      <div id="plate" role="img" aria-label="A Hong Kong neon sign on the side of an old building. In pink tubes it reads 為玩而造; below, in cyan, Made to be played.">
+        <div class="z" style="--z:0px" id="z-wall"></div>
+        <div class="z" style="--z:12px" id="z-glow"></div>
+        <div class="z" style="--z:26px" id="z-back"></div>
+        <div class="z" style="--z:42px" id="z-tube"></div>
+        <button id="hit" aria-label="Make the neon sign flicker"></button>
+      </div>
+    </div>
+    <div class="copy">
+      <div class="label">Chuck Rice Labs</div>
+      <p class="display">Small things made to be played.</p>
+      <p class="lede">An ocean in raw WebGL, the Windows pipes screensaver rebuilt, RuneScape capes you can tilt, a birthday card with a dog. Each one is a single page, and none of them needs an install.</p>
+      <div class="actions"><a class="go" href="../">Open the labs</a><a class="go quiet" href="archive/flat-poster/">Earlier takes</a></div>
+    </div>
+  </div>
+  <div id="fade"></div>
+</header>
+
+<script>
+(() => {
+'use strict';
+const CONFIG = {
+  seed: 5,
+  tilt: { x: 5, y: 4 },           // degrees of extra turn at the screen edge
+  breathe: { y: 1.2, x: .7, period: 12000 },
+  follow: .07,
+  boostReach: 520,                // px from the sign where its glow starts to lift
+  signRoll: -2.5,                 // the sign's own lean on the wall, degrees
+};
+const VW = 1000, VH = 800;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------------------------------------------------------- helpers */
+function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(CONFIG.seed), rr = (a, b) => a + (b - a) * R(), pick = a => a[(R() * a.length) | 0];
+const f1 = n => Math.round(n * 10) / 10;
+const h2r = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const r2h = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+const mix = (a, b, t) => { a = h2r(a); b = h2r(b); return r2h(a.map((v, i) => v + (b[i] - v) * t)); };
+const tint = (c, t) => t >= 0 ? mix(c, '#ffffff', t) : mix(c, '#000000', -t);
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const P = pts => 'M' + pts.map(p => f1(p[0]) + ' ' + f1(p[1])).join('L') + 'Z';
+const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+const ngon = (cx, cy, rx, ry, n, rot = 0) => Array.from({ length: n }, (_, i) => { const a = rot + i / n * Math.PI * 2; return [cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]; });
+const INK = '#120f2c', PINK = '#ff3d6e', CYAN = '#43e8ff', AMBER = '#ffb638';
+const svg = (inner, extra = '') => `<svg viewBox="0 0 ${VW} ${VH}" aria-hidden="true" ${extra}>${inner}</svg>`;
+const pane = (pts, fill, lw = 3) => `<path d="${P(pts)}" fill="${fill}" stroke-width="${lw}"${lw === 0 ? ' stroke="none"' : ''}/>`;
+const mount = (id, html) => { document.getElementById(id).insertAdjacentHTML('afterbegin', html); };
+
+/* ---------------------------------------------------------------- the characters: stroke centrelines traced from a bold sans, 100x100 each */
+const CN = [
+  { id: 'wei', d: 'M47.2 5.7L46.4 10.7M26.4 12.1L29.7 16.8M45 15.7L44.2 19.1M43.9 19.6L43.3 23.2M43.3 23.2L73.6 23.5M13.3 23.5L41.7 23.5M41.9 23.8L37.8 35.7M73.9 23.8L72.5 31.6M71.1 36.3L70.6 40.7M36.4 40.7L70.3 41M70.8 41L82.2 41M82.5 41.3L81.7 47.1M81.1 48.8L79.2 59.6M23.9 59.3L78.9 59.9M79.4 59.9L88.6 59.9M88.9 60.2L88.6 77.4L85.8 89.1M21.1 60.7L16.7 65.2M15.8 65.7L7.2 72.7M69.7 70.4L74.2 81M53.6 71.3L56.7 78.5M25.6 73.5L18.1 87.4M39.7 75.2L42.2 88.2M82.8 91.8L78.9 93.2L68.3 93.2' },
+  { id: 'wan', d: 'M47.2 13.5L83.9 13.5M10 15.2L21.1 15.4M32.5 15.2L21.4 15.4M21.1 15.7L21.1 44.9M43.9 41L53.6 41M54.2 41L73.3 41M73.9 41L87.5 41M53.9 41.3L53.6 57.4L50.3 72.1M73.6 41.3L73.6 83.8L74.7 87.4M10.8 45.2L20.8 45.2M21.4 45.2L30 45.2M21.1 45.4L21.1 72.7M31.4 71L21.4 72.9M19.7 75.4L15.3 76.8M92.2 77.7L90 86.8M46.4 80.2L43.3 84.3M89.2 88.2L84.4 89.6L75.8 88.8M35 89.1L38.6 89.3' },
+  { id: 'er', d: 'M10 14.1L48.1 14.9M89.4 14.1L48.9 14.3M48.1 15.2L45 34.9M45 34.9L60.8 35.7M44.2 35.4L38.6 35.7M38.1 35.7L15.8 36L15.8 89.9M61.4 35.7L84.2 35.7M38.3 36L38.3 86.8M61.1 36L61.1 86.8M84.4 36L83.6 87.1M70 86L76.1 90.2L81.4 89.6L83.3 87.7' },
+  { id: 'zao', d: 'M65 6.6L65 19.3M47.8 7.9L45.8 14.3M44.7 19.6L64.7 19.6M65.3 19.6L86.4 19.6M65 19.9L65 38.8M43.3 20.4L37.2 30.2M7.5 32.1L24.2 32.4M24.2 32.7L23.3 36M35.3 39.1L64.7 39.1M65.3 39.1L91.4 39.1M65 39.3L65 53.5M15 47.9L10.8 54.6M45 53.8L64.7 53.8M65.3 53.8L83.3 54.1L83.3 75.4M44.7 54.1L44.7 75.7M10.8 54.6L26.7 54.9L26.1 60.4M25.6 62.1L21.4 75.2M21.1 75.7L20 79.3M45 76L82.8 76M19.7 79.6L15 81.8M13.3 83.5L7.5 92.9M26.4 84.3L30.3 87.4M34.2 89.3L38.3 90.4M38.9 90.7L53.9 92.1L93.6 91.8' },
+];
+const GLYPH = {   // the English line: single-stroke capitals on a 100-tall grid
+  M: [80, 'M0 100V0L40 58L80 0V100'], A: [72, 'M0 100L36 0L72 100M12 66H60'], D: [66, 'M0 0H24C52 0 66 22 66 50C66 78 52 100 24 100H0Z'],
+  E: [56, 'M56 0H0V100H56M0 50H44'], T: [64, 'M0 0H64M32 0V100'], O: [72, 'M24 0H48C66 0 72 24 72 50C72 76 66 100 48 100H24C6 100 0 76 0 50C0 24 6 0 24 0Z'],
+  B: [64, 'M0 0V100M0 0H28C50 0 58 12 58 25C58 38 50 48 28 48H0M28 48C54 48 64 60 64 74C64 88 54 100 28 100H0'],
+  P: [60, 'M0 100V0H28C52 0 60 14 60 30C60 46 52 58 28 58H0'], L: [52, 'M0 0V100H52'], Y: [72, 'M0 0L36 54L72 0M36 54V100'],
+};
+function layoutRow(text, H, cx, top) {
+  const s = H / 100, gap = 34, space = 54, out = []; let total = 0;
+  const items = text.split('').map(ch => ch === ' ' ? { sp: 1 } : { ch, w: GLYPH[ch][0] });
+  items.forEach((it, i) => { total += it.sp ? space : it.w; if (i < items.length - 1 && !it.sp && !items[i + 1].sp) total += gap; });
+  let x = cx - total * s / 2;
+  items.forEach((it, i) => { if (it.sp) { x += space * s; return; } out.push({ ch: it.ch, x, top, s }); x += it.w * s + ((i < items.length - 1 && !items[i + 1].sp) ? gap * s : 0); });
+  return out;
+}
+const CN_S = 1.5, CN_GAP = 24, CN_Y = 262, CN_X = 500 - (4 * 100 * CN_S + 3 * CN_GAP) / 2;
+const EN_H = 38, EN = layoutRow('MADE TO BE PLAYED', EN_H, 500, 452);
+const cnPos = i => [CN_X + i * (100 * CN_S + CN_GAP), CN_Y];
+const SIGN_T = `rotate(${CONFIG.signRoll} 500 400)`;
+const BX = 150, BY = 214, BW = 700, BH = 364;       // the sign's backing box
+
+/* ---------------------------------------------------------------- tube drawing */
+const BASE = 'fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const cnUses = (only) => CN.map((c, i) => (only === undefined || only === i) ? `<use href="#cn-${c.id}" transform="translate(${f1(cnPos(i)[0])} ${CN_Y}) scale(${CN_S})"/>` : '').join('');
+const enUses = () => EN.map(l => `<use href="#en-${l.ch}" transform="translate(${f1(l.x)} ${l.top}) scale(${l.s})"/>`).join('');
+const tubeDefs = `<defs>${CN.map(c => `<path id="cn-${c.id}" d="${c.d}"/>`).join('')}${Object.entries(GLYPH).map(([k, [, d]]) => `<path id="en-${k}" d="${d}"/>`).join('')}<path id="chev" d="M0 0L14 17L0 34"/></defs>`;
+const BORDER = `M${BX + 24} ${BY + 24}H${BX + BW - 24}V${BY + BH - 24}H${BX + 24}Z`;
+const CN_PX = 9.5, EN_PX = 5.6;
+const tubes = (cnCol, enCol, k, extra = '') =>
+  `<g ${BASE} stroke="${cnCol}" stroke-width="${f1(CN_PX * k / CN_S)}">${cnUses()}</g><g ${BASE} stroke="${enCol}" stroke-width="${f1(EN_PX * k / (EN_H / 100))}">${enUses()}</g>` + extra;
+const chevs = (col, k) => [[172, 1], [188, 2], [204, 3]].map(([x, n]) => `<g class="chev c${n}"><use href="#chev" transform="translate(${x} 452) scale(.9)" ${BASE} stroke="${col}" stroke-width="${6 * k}"/></g>`).join('') +
+  [[828, 1], [812, 2], [796, 3]].map(([x, n]) => `<g class="chev c${n}"><use href="#chev" transform="translate(${x} 452) scale(-.9 .9)" ${BASE} stroke="${col}" stroke-width="${6 * k}"/></g>`).join('');
+
+function buildTubes() {
+  const w = (inner) => `<g transform="${SIGN_T}">${inner}</g>`;
+  const main = tubeDefs +
+    w(tubes('#2b2a3e', '#2b2a3e', 1.15) + `<path d="${BORDER}" ${BASE} stroke="#2b2a3e" stroke-width="4.5"/>` +
+      `<g filter="url(#fT)" opacity=".95">${tubes(PINK, CYAN, 1.7)}<path d="${BORDER}" ${BASE} stroke="${AMBER}" stroke-width="8"/></g>` +
+      tubes(PINK, CYAN, 1) + tubes(tint(PINK, .8), tint(CYAN, .85), .32) +
+      `<path d="${BORDER}" ${BASE} stroke="${AMBER}" stroke-width="4.2"/><path d="${BORDER}" ${BASE} stroke="#fff0c8" stroke-width="1.4"/>` + chevs(AMBER, 1));
+  const dead = tubeDefs + w(`<g ${BASE} stroke="#2b2a3e" stroke-width="${f1(CN_PX * 1.4 / CN_S)}">${cnUses(2)}</g><g opacity=".85" ${BASE} stroke="#12101f" stroke-width="${f1(CN_PX * 5 / CN_S)}" style="mix-blend-mode:multiply">${cnUses(2)}</g>`);
+  mount('z-tube', svg(main, 'id="tube-main"') + svg(dead, 'id="tube-dead"'));
+}
+
+function buildGlow() {
+  const w = (inner) => `<g transform="${SIGN_T}">${inner}</g>`;
+  const halo = `<ellipse cx="500" cy="410" rx="820" ry="600" fill="url(#gradP)"/><ellipse cx="500" cy="560" rx="680" ry="320" fill="url(#gradC)"/>`;
+  const defs = `<defs><radialGradient id="gradP"><stop offset="0" stop-color="${PINK}" stop-opacity=".5"/><stop offset=".5" stop-color="${PINK}" stop-opacity=".18"/><stop offset="1" stop-color="${PINK}" stop-opacity="0"/></radialGradient><radialGradient id="gradC"><stop offset="0" stop-color="${CYAN}" stop-opacity=".22"/><stop offset="1" stop-color="${CYAN}" stop-opacity="0"/></radialGradient></defs>`;
+  const wide = k => `<g filter="url(#gW)">${tubes(PINK, CYAN, k)}</g>`;
+  mount('z-glow', svg(tubeDefs + defs + halo + w(wide(4.2) + `<g filter="url(#gM)">${tubes(PINK, CYAN, 2.2)}</g>`)) +
+    svg(tubeDefs + w(`<g filter="url(#gW)">${tubes(PINK, CYAN, 6)}</g><g filter="url(#gM)">${tubes(PINK, CYAN, 3)}</g>`), 'id="glow-boost" style="position:absolute;left:0;top:0"'));
+}
+
+/* ---------------------------------------------------------------- the sign's steel backing, brackets, cables, transformer */
+function buildBack() {
+  const bolts = (pts) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="#6a6a86" stroke-width="2"/>`).join('');
+  let g = `<g stroke="${INK}" stroke-linejoin="round" stroke-linecap="round" stroke-width="3">`;
+  g += `<g transform="${SIGN_T}">`;
+  // cast shadow of the tubes onto the steel
+  g += `<g filter="url(#sh)" opacity=".6" transform="translate(9 15)" stroke="#000" fill="none"><g ${BASE} stroke="#000" stroke-width="${f1(CN_PX * 1.2 / CN_S)}">${cnUses()}</g><g ${BASE} stroke="#000" stroke-width="${f1(EN_PX * 1.2 / (EN_H / 100))}">${enUses()}</g></g>`;
+  g += '</g>';
+  // (the shadow sits under the box face, so draw the box first, then shadow on top)
+  const box = `<g transform="${SIGN_T}">` +
+    `<path d="M${BX + 40} ${BY + BH} L${BX + 6} ${BY + BH + 70}" stroke="#3a3a5a" stroke-width="12"/><path d="M${BX + BW - 40} ${BY + BH} L${BX + BW - 8} ${BY + BH + 60}" stroke="#3a3a5a" stroke-width="12"/>` +
+    pane([[BX, BY], [BX + BW, BY - 2], [BX + BW + 4, BY + BH], [BX - 2, BY + BH + 4]], '#171636', 4) +
+    pane([[BX + 12, BY + 12], [BX + BW - 12, BY + 10], [BX + BW - 8, BY + BH - 12], [BX + 10, BY + BH - 8]], '#0f0e28', 2.4) +
+    `<path d="M${BX + 14} ${BY + 14}H${BX + BW - 14}" stroke="#3a3868" stroke-width="2" opacity=".7"/>` +
+    [0, 1, 2, 3, 4].map(i => `<rect x="${BX + 40 + i * 140}" y="${BY + BH * .62 + i * 7}" width="${40 + (i % 3) * 20}" height="${200 - i * 12}" fill="url(#streak)" stroke="none"/>`).join('') +
+    bolts([[BX + 14, BY + 14], [BX + BW - 14, BY + 12], [BX + BW - 10, BY + BH - 14], [BX + 12, BY + BH - 10]]) + '</g>';
+  g = `<g stroke="${INK}" stroke-linejoin="round" stroke-linecap="round" stroke-width="3"><defs><linearGradient id="streak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient></defs>` + box +
+    `<g transform="${SIGN_T}"><g filter="url(#sh)" opacity=".7" transform="translate(9 15)"><g ${BASE} stroke="#000" stroke-width="${f1(CN_PX * 1.25 / CN_S)}">${cnUses()}</g><g ${BASE} stroke="#000" stroke-width="${f1(EN_PX * 1.25 / (EN_H / 100))}">${enUses()}</g></g></g>`;
+  // cables, a transformer, wiring running down into the building
+  g += `<path d="M${BX + 30} ${BY + 4}Q${BX - 40} ${BY - 60} ${BX - 90} ${BY - 150}" fill="none" stroke="#08081c" stroke-width="5"/>` +
+    `<path d="M${BX + BW - 30} ${BY - 4}Q${BX + BW + 40} ${BY - 40} ${BX + BW + 60} ${BY - 120}" fill="none" stroke="#08081c" stroke-width="5"/>` +
+    pane(rect(BX + 40, BY + BH + 56, 150, 74), '#242448', 3) + [0, 1, 2, 3].map(i => `<path d="M${BX + 62 + i * 30} ${BY + BH + 70}v46" stroke="#0f0f28" stroke-width="3"/>`).join('') +
+    bolts([[BX + 52, BY + BH + 66], [BX + 178, BY + BH + 66]]) +
+    `<path d="M${BX + 110} ${BY + BH + 56}Q${BX + 90} ${BY + BH + 20} ${BX + 120} ${BY + BH - 4}M${BX + 160} ${BY + BH + 56}Q${BX + 200} ${BY + BH + 20} ${BX + 230} ${BY + BH}" fill="none" stroke="#08081c" stroke-width="4"/>` +
+    `<path d="M${BX + 190} ${BY + BH + 100}Q${BX + 300} ${BY + BH + 150} ${BX + 460} ${BY + BH + 120}T${BX + 760} ${BY + BH + 150}" fill="none" stroke="#08081c" stroke-width="3"/>`;
+  g += '</g>';
+  mount('z-back', svg(g));
+}
+
+/* ---------------------------------------------------------------- the building: a piece of a tong lau side wall, fading out unevenly */
+function buildWall() {
+  let g = '';
+  const defs = `<defs>
+    <filter id="irr" filterUnits="userSpaceOnUse" x="-300" y="-300" width="1600" height="1400"><feTurbulence type="fractalNoise" baseFrequency=".0105" numOctaves="3" seed="9" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="190" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="22"/></filter>
+    <mask id="cut" maskUnits="userSpaceOnUse" x="-300" y="-300" width="1600" height="1400"><g filter="url(#irr)"><path d="M110 80L900 40L975 380L940 730L150 770L30 420Z" fill="#fff"/></g></mask>
+    <filter id="grit" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .5 -.12"/></filter>
+    <linearGradient id="grime" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".5"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+    <radialGradient id="wp"><stop offset="0" stop-color="${PINK}" stop-opacity=".62"/><stop offset="1" stop-color="${PINK}" stop-opacity="0"/></radialGradient>
+    <radialGradient id="wc"><stop offset="0" stop-color="${CYAN}" stop-opacity=".42"/><stop offset="1" stop-color="${CYAN}" stop-opacity="0"/></radialGradient>
+    <pattern id="ht" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="4.5" cy="4.5" r="1.7" fill="#07061a" opacity=".55"/></pattern></defs>`;
+  g += `<rect x="-200" y="-200" width="1400" height="1200" fill="#5a2c4c" stroke="none"/>`;
+  for (let i = 0; i < 16; i++) { const x = rr(-20, 980), w = rr(18, 70); g += `<rect x="${f1(x)}" y="${f1(rr(-40, 300))}" width="${f1(w)}" height="${f1(rr(260, 700))}" fill="url(#grime)" opacity="${f1(rr(.25, .6))}" stroke="none"/>`; }
+  const slabs = [60, 240, 420, 600, 780];
+  slabs.forEach(y => { g += pane(rect(-200, y, 1400, 26), '#8d4a63', 3) + `<rect x="-200" y="${y}" width="1400" height="6" fill="#b25f78" stroke="none"/>`; });
+  const lit = () => R() < .4;
+  const colsX = [70, 285, 510, 735];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+    const x = colsX[c] + rr(-6, 6), y = slabs[r] + 54, w = 150, h = 112, on = lit();
+    g += pane(rect(x, y, w, h), '#dccbc2', 3) + pane(rect(x + 9, y + 9, w - 18, h - 18), on ? pick(['#ffd66b', '#ffb04a', '#ffe0a0']) : pick(['#141a42', '#18204c']), 2.4);
+    for (let k = 1; k < 5; k++) g += `<path d="M${x + 9 + k * (w - 18) / 5} ${y + 9}v${h - 18}" stroke="${INK}" stroke-width="2.4"/>`;
+    g += `<path d="M${x + 9} ${y + 9 + (h - 18) / 2}h${w - 18}" stroke="${INK}" stroke-width="2.4"/>`;
+    g += pane(rect(x - 8, y + h, w + 16, 12), '#a7959a', 3);
+    if (R() < .3) {                                           // air-conditioner on the sill
+      const ax = x + rr(10, 60); g += pane(rect(ax, y + h + 12, 64, 40), '#d6dcea', 3) + `<circle cx="${ax + 32}" cy="${y + h + 32}" r="13" fill="#9aa4bc" stroke-width="2.4"/>` + `<path d="M${ax + 18} ${y + h + 32}h28M${ax + 32} ${y + h + 18}v28" stroke="${INK}" stroke-width="2"/>`;
+    }
+    if (R() < .22) {                                          // laundry on a bamboo pole
+      g += `<path d="M${x + w + 20} ${y + 18}L${x + 40} ${y - 18}" stroke="#08081c" stroke-width="7" stroke-linecap="round"/><path d="M${x + w + 20} ${y + 18}L${x + 40} ${y - 18}" stroke="#d9b062" stroke-width="3.4" stroke-linecap="round"/>`;
+      for (let k = 0; k < 3; k++) { const sx = x + 60 + k * 34, sy = y - 8 - k * 4; g += pane([[sx, sy], [sx + 22, sy], [sx + 28, sy + 18], [sx + 22, sy + 16], [sx + 22, sy + 40], [sx, sy + 40], [sx, sy + 16], [sx - 6, sy + 18]], pick(['#f0e6d6', '#ff8fb8', '#8fd0ff', '#ffd66b']), 2.4); }
+    }
+  }
+  g += pane(rect(38, -200, 18, 1100), '#7d8ca4', 3) + pane(rect(930, -200, 14, 1100), '#7d8ca4', 3);
+  for (let y = 30; y < 780; y += 130) g += pane(rect(32, y, 30, 10), '#4a5670', 2.4) + pane(rect(924, y, 26, 10), '#4a5670', 2.4);
+  // a dead blade sign hanging off the right edge
+  g += pane(rect(838, 180, 18, 8), '#2a2a44', 2.4) + pane(rect(850, 186, 74, 210), '#5e1424', 3.4);
+  for (let k = 0; k < 4; k++) g += `<rect x="866" y="${206 + k * 44}" width="42" height="12" rx="5" fill="#d8a82a" opacity=".5" stroke="none"/>`;
+  for (const [y0, y1, s] of [[200, 330, 60], [90, 230, 80], [520, 470, 50]]) g += `<path d="M-100 ${y0}Q500 ${(y0 + y1) / 2 + s} 1100 ${y1}" fill="none" stroke="#06051a" stroke-width="2.6"/>`;
+  g += `<rect x="-200" y="-200" width="1400" height="1200" filter="url(#grit)" stroke="none"/><rect x="-200" y="-200" width="1400" height="1200" fill="url(#ht)" opacity=".5" stroke="none"/>`;
+  g += `<g style="mix-blend-mode:screen"><ellipse cx="500" cy="400" rx="520" ry="420" fill="url(#wp)"/><ellipse cx="500" cy="590" rx="460" ry="220" fill="url(#wc)"/></g>`;
+  mount('z-wall', svg(defs + `<g mask="url(#cut)" stroke="${INK}" stroke-linejoin="round">${g}</g>`));
+}
+
+buildWall(); buildGlow(); buildBack(); buildTubes();
+
+/* ---------------------------------------------------------------- motion */
+const stage = document.getElementById('stage'), plate = document.getElementById('plate'), pw = document.getElementById('pw');
+const tubeMain = document.getElementById('tube-main'), boostEl = document.getElementById('glow-boost'), hit = document.getElementById('hit');
+let px = 0, py = 0, cx = 0, cy = 0, inside = false, boost = 0, mx = 0, my = 0, running = false, raf = 0, visible = true;
+const t0 = performance.now();
+stage.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return;
+  const r = stage.getBoundingClientRect(); mx = e.clientX; my = e.clientY;
+  px = (e.clientX - r.left) / r.width * 2 - 1; py = (e.clientY - r.top) / r.height * 2 - 1; inside = true;
+});
+stage.addEventListener('pointerleave', () => { px = py = 0; inside = false; });
+function tick(now) {
+  raf = 0; if (!running) return;
+  cx += (px - cx) * CONFIG.follow; cy += (py - cy) * CONFIG.follow;
+  const th = (now - t0) / CONFIG.breathe.period * Math.PI * 2;
+  const by = reduce ? 0 : Math.sin(th) * CONFIG.breathe.y, bx = reduce ? 0 : Math.sin(th * 1.6 + 1) * CONFIG.breathe.x;
+  plate.style.setProperty('--ry', (cx * CONFIG.tilt.y + by).toFixed(2) + 'deg');
+  plate.style.setProperty('--rx', (-cy * CONFIG.tilt.x + bx).toFixed(2) + 'deg');
+  const r = plate.getBoundingClientRect(), d = inside ? Math.hypot(mx - (r.left + r.width / 2), my - (r.top + r.height / 2)) : 1e4;
+  boost += ((reduce ? 0 : 1 - sstep(r.width * .15, CONFIG.boostReach + r.width * .3, d)) - boost) * .08;
+  boostEl.style.opacity = (boost * .6).toFixed(3);
+  raf = requestAnimationFrame(tick);
+}
+function setRunning(v) { v = v && !document.hidden && visible; if (v === running) return; running = v; if (v && !raf) raf = requestAnimationFrame(tick); }
+new IntersectionObserver(es => { visible = es[0].isIntersecting; setRunning(true); }).observe(stage);
+document.addEventListener('visibilitychange', () => setRunning(true));
+setRunning(true);
+
+let zapping = false;
+function zap() {
+  if (zapping) return; zapping = true;
+  const set = v => { tubeMain.style.animation = 'none'; tubeMain.style.opacity = v; };
+  const seq = reduce ? [[0, .35], [500, 1]] : [[0, .15], [70, 1], [90, .1], [60, .85], [140, .08], [50, 1], [60, .2], [220, .95], [90, .35], [70, 1], [500, 1]];
+  let t = 0; seq.forEach(([dt, v]) => { t += dt; setTimeout(() => set(v), t); });
+  setTimeout(() => { tubeMain.style.animation = ''; tubeMain.style.opacity = ''; zapping = false; }, t + 80);
+}
+hit.addEventListener('click', zap);
+window.__sign = { CONFIG, zap };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<meta name="description" content="Made to be played: a night street in Hong Kong as a layered flat-colour poster, with a neon sign you can poke.">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/made-to-be-played/archive/flat-poster/">
+<meta property="og:site_name" content="Chuck Rice Labs">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Made to be played, flat poster · Chuck Rice Labs">
+<meta property="og:description" content="Made to be played: a night street in Hong Kong as a layered flat-colour poster, with a neon sign you can poke.">
+<meta property="og:url" content="https://labs.chuckwired.com/made-to-be-played/archive/flat-poster/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M7 22V10h6M7 16h5M19 10v12h6' fill='none' stroke='%23ff3d94' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Made to be played, flat poster · Chuck Rice Labs</title>
+<link rel="preload" href="../../../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../../shared/base.css">
+<style>
+:root { color-scheme: dark; --pink:#ff3d94; --cyan:#43e8ff; --amber:#ffb638; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- hero stage ---------- */
+#stage {
+  view-transition-name: lab-art;
+  position: relative; height: 100svh; min-height: 520px; overflow: hidden;
+  background: #05060f; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  contain: layout paint;
+}
+#world { position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px; transform-origin: 0 0; }
+.layer { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
+.layer > svg { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+#defs { position: absolute; width: 0; height: 0; }
+
+/* atmosphere between layers */
+.haze { position: absolute; left: -100px; width: 1800px; pointer-events: none; }
+.spill { position: absolute; border-radius: 50%; mix-blend-mode: screen; pointer-events: none; }
+.spill.pink { left: 170px; top: -40px; width: 1180px; height: 760px; background: radial-gradient(closest-side, rgba(255,61,148,.30), rgba(255,61,148,0)); }
+.spill.cyan { left: 220px; top: -10px; width: 700px; height: 420px; background: radial-gradient(closest-side, rgba(67,232,255,.20), rgba(67,232,255,0)); }
+
+/* animated bits live in their own elements so they run on the compositor */
+.puff { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(235,240,255,.55), rgba(235,240,255,0)); opacity: 0;
+  animation: rise var(--t, 5s) linear var(--dl, 0s) infinite; }
+@keyframes rise {
+  0% { opacity: 0; transform: translate3d(0,0,0) scale(.5); }
+  15% { opacity: var(--a, .55); }
+  100% { opacity: 0; transform: translate3d(var(--dx, 14px), var(--dy, -170px), 0) scale(1.9); }
+}
+.fog { position: absolute; pointer-events: none; opacity: .5; background: radial-gradient(closest-side, rgba(150,120,190,.42), rgba(150,120,190,0)); animation: drift 22s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translate3d(-60px,0,0); } to { transform: translate3d(70px,0,0); } }
+
+/* the neon */
+.neon { position: absolute; left: 0; top: 0; pointer-events: none; }
+#neon-main { animation: hum 6s ease-in-out infinite; }
+@keyframes hum { 0%,100% { opacity: 1; } 47% { opacity: .96; } 50% { opacity: .9; } 53% { opacity: .97; } }
+#neon-boost { opacity: 0; mix-blend-mode: screen; }
+#neon-dead { opacity: 0; animation: dead 9s steps(1) infinite; }
+@keyframes dead { 0%,91% { opacity: 0; } 91.4% { opacity: 1; } 92.2% { opacity: 0; } 93% { opacity: 1; } 94.6% { opacity: 0; } 95.4% { opacity: 1; } 99% { opacity: 0; } }
+.chev { animation: chase 1.5s steps(1) infinite; }
+.chev.c2 { animation-delay: .5s; } .chev.c3 { animation-delay: 1s; }
+@keyframes chase { 0% { opacity: 1; } 33% { opacity: .12; } 100% { opacity: .12; } }
+.beacon { animation: beacon 2.6s steps(1) infinite; }
+@keyframes beacon { 0% { opacity: 1; } 18% { opacity: .1; } }
+
+/* pokeable things: plain buttons laid over the art */
+.hit { position: absolute; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; border-radius: 12px; -webkit-tap-highlight-color: transparent; }
+.hit:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+
+/* screen-space finish */
+#beam { position: absolute; left: 0; top: 0; width: 640px; height: 640px; margin: -320px 0 0 -320px; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(closest-side, rgba(255,214,238,.20), rgba(255,214,238,0)); mix-blend-mode: screen; transition: opacity .6s; will-change: transform; }
+#grain { position: absolute; inset: 0; pointer-events: none; opacity: .3; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  1.8 0 0 0 -.3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 240px; }
+#dots { position: absolute; inset: 0; pointer-events: none; opacity: .16; mix-blend-mode: multiply;
+  background-image: radial-gradient(circle, #05061a 1.1px, transparent 1.6px); background-size: 7px 7px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 75% at 50% 45%, transparent 40%, #000 100%); mask-image: radial-gradient(ellipse 80% 75% at 50% 45%, transparent 40%, #000 100%); }
+#vig { position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 85% 80% at 50% 46%, rgba(0,0,0,0) 55%, rgba(2,2,8,.6) 100%); }
+#fade { position: absolute; left: 0; right: 0; bottom: 0; height: 24%; pointer-events: none; background: linear-gradient(to bottom, rgba(7,7,10,0), var(--bg) 94%); }
+
+.back {
+  position: absolute; z-index: 50; top: calc(env(safe-area-inset-top, 0px) + 14px); left: calc(env(safe-area-inset-left, 0px) + 16px);
+  font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); text-decoration: none;
+  padding: 9px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(10,10,14,.55);
+  transition: color .2s, border-color .2s;
+}
+.back:hover, .back:focus-visible { color: var(--ink); border-color: rgba(255,255,255,.35); outline: none; }
+#hint { position: absolute; z-index: 40; right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: 7%; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); transition: opacity .8s; }
+#hint.gone { opacity: 0; }
+
+/* ---------- the rest of the page: just enough to judge the hand-off ---------- */
+main { max-width: 720px; margin: 0 auto; padding: 8px max(20px, env(safe-area-inset-right, 0px)) 120px max(20px, env(safe-area-inset-left, 0px)); }
+h2 { margin: 0; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif); }
+.lede { margin: 18px 0 0; max-width: 54ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
+.keys { margin: 36px 0 0; padding: 22px 0 0; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; }
+.keys b { color: var(--ink); font-weight: 400; }
+@media (max-width: 560px) { .lede { font-size: 15px; } }
+
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
+::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+@media (prefers-reduced-motion: reduce) {
+  .puff, .fog, .chev, .beacon, #neon-main, #neon-dead { animation: none; }
+  .puff { opacity: .25; }
+  .chev { opacity: .8; }
+}
+</style>
+</head>
+<body>
+
+<header id="stage" aria-labelledby="slogan">
+  <h1 id="slogan" class="sr">Made to be played</h1>
+  <a class="back" href="../../../">← Labs</a>
+
+  <svg id="defs" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="pg" cx=".42" cy=".36" r=".78">
+        <stop offset="0" stop-color="#fff" stop-opacity=".30"/>
+        <stop offset=".55" stop-color="#fff" stop-opacity=".03"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".30"/>
+      </radialGradient>
+      <filter id="bloom" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="a"/>
+        <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="a"/></feMerge>
+      </filter>
+      <filter id="fW" filterUnits="userSpaceOnUse" x="260" y="-60" width="1000" height="560" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="26"/></filter>
+      <filter id="fT" filterUnits="userSpaceOnUse" x="260" y="-60" width="1000" height="560" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="8"/></filter>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+    </defs>
+  </svg>
+
+  <div id="world" role="img" aria-label="A Hong Kong street at night in a layered flat-colour poster style: a dim sum and milk tea stall in front, a red taxi under a glowing neon sign that reads Made to be played, skyscrapers behind, and the Peak with its tram climbing into the dark.">
+    <div class="layer" data-d="0.05" id="L-sky"></div>
+    <div class="layer" data-d="0.18" id="L-peak"></div>
+    <div class="haze" style="top:430px;height:200px;background:linear-gradient(to bottom,rgba(150,50,120,0),rgba(150,50,120,.30) 70%,rgba(150,50,120,.15))"></div>
+    <div class="layer" data-d="0.34" id="L-far"></div>
+    <div class="haze" style="top:420px;height:200px;background:linear-gradient(to bottom,rgba(120,40,110,0),rgba(150,55,120,.34) 75%,rgba(150,55,120,.2))"></div>
+    <div class="layer" data-d="0.58" id="L-street"></div>
+    <div class="layer" data-d="0.74" id="L-sign"></div>
+    <div class="layer" data-d="0.74" id="L-neon"></div>
+    <div class="layer" data-d="0.9" id="L-taxi"></div>
+    <div class="layer" data-d="1.45" id="L-fg"></div>
+    <button class="hit" id="hit-sign" aria-label="Make the neon sign flicker" style="left:430px;top:100px;width:660px;height:205px"></button>
+    <button class="hit" id="hit-taxi" aria-label="Flash the taxi's lights" style="left:870px;top:530px;width:670px;height:300px"></button>
+  </div>
+
+  <div id="dots"></div><div id="grain"></div>
+  <div id="vig"></div>
+  <div id="beam"></div>
+  <div id="fade"></div>
+  <div id="hint">Move around · poke the sign</div>
+</header>
+
+<main>
+  <h2>Glass Street</h2>
+  <p class="lede">Night in Hong Kong as a flat-colour poster, cut into sheets that slide against each other. Nothing here is a photo or an image file: it is all drawn in code, with the neon and the windows lit on top.</p>
+  <p class="keys"><b>Move</b> the pointer and the sheets slide against each other. <b>Click</b> the sign and the tubes stutter. <b>Click</b> the taxi and it flashes its lights. Scroll and the layers peel apart.</p>
+</main>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------------------------------------------------------------- CONFIG */
+const CONFIG = {
+  seed: 11,
+  parallax: { x: 26, y: 14 },      // px of travel for a depth-1 layer at the screen edge
+  breathe: { x: 7, y: 4, period: 11000 },
+  follow: 0.07,                    // pointer easing, per frame
+  scrollLag: 0.42,                 // how much far layers lag behind the page while scrolling
+  focusY: 0.42,                    // which part of the 900px scene stays on screen when the stage is wide
+  overscan: 1.05,                  // scale so sliding layers never show an edge
+  tram: { trip: 70, rest: 7 },     // seconds per trip, pause at each end
+  boostReach: 380,                 // px from the sign where its glow starts to lift
+};
+const W = 1600, H = 900;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------------------------------------------------------- helpers */
+function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(CONFIG.seed);
+const rr = (a, b) => a + (b - a) * R();
+const pick = a => a[(R() * a.length) | 0];
+const f1 = n => Math.round(n * 10) / 10;
+const h2r = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const r2h = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+const mix = (a, b, t) => { a = h2r(a); b = h2r(b); return r2h(a.map((v, i) => v + (b[i] - v) * t)); };
+const tint = (c, t) => t >= 0 ? mix(c, '#ffffff', t) : mix(c, '#000000', -t);
+const jit = (c, a) => tint(c, rr(-a, a));
+const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const P = pts => 'M' + pts.map(p => f1(p[0]) + ' ' + f1(p[1])).join('L') + 'Z';
+const ngon = (cx, cy, rx, ry, n, rot = 0) => Array.from({ length: n }, (_, i) => { const a = rot + i / n * Math.PI * 2; return [cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]; });
+const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+const LEAD = '#11102a';
+const AMBERS = ['#ffcf6b', '#ffb04a', '#ffc27a', '#ffd98a', '#ff9a52'];
+const CYAN = '#43e8ff', PINK = '#ff3d94', AMBER = '#ffb638';
+const CJK = `'PingFang HK','PingFang TC','Hiragino Sans CNS','Noto Sans CJK TC','Noto Sans TC','Microsoft JhengHei',sans-serif`;
+
+/* a layer is a pile of leaded panes plus a bloom pass for whatever glows */
+class Layer {
+  constructor(lead) { this.lead = lead; this.o = []; this.b = []; this.h = []; this.grads = new Map(); }
+  pane(pts, fill, o = {}) {
+    const d = P(pts), lw = o.lead ?? this.lead;
+    this.o.push(`<path d="${d}" fill="${fill}"${lw !== this.lead ? ` stroke-width="${lw}"` : ''}${lw === 0 ? ' stroke="none"' : ''}/>`);
+    if (o.shine) this.o.push(`<path d="${d}" fill="url(#pg)" stroke="none"/>`);
+    if (o.glow) this.b.push(`<path d="${d}" fill="${o.gc || fill}" opacity="${o.glow}"/>`);
+    return this;
+  }
+  stroke(d, color, w, o = {}) {
+    this.o.push(`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}${o.op ? ` opacity="${o.op}"` : ''}/>`);
+    if (o.glow) this.b.push(`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" opacity="${o.glow}"/>`);
+    return this;
+  }
+  raw(s) { this.o.push(s); return this; }
+  glowRaw(s) { this.b.push(s); return this; }
+  halo(cx, cy, r, color, a = .5) {
+    const id = 'h' + color.slice(1);
+    this.grads.set(id, color);
+    this.h.push(`<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${r}" fill="url(#${id})" opacity="${a}"/>`);
+    return this;
+  }
+  html() {
+    const defs = [...this.grads].map(([id, c]) => `<radialGradient id="${id}"><stop offset="0" stop-color="${c}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`).join('');
+    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs>${defs}</defs>` +
+      `<g stroke="${LEAD}" stroke-linejoin="round" stroke-width="${this.lead}">${this.o.join('')}</g>` +
+      `<g style="mix-blend-mode:screen">${this.h.join('')}</g>` +
+      `<g filter="url(#bloom)" style="mix-blend-mode:screen">${this.b.join('')}</g></svg>`;
+  }
+}
+class Batch { constructor() { this.d = ''; } add(p) { this.d += P(p); return this; } }
+Layer.prototype.batch = function (b, fill, o = {}) {
+  if (!b.d) return this;
+  const lw = o.lead ?? this.lead;
+  this.o.push(`<path d="${b.d}" fill="${fill}"${lw !== this.lead ? ` stroke-width="${lw}"` : ''}${lw === 0 ? ' stroke="none"' : ''}/>`);
+  if (o.glow) this.b.push(`<path d="${b.d}" fill="${o.gc || fill}" opacity="${o.glow}"/>`);
+  return this;
+};
+const mount = (id, html) => { document.getElementById(id).insertAdjacentHTML('afterbegin', html); };
+const lit = () => R() < .5;
+
+/* ================================================================ SKY */
+function buildSky() {
+  const L = new Layer(0);
+  const bands = [[-100, '#0b1030'], [190, '#161a50'], [320, '#2a2070'], [420, '#5a2c7e'], [500, '#a33a7a'], [560, '#e5604f'], [640, '#f08a50']];
+  bands.forEach(([y, c], i) => L.pane(rect(-100, y, W + 200, (bands[i + 1] ? bands[i + 1][0] + 2 : 900) - y), c, { lead: 0 }));
+  for (let k = 1; k < bands.length; k++) {          // halftone: the next colour's dots climb into the band above
+    let d = '';
+    for (let r = 0; r < 5; r++) { const rad = 5.4 - r * 1.05, yy = bands[k][0] - 7 - r * 11, off = r % 2 ? 6 : 0; for (let x = -100 + off; x < W + 100; x += 12) d += `M${x - rad} ${yy}a${rad} ${rad} 0 1 0 ${rad * 2} 0a${rad} ${rad} 0 1 0 ${-rad * 2} 0`; }
+    L.raw(`<path d="${d}" fill="${bands[k][1]}" stroke="none"/>`);
+  }
+  for (const [cx, cy, s] of [[300, 410, 1], [900, 470, 1.3], [1390, 362, .9], [620, 334, .7], [110, 500, .9]]) {
+    const cs = [[-60, 0, 26], [-25, -14, 34], [15, -10, 38], [55, 0, 26], [0, 8, 40]];
+    cs.forEach(([dx, dy, r]) => L.raw(`<circle cx="${cx + dx * s}" cy="${cy + dy * s + 8}" r="${r * s}" fill="#c24a86" stroke="none"/>`));
+    cs.forEach(([dx, dy, r]) => L.raw(`<circle cx="${cx + dx * s}" cy="${cy + dy * s}" r="${r * s}" fill="#4a3496" stroke="none"/>`));
+  }
+  const mx = 1128, my = 112;
+  L.raw(`<circle cx="${mx}" cy="${my}" r="120" fill="#ffe9b0" opacity=".08" stroke="none"/><circle cx="${mx}" cy="${my}" r="84" fill="#ffe9b0" opacity=".12" stroke="none"/>`);
+  L.pane(ngon(mx, my, 54, 54, 40), '#fff3c8', { lead: 2.4, glow: 1 });
+  L.raw(`<circle cx="${mx - 16}" cy="${my - 10}" r="11" fill="#f1dc9c" stroke="none"/><circle cx="${mx + 14}" cy="${my + 16}" r="7" fill="#f1dc9c" stroke="none"/><circle cx="${mx + 18}" cy="${my - 20}" r="5" fill="#f1dc9c" stroke="none"/>`);
+  const st = new Batch();
+  for (let i = 0; i < 38; i++) { const x = rr(0, W), y = rr(10, 320), s = rr(2, 5); if (Math.hypot(x - mx, y - my) < 130) continue; st.add([[x, y - s * 1.8], [x + s * .5, y], [x, y + s * 1.8], [x - s * .5, y]]).add([[x - s * 1.8, y], [x, y - s * .5], [x + s * 1.8, y], [x, y + s * .5]]); }
+  L.batch(st, '#fff3c4', { lead: 0, glow: .9 });
+  mount('L-sky', L.html());
+}
+
+/* ================================================================ PEAK + TRAM */
+const TRAM = { a: [962, 548], b: [1354, 172] };
+function buildPeak() {
+  const L = new Layer(2.4);
+  const ridge = [[690, 600], [780, 522], [840, 480], [900, 440], [960, 398], [1020, 350], [1080, 302], [1140, 257], [1200, 216], [1260, 184], [1320, 160], [1360, 154], [1400, 150], [1440, 156], [1490, 180], [1550, 216], [1610, 240], [1700, 275]];
+  const ry = x => { for (let i = 1; i < ridge.length; i++) if (x <= ridge[i][0]) { const [x0, y0] = ridge[i - 1], [x1, y1] = ridge[i]; return y0 + (y1 - y0) * (x - x0) / (x1 - x0); } return 275; };
+  L.pane([...ridge, [1700, 640], [690, 640]], '#17295f');
+  const seg = ridge.filter(p => p[0] >= 780 && p[0] <= 1400);
+  L.pane([...seg, ...seg.map(([x, y]) => [x - 10, y + 44]).reverse()], '#2b4c92', { lead: 0 });
+  L.pane([[690, 640], [1700, 640], [1700, 440], [1520, 372], [1320, 350], [1120, 430], [920, 520], [780, 600]], '#101c48', { lead: 0 });
+  for (let i = 0; i < 28; i++) { const x = rr(800, 1680), y = ry(x) + rr(34, 160); L.pane([[x, y], [x + 14, y], [x + 7, y - 24]], '#0b1538', { lead: 0 }); }   // trees
+  const hs = new Batch();
+  for (let i = 0; i < 46; i++) { const x = rr(780, 1600), y = ry(x) + rr(22, 150); if (y < 560) hs.add(rect(x, y, rr(5, 9), rr(4, 6))); }
+  L.batch(hs, '#ffcf6b', { lead: 0, glow: .85 });
+  const [ax, ay] = TRAM.a, [bx, by] = TRAM.b;
+  for (const off of [0, -15]) {
+    L.raw(`<path d="M${ax + off} ${ay}L${bx + off} ${by}" stroke="#08081c" stroke-width="7" fill="none"/><path d="M${ax + off} ${ay}L${bx + off} ${by}" stroke="#9fc4e8" stroke-width="3" fill="none"/>`);
+    L.raw(`<path d="M${ax + off} ${ay}L${bx + off} ${by}" stroke="#08081c" stroke-width="9" stroke-dasharray="1.6 10" fill="none"/>`);
+  }
+  const lamps = new Batch(); for (let t = .1; t < 1; t += .1) lamps.add(rect(ax + (bx - ax) * t + 7, ay + (by - ay) * t - 3, 5, 5));
+  L.batch(lamps, '#ffd98a', { lead: 0, glow: 1 });
+  // Peak Tower: the wok on the summit
+  L.pane([[1366, 162], [1420, 162], [1414, 146], [1372, 146]], '#2a3f76');
+  L.pane([[1338, 142], [1352, 126], [1436, 126], [1450, 142], [1424, 152], [1364, 152]], '#3a3a82');
+  const tw = new Batch(); for (let k = 0; k < 6; k++) tw.add([[1346 + k * 16, 142], [1348 + k * 16, 131], [1360 + k * 16, 131], [1362 + k * 16, 142]]);
+  L.batch(tw, '#ffcf6b', { lead: 1.2, glow: 1 });
+  L.pane([[1354, 126], [1434, 126], [1428, 119], [1360, 119]], '#5a5aa0');
+  L.pane([[1394, 119], [1399, 119], [1399, 74], [1394, 74]], '#1b1c40', { lead: 1.2 });
+  L.halo(1394, 138, 90, '#ffb04a', .35);
+  mount('L-peak', L.html());
+  const car = c => {
+    let s = '';
+    for (let k = 0; k < 3; k++) { const x = k * 14, y = -k * 13; s += `<path d="M${x} ${y}h15v-13h-15z" fill="${c}"/><path d="M${x + 3} ${y - 3}h9v-7h-9z" fill="#ffcf6b"/>`; }
+    return `<g stroke="${LEAD}" stroke-width="1.7" stroke-linejoin="round">${s}</g><g filter="url(#soft)" opacity=".8"><path d="M3 -3h9v-7h-9zM17 -16h9v-7h-9zM31 -29h9v-7h-9z" fill="#ffb04a"/></g>`;
+  };
+  document.getElementById('L-peak').insertAdjacentHTML('beforeend',
+    `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true" style="position:absolute;left:0;top:0"><g id="carA">${car('#1fa27a')}</g><g id="carB">${car('#e6e4f2')}</g>` +
+    `<g class="beacon"><circle cx="1396.5" cy="73" r="3" fill="#ff3040"/><circle cx="1396.5" cy="73" r="9" fill="#ff3040" opacity=".35" filter="url(#soft)"/></g></svg>`);
+}
+function placeTrams(p) {
+  const [ax, ay] = TRAM.a, [bx, by] = TRAM.b;
+  const at = (t, off) => `translate(${f1(ax + (bx - ax) * t + off)} ${f1(ay + (by - ay) * t)})`;
+  const A = document.getElementById('carA'), B = document.getElementById('carB');
+  if (A) A.setAttribute('transform', at(p, 0));
+  if (B) B.setAttribute('transform', at(1 - p, -15));
+}
+
+/* ================================================================ FAR TOWERS */
+function buildFar() {
+  const L = new Layer(2.2);
+  const base = 575;
+  const hz = y => mix('#2c3490', '#9a3e7a', sstep(300, 560, y) * .6);
+  function tower(cx, w, top, o = {}) {
+    const x0 = cx - w / 2, x1 = cx + w / 2, split = x0 + w * .64, mid = (top + base) / 2;
+    L.pane([[x0, top], [split, top], [split, base], [x0, base]], mix(hz(mid), '#6a7ae0', .12));
+    L.pane([[split, top], [x1, top + 4], [x1, base], [split, base]], tint(hz(mid), -.3));
+    const lit = new Batch(), cool = new Batch(), dim = new Batch(), cw = o.cw || 12, chh = 15;
+    const run = (xa, xb, wd, p) => { for (let y = top + 10; y + chh <= base - 8; y += chh) for (let x = xa; x + wd <= xb; x += wd) { const r = [[x + 2, y + 3], [x + wd - 2, y + 3], [x + wd - 2, y + chh - 3], [x + 2, y + chh - 3]]; R() < p ? (R() < .1 ? cool : lit).add(r) : dim.add(r); } };
+    run(x0 + 3, split - 2, cw, o.p ?? .46); run(split + 2, x1 - 2, 9, (o.p ?? .46) * .8);
+    L.batch(dim, tint(hz(mid), .08), { lead: 0 }); L.batch(lit, '#ffd66b', { lead: 0, glow: .55 }); L.batch(cool, '#7fe8ff', { lead: 0, glow: .6 });
+    if (o.crown) { L.pane([[x0 + 6, top], [x1 - 6, top + 4], [x1 - 14, top - 16], [x0 + 14, top - 16]], tint(hz(top), .1)); L.pane([[cx - 3, top - 16], [cx + 3, top - 16], [cx, top - 54]], '#9aa0d8', { lead: 1.4 }); }
+    if (o.spire) L.pane([[cx - 3, top], [cx + 3, top], [cx, top - o.spire]], '#9aa0d8', { lead: 1.4 });
+  }
+  for (const [cx, w, top, o] of [[470, 74, 392, {}], [548, 62, 340, {}], [618, 84, 414, { p: .5 }], [694, 58, 366, {}], [770, 92, 332, { crown: 1 }], [858, 62, 404, {}], [926, 78, 346, {}], [1000, 66, 384, { p: .52 }]]) tower(cx, w, top, o);
+  tower(1296, 100, 296, { p: .44 }); tower(1400, 112, 322, { p: .4 }); tower(1500, 84, 268, { p: .5 }); tower(1574, 90, 350, {});
+  {
+    const cx = 1130, w = 70, top = 196, x0 = cx - w / 2;
+    const sec = [[top, top + 62], [top + 62, top + 130], [top + 130, top + 210], [top + 210, base]], cols = ['#6ab6e0', '#4a8cc8', '#8fd0ea', '#3a6fb0'];
+    sec.forEach(([y0, y1], i) => {
+      L.pane([[x0, y1], [x0, y0 + 10], [cx, y0], [cx, y1]], mix(cols[i], hz(y1), .4));
+      L.pane([[cx, y1], [cx, y0], [x0 + w, y0 + 26 - i * 6], [x0 + w, y1]], mix(cols[(i + 1) % 4], hz(y1), .5));
+    });
+    L.raw(`<path d="M${x0} ${top + 62}L${x0 + w} ${top + 130}M${x0 + w} ${top + 62}L${x0} ${top + 130}M${x0} ${top + 210}L${x0 + w} ${top + 130}M${x0 + w} ${top + 210}L${x0} ${top + 130}" stroke="${LEAD}" stroke-width="2" fill="none"/>`);
+    L.pane([[cx - 3, top], [cx + 3, top], [cx, top - 52]], '#a8b4d8', { lead: 1.2 });
+  }
+  tower(1050, 54, 228, { crown: 1, p: .5, cw: 9 });
+  tower(1210, 70, 250, { spire: 50, p: .5 });
+  for (let i = 0; i < 5; i++) L.pane(rect(1175, 262 + i * 11, 70, 5), [PINK, CYAN, '#7dff9a', AMBER, PINK][i], { lead: 0, glow: 1 });
+  mount('L-far', L.html());
+}
+
+/* ================================================================ STREET */
+const WALL = { L: { s: -1, top0: -60, bot0: 760 }, R: { s: 1, top0: 250, bot0: 760 } };
+const wp = (side, z, v) => { const w = WALL[side], f = 1 / z, x = 800 + w.s * 800 * f, t = 470 + (w.top0 - 470) * f, b = 470 + (w.bot0 - 470) * f; return [x, t + (b - t) * v]; };
+const wq = (side, z0, z1, v0, v1) => [wp(side, z0, v0), wp(side, z1, v0), wp(side, z1, v1), wp(side, z0, v1)];
+const wsub = (side, z0, z1, v0, v1, a0, a1, b0, b1) => wq(side, z0 + (z1 - z0) * a0, z0 + (z1 - z0) * a1, v0 + (v1 - v0) * b0, v0 + (v1 - v0) * b1);
+
+function vsign(L, side, z, v, w, h, o) {
+  const f = 1 / z, [ax, ay] = wp(side, z, v), sw = w * f, sh = h * f;
+  const x = side === 'L' ? ax : ax - sw, y = ay;
+  L.pane(rect(x - 2 * f, y - 5 * f, sw + 4 * f, 5 * f), '#1a1840');
+  L.pane(rect(x, y, sw, sh), o.frame, { lead: 2.4, glow: .8 });
+  L.pane(rect(x + 5 * f, y + 5 * f, sw - 10 * f, sh - 10 * f), o.face, { lead: 1.4, glow: .45 });
+  const n = o.text.length, fs = Math.min(sw * .72, (sh - 14 * f) / n * .92);
+  o.text.split('').forEach((ch, i) => {
+    const t = `<text x="${f1(x + sw / 2)}" y="${f1(y + 8 * f + (i + .78) * (sh - 12 * f) / n)}" text-anchor="middle" font-size="${f1(fs)}" font-weight="800" font-family="${CJK}" fill="${o.ink}" stroke="none">${ch}</text>`;
+    L.raw(t); L.glowRaw(t);
+  });
+  L.halo(x + sw / 2, y + sh / 2, Math.max(sw, sh) * .95, o.halo, .3);
+}
+
+function buildStreet() {
+  const L = new Layer(2.2);
+  // far end of the street: low shops
+  let x = 420;
+  while (x < 1180) {
+    const w = rr(48, 96), top = rr(470, 520);
+    L.pane([[x, top], [x + w, top], [x + w, 580], [x, 580]], mix(pick(['#4a3a8a', '#5a3a7a', '#3a4a8a']), '#a33a7a', .3));
+    L.pane([[x + 5, 540], [x + w - 5, 540], [x + w - 5, 576], [x + 5, 576]], pick([PINK, '#37e0c6', AMBER, '#f2f0ff']), { lead: 1.6, glow: .7 });
+    if (R() < .6) L.pane(rect(x + w * .2, top + 10, w * .6, 12), pick(['#ffd66b', '#ff8fb8']), { lead: 1.2, glow: .6 });
+    x += w;
+  }
+  // road: flat navy, kerbs, lane dashes, wet colour
+  L.pane([[0, 760], [430, 604], [430, 575], [1170, 575], [1170, 604], [1600, 760], [1600, 900], [0, 900]], '#161a40', { lead: 0 });
+  L.pane([[0, 790], [430, 612], [430, 604], [0, 760]], '#2c2f66', { lead: 1.6 });
+  L.pane([[1600, 790], [1170, 612], [1170, 604], [1600, 760]], '#2c2f66', { lead: 1.6 });
+  for (let y = 590; y < 900; y += (y - 560) * .34 + 8) { const w = 2 + (y - 575) * .05, len = 8 + (y - 575) * .12; L.pane([[800 - w, y], [800 + w, y], [800 + w * 1.1, y + len], [800 - w * 1.1, y + len]], '#e9d9a0', { lead: 0, glow: .3 }); }
+  for (const [cx, w, c] of [[640, 30, PINK], [720, 18, CYAN], [820, 44, PINK], [920, 20, AMBER], [980, 28, CYAN], [560, 20, AMBER]])
+    L.pane([[cx - w * .4, 590], [cx + w * .4, 590], [cx + w * 1.6, 880], [cx - w * 1.6, 880]], c, { lead: 0, glow: .18, flat: true }), L.o.pop(), L.o.push(`<path d="${P([[cx - w * .4, 590], [cx + w * .4, 590], [cx + w * 1.6, 880], [cx - w * 1.6, 880]])}" fill="${c}" opacity=".16" stroke="none"/>`);
+  // walls: flat colour, a lighter slab per floor, white-framed windows
+  const NB = 11, z0 = 1, dz = 1.162 / NB;
+  for (const side of ['L', 'R']) {
+    const floors = side === 'L' ? 8 : 5, gv = .86, fv = gv / floors;
+    const frame = new Batch(), lit = new Batch(), dim = new Batch(), ac = new Batch();
+    for (let b = 0; b < NB; b++) {
+      const za = z0 + b * dz, zb = za + dz, haze = (za - 1) / 1.16;
+      const wallC = mix(side === 'L' ? '#7a3f58' : '#b8365a', '#5a3a8a', haze * .45), slabC = mix(side === 'L' ? '#b0607a' : '#e88aa0', '#7a5aa6', haze * .45);
+      for (let fl = 0; fl < floors; fl++) {
+        const va = fl * fv, vb = va + fv;
+        L.pane(wq(side, za, zb, va, vb), wallC, { lead: 1.2 });
+        L.pane(wsub(side, za, zb, va, vb, 0, 1, .86, 1), slabC, { lead: 1.2 });
+        frame.add(wsub(side, za, zb, va, vb, .2, .8, .14, .72));
+        (R() < .55 ? lit : dim).add(wsub(side, za, zb, va, vb, .27, .73, .2, .66));
+        if (R() < .24) ac.add(wsub(side, za, zb, va, vb, .3, .62, .72, .86));
+      }
+      const sc = pick([PINK, '#37e0c6', AMBER, '#f2f0ff', '#ff7a4a']);
+      L.pane(wq(side, za, zb, gv, 1), mix('#1c1a4a', '#6a3a86', haze * .3), { lead: 1.4 });
+      L.pane(wsub(side, za, zb, gv, 1, .12, .88, .2, .94), sc, { lead: 1.6, glow: .7 });
+      L.pane(wsub(side, za, zb, gv, 1, .08, .92, .02, .2), pick(['#d8283a', '#f1ebe0']), { lead: 1.4 });
+    }
+    L.batch(frame, '#e8dcd8', { lead: 1 }); L.batch(dim, '#1a1f48', { lead: 0 }); L.batch(lit, '#ffd66b', { lead: 0, glow: .6 }); L.batch(ac, '#d6dcea', { lead: 1 });
+  }
+  // bamboo scaffolding on the right-hand block
+  {
+    const side = 'R', poles = [];
+    for (let i = 0; i <= 6; i++) { const z = 1.34 + i * .093; poles.push(`M${wp(side, z, .02).map(f1).join(' ')}L${wp(side, z, .86).map(f1).join(' ')}`); }
+    for (let k = 0; k <= 4; k++) { const v = .02 + k * .17; poles.push(`M${wp(side, 1.34, v).map(f1).join(' ')}L${wp(side, 1.9, v).map(f1).join(' ')}`); }
+    for (let i = 0; i < 6; i++) if (R() < .6) { const z = 1.34 + i * .093; poles.push(`M${wp(side, z, .02 + .17 * (i % 3)).map(f1).join(' ')}L${wp(side, z + .093, .19 + .17 * (i % 3)).map(f1).join(' ')}`); }
+    L.raw(`<path d="${poles.join('')}" fill="none" stroke="${LEAD}" stroke-width="5.5" stroke-linecap="round"/><path d="${poles.join('')}" fill="none" stroke="#d9b062" stroke-width="2.6" stroke-linecap="round"/>`);
+  }
+  vsign(L, 'L', 1.12, .22, 100, 300, { frame: '#d8283a', face: '#ffd84a', ink: '#d11f2a', text: '燒臘', halo: '#ffd84a' });
+  vsign(L, 'L', 1.42, .12, 84, 260, { frame: '#1aa886', face: '#0e3a3c', ink: '#c9fff0', text: '麻雀', halo: '#27d6a0' });
+  vsign(L, 'L', 1.85, .2, 80, 210, { frame: AMBER, face: '#6a2a10', ink: '#fff0c8', text: '酒家', halo: AMBER });
+  vsign(L, 'R', 1.2, .2, 90, 320, { frame: '#d8283a', face: '#ffd84a', ink: '#d11f2a', text: '當', halo: '#ffd84a' });
+  vsign(L, 'R', 1.62, .16, 80, 230, { frame: CYAN, face: '#0a3a62', ink: '#d8fbff', text: '藥行', halo: CYAN });
+  for (const [x0, y0, x1, y1, sag] of [[0, 120, 1600, 330, 90], [0, 250, 1600, 400, 70], [200, 60, 1500, 280, 60], [0, 420, 1600, 470, 40]])
+    L.stroke(`M${x0} ${y0}Q${(x0 + x1) / 2} ${(y0 + y1) / 2 + sag * 2} ${x1} ${y1}`, '#05040a', 2.2);
+  mount('L-street', L.html());
+}
+
+/* ================================================================ SIGN BOARD + MAST */
+const BOARD = { x: 430, y: 100, w: 660, h: 205 };
+function buildSign() {
+  const L = new Layer(3);
+  const { x, y, w, h } = BOARD;
+  L.pane([[1172, 372], [1186, 372], [1186, 22], [1172, 22]], '#1a1c44');
+  for (let yy = 40; yy < 360; yy += 34) L.raw(`<path d="M1172 ${yy + 34}L1186 ${yy}M1186 ${yy + 34}L1172 ${yy}" stroke="#3a3c78" stroke-width="1.6" fill="none"/>`);
+  L.pane([[1186, 40], [1186, 52], [x + w - 10, 100], [x + w - 10, 94]], '#1a1c44', { lead: 1.8 });
+  L.stroke(`M1179 24L${x + w - 40} ${y}M1179 96L${x + w - 10} ${y + 90}M1179 170L${x + w} ${y + h - 14}`, LEAD, 2.4);
+  L.pane(rect(x - 14, y + 30, 20, 12), '#1a1c44', { lead: 1.6 }); L.pane(rect(x - 14, y + h - 40, 20, 12), '#1a1c44', { lead: 1.6 });
+  L.pane(rect(x - 14, y - 14, w + 28, h + 28), '#efe0b8', { lead: 3.2 });          // cream frame
+  L.pane(rect(x - 2, y - 2, w + 4, h + 4), '#0d1236', { lead: 2.4 });               // night panel
+  L.pane(rect(x + 120, y - 2, w - 240, 6), '#2a2060', { lead: 0 });
+  const bulbs = new Batch();
+  for (let i = 0; i <= 22; i++) { const bx = x - 7 + i * ((w + 14) / 22); bulbs.add(ngon(bx, y - 8, 3.6, 3.6, 6)).add(ngon(bx, y + h + 8, 3.6, 3.6, 6)); }
+  for (let j = 1; j < 6; j++) { const by = y - 8 + j * ((h + 16) / 6); bulbs.add(ngon(x - 8, by, 3.6, 3.6, 6)).add(ngon(x + w + 8, by, 3.6, 3.6, 6)); }
+  L.batch(bulbs, '#ffb638', { lead: 1, glow: 1 });
+  mount('L-sign', L.html());
+}
+
+/* ================================================================ NEON */
+const GLYPH = {   // single-stroke capitals on a 100-tall grid; [width, path]
+  M: [80, 'M0 100V0L40 58L80 0V100'], A: [72, 'M0 100L36 0L72 100M12 66H60'], D: [66, 'M0 0H24C52 0 66 22 66 50C66 78 52 100 24 100H0Z'],
+  E: [56, 'M56 0H0V100H56M0 50H44'], T: [64, 'M0 0H64M32 0V100'], O: [72, 'M24 0H48C66 0 72 24 72 50C72 76 66 100 48 100H24C6 100 0 76 0 50C0 24 6 0 24 0Z'],
+  B: [64, 'M0 0V100M0 0H28C50 0 58 12 58 25C58 38 50 48 28 48H0M28 48C54 48 64 60 64 74C64 88 54 100 28 100H0'],
+  P: [60, 'M0 100V0H28C52 0 60 14 60 30C60 46 52 58 28 58H0'], L: [52, 'M0 0V100H52'], Y: [72, 'M0 0L36 54L72 0M36 54V100'],
+};
+function layoutRow(text, H, cx, top) {
+  const s = H / 100, gap = 34, space = 54, out = []; let total = 0;
+  const items = text.split('').map(ch => ch === ' ' ? { sp: 1 } : { ch, w: GLYPH[ch][0] });
+  items.forEach((it, i) => { total += it.sp ? space : it.w; if (i < items.length - 1 && !it.sp && !items[i + 1].sp) total += gap; });
+  let x = cx - total * s / 2;
+  items.forEach((it, i) => {
+    if (it.sp) { x += space * s; return; }
+    out.push({ ch: it.ch, x, top, s });
+    x += it.w * s + ((i < items.length - 1 && !items[i + 1].sp) ? gap * s : 0);
+  });
+  return out;
+}
+const ROWS = [
+  { t: 'MADE TO BE', H: 52, top: 128, col: CYAN, px: 6.2, cx: 760 },
+  { t: 'PLAYED', H: 96, top: 184, col: PINK, px: 10.5, cx: 760 },
+];
+ROWS.forEach(r => { r.items = layoutRow(r.t, r.H, r.cx, r.top); });
+const BORDER = 'M446 116H1074Q1078 116 1078 120V285Q1078 289 1074 289H446Q442 289 442 285V120Q442 116 446 116Z';
+const CHEV = 'M0 0L15 19L0 38';
+
+function neonDefs() {
+  return `<defs>${Object.entries(GLYPH).map(([k, [, d]]) => `<path id="n${k}" d="${d}"/>`).join('')}<path id="nChev" d="${CHEV}"/></defs>`;
+}
+const uses = (row, only) => row.items.filter(i => !only || only(i)).map(i => `<use href="#n${i.ch}" transform="translate(${f1(i.x)} ${i.top}) scale(${f1(i.s * 1000) / 1000})"/>`).join('');
+const rowGroup = (row, attrs, k = 1, only) => `<g ${attrs.replace('SW', f1(row.px / (row.H / 100) * k))}>${uses(row, only)}</g>`;
+const chevs = (attrs, glow) => [[472, 1], [492, 2], [512, 3]].map(([x, n]) => `<g class="chev c${n}" ${glow ? '' : ''}><use href="#nChev" transform="translate(${x} 135)" ${attrs}/></g>`).join('') +
+  [[1048, 1], [1028, 2], [1008, 3]].map(([x, n]) => `<g class="chev c${n}"><use href="#nChev" transform="translate(${x + 15} 135) scale(-1 1)" ${attrs}/></g>`).join('');
+
+function neonSvg(kind) {
+  const base = 'fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  const fx = (col, wk, extra = '') => ROWS.map(r => rowGroup(r, `${base} stroke="${r.col === col || 1 ? '' : ''}${r.col}" stroke-width="SW"`, wk)).join('') + extra;
+  let g = '';
+  if (kind === 'main') {
+    // dead glass first
+    g += ROWS.map(r => rowGroup(r, `${base} stroke="#2a2a3c" stroke-width="SW"`, 1.1)).join('');
+    g += `<path d="${BORDER}" ${base} stroke="#2a2a3c" stroke-width="4.5"/>`;
+    // glows
+    g += `<g filter="url(#fW)" opacity=".75">${ROWS.map(r => rowGroup(r, `${base} stroke="${r.col}" stroke-width="SW"`, 3.4)).join('')}<path d="${BORDER}" ${base} stroke="${CYAN}" stroke-width="12"/>${chevs(`${base} stroke="${AMBER}" stroke-width="18"`)}</g>`;
+    g += `<g filter="url(#fT)" opacity=".95">${ROWS.map(r => rowGroup(r, `${base} stroke="${r.col}" stroke-width="SW"`, 1.6)).join('')}<path d="${BORDER}" ${base} stroke="${CYAN}" stroke-width="7"/></g>`;
+    // tube + core
+    g += ROWS.map(r => rowGroup(r, `${base} stroke="${r.col}" stroke-width="SW"`, 1)).join('');
+    g += ROWS.map(r => rowGroup(r, `${base} stroke="${tint(r.col, .82)}" stroke-width="SW"`, .34)).join('');
+    g += `<path d="${BORDER}" ${base} stroke="${CYAN}" stroke-width="4.2"/><path d="${BORDER}" ${base} stroke="#e6ffff" stroke-width="1.4"/>`;
+    g += chevs(`${base} stroke="${AMBER}" stroke-width="6"`);
+  } else if (kind === 'boost') {
+    g += `<g filter="url(#fW)">${ROWS.map(r => rowGroup(r, `${base} stroke="${r.col}" stroke-width="SW"`, 4.2)).join('')}</g>`;
+    g += `<g filter="url(#fT)">${ROWS.map(r => rowGroup(r, `${base} stroke="${r.col}" stroke-width="SW"`, 2)).join('')}</g>`;
+  } else if (kind === 'dead') {              // the L in PLAYED, going out
+    const only = i => i.ch === 'L' && i.top === ROWS[1].top;
+    const r = ROWS[1];
+    g += rowGroup(r, `${base} stroke="#2a2a3c" stroke-width="SW"`, 1.5, only);
+    g += `<g style="mix-blend-mode:multiply" opacity=".85">${rowGroup(r, `${base} stroke="#1a1020" stroke-width="SW"`, 4.5, only)}</g>`;
+  }
+  return `<svg class="neon" id="neon-${kind}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${neonDefs()}${g}</svg>`;
+}
+function buildNeon() {
+  const el = document.getElementById('L-neon');
+  el.insertAdjacentHTML('afterbegin', neonSvg('main') + neonSvg('boost') + neonSvg('dead'));
+}
+
+/* ================================================================ TAXI */
+function buildTaxi() {
+  const Q = new Layer(5);                    // drawn in the reference's own pixel space, then scaled
+  const wheel = (cx, cy, rx, ry, rim) => {
+    Q.pane(ngon(cx, cy - 22, rx * 1.25, ry * 1.16, 20), '#05050c', { lead: 0 });
+    Q.pane(ngon(cx, cy, rx, ry, 20), '#17171f', { lead: 4.5 });
+    ngon(cx + 2, cy + 8, rx * .6, ry * .6, 10).forEach((p, i, a) => Q.pane([[cx + 2, cy + 8], p, a[(i + 1) % 10]], i % 2 ? '#c8b48a' : '#8f7d5c', { lead: 1.6 }));
+    Q.pane(ngon(cx + 2, cy + 10, rx * .16, ry * .16, 8), '#e2d4ae', { lead: 1.4 });
+  };
+  Q.pane(ngon(1000, 905, 790, 70, 28), '#04040c', { lead: 0 });
+  // body
+  Q.pane([[1625, 626], [1758, 610], [1760, 676], [1660, 720], [1625, 702]], '#24242e');
+  Q.pane([[1548, 540], [1592, 476], [1735, 494], [1750, 540], [1746, 612], [1640, 628], [1560, 600]], '#c9121c');
+  Q.pane([[1082, 556], [1548, 540], [1562, 602], [1472, 742], [1340, 772], [1040, 832], [1030, 760], [1062, 640]], '#bf0f18');
+  Q.pane([[1036, 762], [1470, 706], [1466, 744], [1340, 772], [1040, 832]], '#7e0d14', { lead: 0 });
+  Q.pane([[1040, 742], [1482, 686], [1482, 698], [1040, 756]], '#6a4a38', { lead: 2 });
+  wheel(1546, 740, 52, 96); wheel(915, 840, 94, 132);
+  // front end
+  Q.pane([[282, 598], [630, 500], [665, 497], [1072, 553], [1035, 566], [700, 668], [560, 650], [440, 630]], '#f2263a');
+  Q.pane([[380, 604], [630, 524], [820, 542], [560, 622]], '#ff5a6a', { lead: 0 });
+  Q.pane([[262, 612], [345, 606], [700, 668], [722, 692], [702, 752], [560, 762], [420, 732], [262, 702]], '#c8101c');
+  Q.pane([[342, 614], [562, 646], [550, 736], [442, 716], [340, 690]], '#8f93a0');
+  Q.raw(`<path d="M346 636L556 668M345 654L554 686M344 672L552 704M346 690L550 722" stroke="${LEAD}" stroke-width="3.2" fill="none"/>`);
+  Q.pane([[268, 610], [342, 612], [338, 692], [270, 688]], '#f3efe0', { lead: 4, glow: 1 });
+  Q.pane([[560, 674], [668, 678], [668, 752], [556, 744]], '#fff6d8', { lead: 4, glow: 1 });
+  Q.pane([[668, 684], [716, 690], [716, 750], [668, 752]], '#ffa42a', { lead: 4, glow: .7 });
+  Q.pane([[228, 702], [272, 686], [560, 760], [822, 776], [800, 832], [560, 884], [420, 852], [228, 742]], '#2a2a34');
+  Q.pane([[238, 706], [272, 692], [560, 764], [810, 780], [806, 792], [556, 776], [270, 706]], '#4a4a58', { lead: 0 });
+  Q.pane([[398, 776], [490, 792], [492, 860], [402, 842]], '#f2f2ee', { lead: 3.6 });
+  Q.raw(`<text transform="translate(406 828) matrix(1 .2 0 1 0 0)" font-size="44" font-weight="800" font-family="Arial,sans-serif" fill="#1a1a2a" stroke="none">PL4Y</text>`);
+  Q.pane(ngon(352, 746, 32, 36, 12), '#12a074', { lead: 3.2 });
+  Q.raw(`<text x="352" y="760" text-anchor="middle" font-size="40" font-weight="800" font-family="Arial,sans-serif" fill="#fff" stroke="none">5</text>`);
+  // glass and roof
+  Q.pane([[665, 497], [862, 348], [1162, 374], [1072, 553]], '#1f2d66');
+  Q.pane([[900, 358], [1000, 366], [930, 524], [840, 514]], 'rgba(255,61,148,.30)', { lead: 0, glow: .4 });
+  Q.pane([[1010, 368], [1096, 376], [1034, 542], [964, 530]], 'rgba(67,232,255,.26)', { lead: 0, glow: .4 });
+  Q.pane(ngon(870, 492, 40, 14, 10), '#0b0b1c', { lead: 0 });
+  Q.pane([[862, 345], [1003, 328], [1185, 335], [1445, 354], [1528, 425], [1595, 498], [1545, 500], [1430, 372], [1160, 374]], '#e2e0f2');
+  Q.pane([[1162, 374], [1175, 378], [1112, 560], [1072, 553]], '#e2e0f2');
+  Q.pane([[1172, 378], [1432, 372], [1525, 500], [1456, 512], [1112, 560]], '#14142c');
+  const win = pts => { Q.pane(pts, '#232a5e', { lead: 3.6 }); Q.pane([pts[3], pts[2], [(pts[1][0] + pts[2][0]) / 2, (pts[1][1] + pts[2][1]) / 2 + 24], [(pts[0][0] + pts[3][0]) / 2, (pts[0][1] + pts[3][1]) / 2 + 24]].slice(0, 4), 'rgba(255,176,74,.5)', { lead: 0, glow: .3 }); };
+  win([[1182, 380], [1296, 372], [1314, 534], [1126, 556]]); win([[1308, 374], [1402, 374], [1446, 516], [1332, 530]]); win([[1414, 378], [1430, 378], [1514, 498], [1458, 508]]);
+  Q.raw(`<path d="M1085 556L1040 832M1344 548L1338 770" stroke="${LEAD}" stroke-width="4" fill="none"/>`);
+  Q.pane([[1275, 570], [1328, 566], [1330, 588], [1278, 592]], '#d0d6e0', { lead: 3 }); Q.pane([[1488, 538], [1535, 532], [1535, 552], [1490, 556]], '#d0d6e0', { lead: 3 });
+  Q.pane([[1140, 512], [1215, 508], [1225, 548], [1152, 562]], '#5a3a30', { lead: 3.6 }); Q.pane([[662, 452], [698, 450], [692, 486], [660, 482]], '#5a3a30', { lead: 3 });
+  Q.raw(`<g font-family="${CJK}" font-weight="800" fill="#fff" stroke="none"><text x="1396" y="618" font-size="46" transform="rotate(-6 1396 618)">的士</text><text x="1398" y="662" font-size="46" font-family="Arial,sans-serif" transform="rotate(-6 1398 662)">TAXI</text><text x="1640" y="574" font-size="34">的士</text><text x="1640" y="606" font-size="34" font-family="Arial,sans-serif">TAXI</text></g>`);
+  Q.pane([[1042, 298], [1175, 296], [1182, 332], [1048, 334]], '#f4f2ea', { lead: 4, glow: .9 });
+  Q.raw(`<text x="1112" y="324" text-anchor="middle" font-size="36" font-weight="800" font-family="Arial,sans-serif" fill="#e0112a" stroke="none">TAXI</text>`);
+  Q.pane([[1738, 520], [1752, 524], [1750, 562], [1736, 558]], '#ff2a3a', { lead: 2, glow: 1 });
+  Q.stroke('M868 346L1003 328L1185 335', PINK, 7, { glow: .9 }); Q.stroke('M300 596L630 502', PINK, 6, { glow: .8 }); Q.stroke('M1190 336L1440 355', CYAN, 7, { glow: .9 });
+  const inner = Q.o.join(''), bloom = Q.b.join('');
+  const S = .44, tf = `translate(860 520) scale(${S}) translate(-225 -290)`, rf = `translate(860 1118) scale(${S} ${-S}) translate(-225 -290)`;
+  const html = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs>
+      <linearGradient id="beamG" x1="1" x2="0"><stop offset="0" stop-color="#fff2c4" stop-opacity=".5"/><stop offset="1" stop-color="#fff2c4" stop-opacity="0"/></linearGradient>
+      <linearGradient id="rfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="rmask" maskUnits="userSpaceOnUse" x="0" y="815" width="1600" height="90"><rect x="0" y="815" width="1600" height="85" fill="url(#rfade)"/></mask>
+      <radialGradient id="hg_r"><stop offset="0" stop-color="#ff2a3a"/><stop offset="1" stop-color="#ff2a3a" stop-opacity="0"/></radialGradient>
+      <radialGradient id="hg_w"><stop offset="0" stop-color="#fff2c4"/><stop offset="1" stop-color="#fff2c4" stop-opacity="0"/></radialGradient></defs>
+    <g id="t-beam" style="mix-blend-mode:screen"><path d="M878 668L500 640L420 830L868 736Z" fill="url(#beamG)"/></g>
+    <g mask="url(#rmask)" opacity=".3" filter="url(#soft)"><g transform="${rf}" stroke="${LEAD}" stroke-linejoin="round" stroke-width="5">${inner}</g></g>
+    <g id="taxi-body" transform="${tf}"><g stroke="${LEAD}" stroke-linejoin="round" stroke-width="5">${inner}</g>
+      <g filter="url(#bloom)" style="mix-blend-mode:screen">${bloom}</g></g>
+    <g style="mix-blend-mode:screen"><circle cx="880" cy="684" r="160" fill="url(#hg_w)" opacity=".26" id="t-head"/><circle cx="1531" cy="632" r="80" fill="url(#hg_r)" opacity=".5"/></g></svg>`;
+  document.getElementById('L-taxi').insertAdjacentHTML('afterbegin', '<div class="spill pink"></div><div class="spill cyan"></div>' + html);
+}
+
+/* ================================================================ FOREGROUND */
+function buildFg() {
+  const L = new Layer(3.2);
+  const SK = '#e0a374', SKD = '#b97a56', RIM = '#ff6aa8';
+  // ---- the counter: striped front, dark painted board
+  for (let i = 0; i < 10; i++) L.pane(rect(i * 58, 650, 58, 270), i % 2 ? '#a91e2c' : '#ecdcc4', { lead: 4 });
+  L.pane([[-10, 644], [572, 644], [560, 668], [-10, 668]], '#8a5a38', { lead: 4 });
+  L.pane([[-10, 668], [560, 668], [560, 684], [-10, 684]], '#2a1a28', { lead: 3 });
+  L.pane(rect(90, 722, 430, 104), '#10153a', { lead: 4 });
+  L.raw(`<g font-family="${CJK}" font-weight="800" font-size="70" fill="#ffd66b" stroke="none"><text x="110" y="796">點心</text><text x="318" y="796">奶茶</text></g>`);
+
+  // ---- the vendor
+  L.pane([[330, 474], [356, 432], [406, 420], [456, 432], [486, 474], [494, 660], [324, 660]], '#2a3870');
+  L.pane([[354, 474], [468, 474], [476, 660], [346, 660]], '#ece6dc');
+  L.pane([[354, 474], [404, 470], [406, 660], [346, 660]], '#c9c2d4', { lead: 0 });
+  L.pane([[392, 414], [430, 414], [434, 442], [388, 442]], SKD);
+  const vh = [[380, 350], [398, 332], [424, 332], [442, 348], [447, 376], [435, 402], [411, 414], [388, 402], [378, 376]];
+  L.pane(vh, SK); L.pane([vh[0], vh[1], [412, 340], [412, 414], vh[7], vh[8]], SKD, { lead: 0 });
+  L.pane(vh, 'none', { lead: 3 });
+  L.pane([[376, 344], [380, 322], [412, 312], [444, 322], [448, 344], [412, 336]], '#f1eee8', { lead: 3.2 });
+  L.pane([[376, 344], [412, 336], [448, 344], [446, 352], [412, 346], [378, 352]], '#c4c0d4', { lead: 2 });
+  L.stroke('M395 364h9M424 364h9', '#2a1a22', 2.6); L.stroke('M400 390Q414 400 428 388', '#2a1a22', 2.4);
+  L.pane([[470, 440], [494, 440], [514, 520], [486, 528]], '#2f3f7c', { lead: 4 });
+  L.pane([[486, 504], [514, 520], [560, 552], [548, 574], [498, 548]], '#3a4a8a', { lead: 4 });
+  L.pane([[548, 540], [566, 546], [566, 566], [550, 572]], SK, { lead: 2.6 });
+
+  // ---- steamers, pot, cups
+  const stack = (x, n) => {
+    for (let i = 0; i < n; i++) {
+      const y = 646 - (i + 1) * 34;
+      L.pane(rect(x, y, 104, 32), '#d6a35c', { lead: 3.4 });
+      L.raw(`<path d="M${x} ${y + 11}H${x + 104}M${x} ${y + 22}H${x + 104}" stroke="#7a4a1c" stroke-width="2" fill="none"/>`);
+      L.pane(rect(x + 2, y + 31, 100, 4), '#fff1c8', { lead: 0, glow: 1 });
+    }
+    const ty = 646 - n * 34;
+    L.pane([[x - 6, ty], [x + 110, ty], [x + 98, ty - 14], [x + 6, ty - 14]], '#ecc488', { lead: 3.4 });
+    L.pane([[x + 40, ty - 14], [x + 70, ty - 14], [x + 66, ty - 22], [x + 44, ty - 22]], '#c8924a', { lead: 3 });
+  };
+  stack(38, 4); stack(158, 3);
+  L.pane([[276, 646], [336, 646], [330, 574], [320, 556], [292, 556], [282, 574]], '#9aaac8');
+  L.pane([[276, 646], [304, 646], [304, 556], [292, 556], [282, 574]], '#5e6c92', { lead: 0 });
+  L.pane([[336, 600], [356, 606], [356, 624], [334, 630]], '#b6c6e0', { lead: 3.2 });
+  L.pane([[278, 600], [262, 590], [262, 600], [282, 614]], '#b6c6e0', { lead: 3 });
+  L.pane([[292, 556], [320, 556], [322, 498], [290, 498]], '#a4723c', { lead: 3.6 });
+  L.pane([[298, 556], [310, 556], [312, 498], [298, 498]], '#6a4420', { lead: 0 });
+  for (const cx of [362, 388]) { L.pane([[cx - 11, 646], [cx + 11, 646], [cx + 9, 618], [cx - 9, 618]], '#f2f0ff', { lead: 3 }); L.pane(rect(cx - 9, 628, 18, 5), '#2d8aa8', { lead: 0 }); }
+  L.pane([[566, 528], [598, 528], [594, 566], [570, 566]], '#f6f4ff', { lead: 3.4 });
+  L.pane(rect(566, 534, 32, 7), '#2d8aa8', { lead: 0 });
+  L.pane([[598, 536], [612, 538], [612, 552], [596, 554]], '#f6f4ff', { lead: 3 });
+
+  // ---- the customer
+  L.pane([[640, 494], [672, 462], [744, 454], [804, 482], [834, 560], [858, 920], [606, 920], [622, 560]], '#157a86');
+  L.pane([[744, 454], [804, 482], [834, 560], [858, 920], [830, 920], [806, 560], [786, 500]], '#1f9aa8', { lead: 0 });
+  L.pane([[808, 486], [834, 560], [848, 700], [830, 700], [816, 560]], RIM, { lead: 0 });
+  L.pane([[660, 456], [696, 430], [752, 440], [770, 474], [716, 484]], '#0f5560', { lead: 3.6 });
+  const ch = [[678, 340], [702, 326], [732, 332], [748, 358], [750, 388], [738, 412], [716, 422], [696, 420], [680, 408], [669, 392], [664, 377], [671, 364]];
+  L.pane(ch, SK); L.pane([ch[3], ch[4], ch[5], ch[6], [716, 380], [722, 350]], SKD, { lead: 0 }); L.pane([ch[3], ch[4], ch[5]], RIM, { lead: 0 });
+  L.pane(ch, 'none', { lead: 3 });
+  L.pane([[672, 348], [692, 322], [730, 324], [754, 350], [746, 362], [722, 342], [692, 346]], '#141230', { lead: 3 });
+  L.stroke('M676 366h9', '#2a1a22', 2.6); L.stroke('M676 396q8 4 14 0', '#2a1a22', 2.2);
+  L.pane([[650, 494], [676, 484], [666, 568], [628, 580]], '#1a8896', { lead: 4.6 });
+  L.pane([[628, 560], [668, 568], [640, 600], [598, 582]], '#1a8896', { lead: 4.6 });
+  L.pane([[594, 556], [606, 548], [616, 572], [602, 586]], SK, { lead: 2.6 });
+  L.pane([[790, 720], [850, 712], [858, 806], [796, 812]], '#c79a5b', { lead: 4 });
+  L.pane([[790, 720], [850, 712], [848, 730], [792, 738]], '#e6c080', { lead: 2.4 });
+
+  // ---- awning, bulbs, lamp post
+  for (let i = 0; i < 10; i++) { const x = i * 58, col = i % 2 ? '#c2272d' : '#f1ebe0'; L.pane([[x, -30], [x + 58, -30], [x + 58, 120 + (i % 2 ? 4 : 0) + i * 2], [x + 29, 138 + i * 2], [x, 120 + i * 2]], col, { lead: 4 }); }
+  L.pane([[-10, 112], [572, 130], [572, 150], [-10, 130]], '#1a0f2c', { lead: 0 });
+  for (const [bx, by] of [[90, 214], [236, 236], [364, 226], [488, 212]]) {
+    L.stroke(`M${bx} 138V${by - 14}`, LEAD, 2.4);
+    L.pane(ngon(bx, by, 11, 13, 6, .5), '#ffe2a0', { lead: 2.6, glow: 1 });
+    L.halo(bx, by, 120, '#ffb04a', .42);
+  }
+  L.pane([[1570, -20], [1596, -20], [1604, 920], [1562, 920]], '#0c0b22', { lead: 4 });
+  L.pane([[1588, -20], [1596, -20], [1604, 920], [1596, 920]], '#3a3a70', { lead: 0 });
+  L.pane([[1572, 40], [1470, 34], [1470, 48], [1572, 58]], '#0c0b22', { lead: 3.6 });
+  L.pane([[1440, 40], [1500, 40], [1490, 70], [1450, 70]], '#ffc27a', { lead: 3.6, glow: 1 });
+  L.halo(1470, 74, 210, '#ffb04a', .4);
+  mount('L-fg', L.html());
+
+  const puffs = [[96, 480, 5.2, 0], [150, 470, 6, 1.6], [210, 520, 5.6, 3], [304, 484, 4.6, .6], [310, 480, 5.4, 2.4], [584, 520, 3.8, 0], [590, 516, 4.4, 1.9], [124, 470, 6.4, 4]];
+  const fg = document.getElementById('L-fg');
+  puffs.forEach(([x, y, t, dl]) => fg.insertAdjacentHTML('beforeend', `<i class="puff" style="left:${x}px;top:${y}px;--t:${t}s;--dl:${dl}s;--dx:${(R() * 40 - 12) | 0}px"></i>`));
+  fg.insertAdjacentHTML('beforeend', '<i class="fog" style="left:-120px;top:640px;width:900px;height:240px"></i><i class="fog" style="left:700px;top:700px;width:1100px;height:200px;animation-duration:30s"></i>');
+}
+
+/* ================================================================ BUILD */
+buildSky(); buildPeak(); buildFar(); buildStreet(); buildSign(); buildNeon(); buildTaxi(); buildFg();
+placeTrams(0);
+
+/* ================================================================ RUN */
+const stage = document.getElementById('stage'), world = document.getElementById('world');
+const layers = [...world.querySelectorAll('.layer')].map(el => ({ el, d: +el.dataset.d }));
+const beam = document.getElementById('beam'), hint = document.getElementById('hint');
+const neonMain = document.getElementById('neon-main'), neonBoost = document.getElementById('neon-boost');
+const spills = [...world.querySelectorAll('.spill')];
+let sc = 1, vw = 0, vh = 0, focusDx = 0, focusDy = 0;
+function fit() {
+  const r = stage.getBoundingClientRect(); vw = r.width; vh = r.height;
+  sc = Math.max(vw / W, vh / H) * CONFIG.overscan;
+  // keep the sign and the stall on screen when the stage is wide and the top/bottom get cropped
+  const spare = H * sc - vh;
+  world.style.transform = `translate(${-W * sc / 2}px, ${-H * sc / 2 + spare * (.5 - CONFIG.focusY)}px) scale(${sc})`;
+}
+fit(); addEventListener('resize', fit);
+
+let px = 0, py = 0, cx = 0, cy = 0, near = false, inside = false, boost = 0, rawX = 0, rawY = 0;
+stage.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return;
+  const r = stage.getBoundingClientRect();
+  rawX = e.clientX - r.left; rawY = e.clientY - r.top;
+  px = rawX / r.width * 2 - 1; py = rawY / r.height * 2 - 1; inside = true;
+  beam.style.opacity = 1; hint.classList.add('gone');
+});
+stage.addEventListener('pointerleave', () => { px = py = 0; inside = false; beam.style.opacity = 0; });
+
+let running = false, raf = 0;
+const t0 = performance.now();
+function tick(now) {
+  raf = 0;
+  if (!running) return;
+  cx += (px - cx) * CONFIG.follow; cy += (py - cy) * CONFIG.follow;
+  const th = (now - t0) / CONFIG.breathe.period * Math.PI * 2;
+  const bx = reduce ? 0 : Math.sin(th) * CONFIG.breathe.x, by = reduce ? 0 : Math.sin(th * 1.7 + 1) * CONFIG.breathe.y;
+  const sy = Math.max(0, scrollY);
+  for (const l of layers) {
+    const x = -(cx * CONFIG.parallax.x + bx) * l.d;
+    const y = -(cy * CONFIG.parallax.y + by) * l.d + sy * (CONFIG.scrollLag - 0.36 * l.d);
+    l.el.style.transform = `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0)`;
+  }
+  if (inside) beam.style.transform = `translate3d(${rawX}px,${rawY}px,0)`;
+  // glow lifts as the pointer nears the sign
+  const wx = (rawX - vw / 2) / sc + W / 2, wy = (rawY - (vh / 2 + (H * sc - vh) * (.5 - CONFIG.focusY) * 0)) / sc + H / 2 - (vh / 2) / sc + 0;
+  const dist = inside ? Math.hypot(rawX - (vw / 2 + (760 - W / 2) * sc), rawY - (vh / 2 + (200 - H / 2) * sc + (H * sc - vh) * (.5 - CONFIG.focusY) * -0)) : 9e3;
+  const target = reduce ? 0 : 1 - sstep(60, CONFIG.boostReach * sc, dist);
+  boost += (target - boost) * .08;
+  neonBoost.style.opacity = (boost * .55).toFixed(3);
+  // tram
+  if (!reduce) {
+    const T = CONFIG.tram, cyc = T.trip + T.rest, u = ((now - t0) / 1000 + 12) % (cyc * 2);
+    let p;
+    if (u < T.trip) p = u / T.trip; else if (u < cyc) p = 1; else if (u < cyc + T.trip) p = 1 - (u - cyc) / T.trip; else p = 0;
+    placeTrams(p * p * (3 - 2 * p));
+  }
+  raf = requestAnimationFrame(tick);
+}
+function setRunning(v) { v = v && !document.hidden && heroVisible; if (v === running) return; running = v; if (v && !raf) raf = requestAnimationFrame(tick); }
+let heroVisible = true;
+new IntersectionObserver(es => { heroVisible = es[0].isIntersecting; setRunning(true); if (!heroVisible) setRunning(false); }).observe(stage);
+document.addEventListener('visibilitychange', () => setRunning(true));
+placeTrams(reduce ? .5 : 0); setRunning(true);
+
+/* ---------------- poking things */
+function steps(list, fn) { let t = 0; list.forEach(([dt, v]) => { t += dt; setTimeout(() => fn(v), t); }); }
+let zapping = false;
+function zap() {
+  if (zapping) return; zapping = true;
+  const set = v => { neonMain.style.animation = 'none'; neonMain.style.opacity = v; spills.forEach(s => s.style.opacity = .25 + v * .75); };
+  if (reduce) { set(.35); setTimeout(() => { set(1); zapping = false; neonMain.style.animation = ''; }, 500); return; }
+  steps([[0, .15], [70, 1], [90, .1], [60, .85], [140, .08], [50, 1], [60, .2], [220, .95], [90, .35], [70, 1], [500, 1]], set);
+  setTimeout(() => { neonMain.style.animation = ''; neonMain.style.opacity = ''; spills.forEach(s => s.style.opacity = ''); zapping = false; }, 1500);
+}
+document.getElementById('hit-sign').addEventListener('click', zap);
+let flashing = false;
+function flash() {
+  if (flashing) return; flashing = true;
+  const hd = document.getElementById('t-head'), bm = document.getElementById('t-beam');
+  steps([[0, 1], [140, 0], [140, 1], [140, 0], [220, 1], [700, 0]], v => { hd.setAttribute('opacity', v ? .75 : .28); bm.style.opacity = v ? 1 : .35; if (!v) bm.style.opacity = ''; });
+  setTimeout(() => { flashing = false; hd.setAttribute('opacity', .28); bm.style.opacity = ''; }, 1500);
+}
+document.getElementById('hit-taxi').addEventListener('click', flash);
+stage.addEventListener('pointerdown', () => hint.classList.add('gone'), { once: true });
+addEventListener('scroll', () => hint.classList.add('gone'), { passive: true, once: true });
+
+window.__glass = { CONFIG, zap, flash, placeTrams };
+})();
+</script>
+</body>
+</html>
