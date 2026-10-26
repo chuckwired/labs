@@ -125,17 +125,16 @@ footer a:hover { color: var(--ink); }
   .hero p { font-size: 15px; }
   .nav { gap: 12px; }
   .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
-  .links { gap: 16px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }
-  .links a[aria-current] { display: none; }
+  .links { gap: 12px; font-size: 10px; letter-spacing: .1em; white-space: nowrap; }
 }
-@media (max-width: 340px) { .mark span { display: none; } }
+@media (max-width: 480px) { .mark span { display: none; } }
 
 /* ---- hero: the neon sign (how it was made: made-to-be-played/direction/) ---- */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #mtbp { position: relative; z-index: 1; }
 #mtbp .mt-grid {
-  box-sizing: border-box; min-height: min(calc(100svh - 130px), 840px); max-width: 1360px; margin: 0 auto;
-  padding: 16px max(24px, env(safe-area-inset-right, 0px)) 8px max(24px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box; min-height: min(calc(100svh - 70px), 900px); max-width: 1360px; margin: 0 auto;
+  padding: 16px max(24px, env(safe-area-inset-right, 0px)) 56px max(24px, env(safe-area-inset-left, 0px));
   display: grid; grid-template-columns: minmax(280px, .7fr) minmax(0, 1.55fr); align-items: center; gap: clamp(8px, 3vw, 56px);   /* copy left, sign right */
 }
 #pw { perspective: 1500px; perspective-origin: 50% 46%; position: relative; }
@@ -162,13 +161,8 @@ footer a:hover { color: var(--ink); }
 #mtbp .drip { transform-box: fill-box; transform-origin: 50% 0; opacity: 0; animation: mt-drip 9s linear infinite; }
 #mtbp .mt-copy { position: relative; z-index: 2; order: -1; }
 #mtbp .mt-lede { margin: 0; max-width: 42ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
-#mtbp .mt-foot { position: relative; z-index: 2; box-sizing: border-box; max-width: 1360px; margin: 0 auto; padding: 0 max(24px, env(safe-area-inset-right, 0px)) 56px max(24px, env(safe-area-inset-left, 0px)); }
 #mtbp .mt-more { display: inline-block; margin-top: 26px; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
 #mtbp .mt-more:hover { border-color: var(--ink); }
-#mtbp .mt-links { display: flex; flex-wrap: wrap; gap: 14px 28px; }
-#mtbp .mt-links a { display: inline-block; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
-#mtbp .mt-links a:hover { border-color: var(--ink); }
-#mtbp .mt-links a.alt { color: var(--dim); } #mtbp .mt-links a.alt:hover { color: var(--ink); }
 @media (max-width: 860px) {
   #mtbp .mt-grid { grid-template-columns: 1fr; gap: 0; padding-top: 8px; min-height: 0; }
   #mtbp .mt-copy { order: 0; }
@@ -185,9 +179,9 @@ footer a:hover { color: var(--ink); }
 <nav class="nav" aria-label="Primary">
   <a class="mark" href="/">chuckwired <span>/ labs</span></a>
   <div class="links">
-    <a href="/" aria-current="page">Labs</a>
     <a href="https://chuckwired.com">Portfolio ↗</a>
-    <a href="https://chuckwired.medium.com">Writing ↗</a>
+    <a href="https://github.com/chuckwired/labs" target="_blank" rel="noopener">Source ↗</a>
+    <a href="performance/">Performance →</a>
   </div>
 </nav>
 
@@ -214,7 +208,6 @@ footer a:hover { color: var(--ink); }
       <a class="mt-more" href="made-to-be-played/direction/">Behind the design &rarr;</a>
     </div>
   </div>
-  <div class="mt-foot"><div class="mt-links"><a href="performance/">Performance &rarr;</a><a class="alt" href="https://github.com/chuckwired/labs" target="_blank" rel="noopener">Source code &#8599;</a></div></div>
 </header>
 
 <main>
