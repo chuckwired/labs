@@ -57,3 +57,6 @@ First person, plain, a bit wry. No "leverage", no "passionate". Claims should be
 
 ## Cover art
 Each lab supplies a cover at 400x190 ratio: `cover.svg` (flat, no CSS variables) or a PNG with alpha (Pipes: rendered from the lab's own WebGL scene with a hand-placed set of pipes, 1000x475). A `LABS` entry can set `shatter: true`: clicking the card or "Dive in" breaks the plate into an 8x5 grid of squares that drift apart (NT-logo nod, ~0.75s) before navigating; skipped under reduced motion, and the lab-art view transition is skipped for it. The capes cover is generated: `node tools/make-cover.mjs`.
+
+## Hero (index)
+The index opens on a neon sign, not a headline: a tilted Hong Kong sign on a faded tenement wall, with the lede and links on the left. It is the one place with colour outside the work itself, and it is its own world: sign pink `#ff3d6e`, cyan `#43e8ff`, amber `#ffb638`, a dusty wall in plum and rose. The type beside it follows the table above (display serif italic, lede mono 17px, call-to-action links). Its glow is allowed to spill onto the void around it; nothing else on the page glows. See CLAUDE.md for how it is built.

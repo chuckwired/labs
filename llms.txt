@@ -11,6 +11,7 @@
 - [RuneScape Capes of Accomplishment: behind the design](https://labs.chuckwired.com/rs2-capes/direction/)
 - [Ocean: behind the design](https://labs.chuckwired.com/ocean/direction/)
 - [Pipes: behind the design](https://labs.chuckwired.com/windows-pipes/direction/)
+- [Made to be played (the hero): behind the design](https://labs.chuckwired.com/made-to-be-played/direction/)
 
 ## About the site
 - [Performance](https://labs.chuckwired.com/performance/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.

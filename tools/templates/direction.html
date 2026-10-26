@@ -1,0 +1,79 @@
+<!doctype html>
+<!--
+  TEMPLATE for a "Behind the design" page. Copy to <lab>/direction/index.html and fill every {{...}}.
+  `node tools/check.mjs` lints the result (tools/lint-pages.mjs), so a page that is not up to scratch fails the commit.
+  Voice (DESIGN.md): first person, plain, a bit wry. Use my reasons and my words, including the unscientific ones. Never "leverage" or "passionate".
+  Shape: lede, byline, 3+ numbered sections, each ending in a one-line "Rule:". Screenshots are WebP from originals/ (IMAGES.md) with real alt text, width and height.
+  Depth: ../../ reaches the site root from <lab>/direction/. For a page with no lab folder (like the hero's) the same depth applies.
+  After it exists: register the lab's `notes` path in LABS (index.html), run `node tools/sync-seo.mjs` (sitemap, llms.txt) and `node tools/optimise-images.mjs`.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="description" content="{{One sentence, under 170 characters: what this write-up covers.}}">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/{{lab}}/direction/">
+<meta property="og:site_name" content="Chuck Rice Labs">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Behind the design of {{Lab name}} · Chuck Rice Labs">
+<meta property="og:description" content="{{Same sentence as the description.}}">
+<meta property="og:url" content="https://labs.chuckwired.com/{{lab}}/direction/">
+<meta property="og:image" content="https://labs.chuckwired.com/{{lab}}/cover.og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Behind the design of {{Lab name}}","url":"https://labs.chuckwired.com/{{lab}}/direction/","description":"{{Same sentence as the description.}}","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"datePublished":"{{YYYY-MM-DD}}","isPartOf":{"@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/"},"inLanguage":"en-GB","image":"https://labs.chuckwired.com/{{lab}}/cover.og.jpg"}</script>
+<title>Behind the design of {{Lab name}} · Chuck Rice Labs</title>
+<link rel="icon" href="{{copy the lab's favicon data: URI}}">
+<link rel="preload" href="../../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../shared/base.css">
+<link rel="stylesheet" href="../../shared/notes.css">
+<style>
+.shot { display: block; width: 100%; height: auto; margin: 22px 0 8px; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); }
+.cap { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
+@media (max-width: 560px) { .lede { font-size: 15px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../../">&larr; Labs</a>
+    <a href="../">Dive in &rarr;</a>
+  </nav>
+
+  <h1>Behind the design.</h1>
+  <p class="lede">{{Two sentences: what the thing is, and what the story of making it was.}}</p>
+  <p class="by">By <a href="https://chuckwired.com" rel="author">Chuck Rice</a> · <time datetime="{{YYYY-MM-DD}}">{{D Mon YYYY}}</time></p>
+
+  <section>
+    <div class="n">01</div>
+    <h2>{{A plain heading}}</h2>
+    <p>{{What I wanted, in my words.}}</p>
+    <img class="shot" src="shots/{{1-name}}.webp" alt="{{Describe what is in the picture, 12+ characters}}" width="1600" height="900" loading="lazy">
+    <p class="cap">{{One line: what this shows.}}</p>
+    <p class="say"><b>Rule:</b> {{one line I would say to myself next time.}}</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
+    <h2>{{...}}</h2>
+    <p>{{What changed, and why. Include the choice I made and the thing I let go.}}</p>
+    <p class="say"><b>Rule:</b> {{...}}</p>
+  </section>
+
+  <section>
+    <div class="n">03</div>
+    <h2>{{...}}</h2>
+    <p>{{...}}</p>
+    <p class="say"><b>Rule:</b> {{...}}</p>
+  </section>
+
+  <!--more-->
+  <nav class="more" aria-label="More write-ups"><span>Also read</span> <a href="../../{{other-lab}}/direction/">{{Other lab}}</a> <a href="../../{{other-lab}}/direction/">{{Other lab}}</a> <a href="../../performance/">Performance</a></nav>
+  <!--/more-->
+  <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
+  <footer>&copy; {{YYYY}} Chuck Rice</footer>
+</div>
+</body>
+</html>

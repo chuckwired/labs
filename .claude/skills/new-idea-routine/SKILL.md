@@ -52,7 +52,7 @@ This is how I (Chuck) work on labs, written down so it can be repeated and impro
 
 ## 6. Document
 - Save full-quality screenshots (PNG) to `originals/<lab>/direction/shots/`: the three directions, the chosen one, and any tuning tools while they exist. Same for `cover.png` (`originals/<lab>/cover.png`). Then run `node tools/optimise-images.mjs` and reference the `.webp` copies in pages and `LABS`. Never link `originals/`. See `IMAGES.md`.
-- Write `<lab>/direction/index.html`, a "Behind the design" page in my voice: first person, plain, a bit wry. Numbered sections, each ending with a one-line "Rule:". Include my actual reasons, in my words, including the unscientific ones.
+- Write `<lab>/direction/index.html`, a "Behind the design" page in my voice: first person, plain, a bit wry. Numbered sections, each ending with a one-line "Rule:". Include my actual reasons, in my words, including the unscientific ones. Start from `tools/templates/direction.html` (head tags, JSON-LD, byline, "Also read" nav and the section shape are all in it); `node tools/check.mjs` lints the result, so a write-up or a lab that isn't up to scratch fails the commit.
 - Register the lab in `LABS` in the root `index.html` (with a cover and `notes`), add it to `README.md`, and add a section to `CLAUDE.md` with the decisions I made.
 
 ## 7. Publish-safety check (before every push)
@@ -62,7 +62,7 @@ This repo is public. Before asking to merge:
 - No real people's details beyond what I've said is fine to show. Personal pages (a gift, a private joke) get `noindex`.
 - External scripts and fonts: pinned versions, from known CDNs. Found images or assets: licence and credit recorded.
 - Don't commit the contents of any `.env`, credentials file, or machine config. Don't add tool or agent config that reveals more than the method.
-- Run `node tools/check.mjs` (links, alt text, head tags, image copies) and `node tools/sync-seo.mjs` (sitemap and the crawlable list). Run `node tools/optimise-images.mjs --check` so every image has a current `.webp`, and confirm no page links into `originals/`.
+- Run `node tools/check.mjs` (links, alt text, head tags, image copies, and the lab and write-up lint in `tools/lint-pages.mjs`: cover, notes page, back link, reduced motion, Article JSON-LD, Rule lines, voice) and `node tools/sync-seo.mjs` (sitemap and the crawlable list). Run `node tools/optimise-images.mjs --check` so every image has a current `.webp`, and confirm no page links into `originals/`.
 - Show me `git status` and a short summary of what will go public.
 
 ## 8. Wrap up
