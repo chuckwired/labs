@@ -136,11 +136,11 @@ footer a:hover { color: var(--ink); }
 #mtbp .mt-grid {
   box-sizing: border-box; min-height: min(calc(100svh - 70px), 900px); max-width: 1360px; margin: 0 auto;
   padding: 16px max(24px, env(safe-area-inset-right, 0px)) 48px max(24px, env(safe-area-inset-left, 0px));
-  display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .7fr); align-items: center; gap: clamp(8px, 3vw, 56px);
+  display: grid; grid-template-columns: minmax(280px, .7fr) minmax(0, 1.55fr); align-items: center; gap: clamp(8px, 3vw, 56px);   /* copy left, sign right */
 }
 #pw { perspective: 1500px; perspective-origin: 50% 46%; position: relative; }
 #plate { position: relative; width: 100%; aspect-ratio: 1000 / 800; transform-style: preserve-3d; will-change: transform;
-  transform: rotateY(calc(-14deg + var(--ry, 0deg))) rotateX(calc(3deg + var(--rx, 0deg))) rotateZ(-1.5deg); }
+  transform: rotateY(calc(14deg + var(--ry, 0deg))) rotateX(calc(3deg + var(--rx, 0deg))) rotateZ(-1.5deg); }   /* far edge leans toward the copy */
 #plate .mz { position: absolute; inset: 0; transform: translateZ(var(--z, 0px)); pointer-events: none; }
 #plate .mz > svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; display: block; }
 #hit { position: absolute; left: 14%; top: 26%; width: 72%; height: 46%; background: none; border: 0; padding: 0; cursor: pointer; transform: translateZ(60px); border-radius: 14px; -webkit-tap-highlight-color: transparent; }
@@ -160,7 +160,7 @@ footer a:hover { color: var(--ink); }
   18.6%, 100% { opacity: 0; transform: translateY(150px) scale(.75, 1.7); }
 }
 #mtbp .drip { transform-box: fill-box; transform-origin: 50% 0; opacity: 0; animation: mt-drip 9s linear infinite; }
-#mtbp .mt-copy { position: relative; z-index: 2; }
+#mtbp .mt-copy { position: relative; z-index: 2; order: -1; }
 #mtbp .mt-display { margin: 0; font: italic 400 clamp(46px, 6.2vw, 92px)/.95 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
 #mtbp .mt-lede { margin: 24px 0 0; max-width: 42ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
 #mtbp .mt-links { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 30px; }
@@ -169,6 +169,7 @@ footer a:hover { color: var(--ink); }
 #mtbp .mt-links a.alt { color: var(--dim); } #mtbp .mt-links a.alt:hover { color: var(--ink); }
 @media (max-width: 860px) {
   #mtbp .mt-grid { grid-template-columns: 1fr; gap: 0; padding-top: 8px; min-height: 0; }
+  #mtbp .mt-copy { order: 0; }
   #plate { transform: rotateY(calc(-10deg + var(--ry, 0deg))) rotateX(calc(2deg + var(--rx, 0deg))) rotateZ(-1.5deg); }
   #mtbp .mt-lede { font-size: 15px; }
 }
