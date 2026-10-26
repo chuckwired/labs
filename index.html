@@ -134,8 +134,8 @@ footer a:hover { color: var(--ink); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #mtbp { position: relative; z-index: 1; }
 #mtbp .mt-grid {
-  box-sizing: border-box; min-height: min(calc(100svh - 70px), 900px); max-width: 1360px; margin: 0 auto;
-  padding: 16px max(24px, env(safe-area-inset-right, 0px)) 48px max(24px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box; min-height: min(calc(100svh - 130px), 840px); max-width: 1360px; margin: 0 auto;
+  padding: 16px max(24px, env(safe-area-inset-right, 0px)) 8px max(24px, env(safe-area-inset-left, 0px));
   display: grid; grid-template-columns: minmax(280px, .7fr) minmax(0, 1.55fr); align-items: center; gap: clamp(8px, 3vw, 56px);   /* copy left, sign right */
 }
 #pw { perspective: 1500px; perspective-origin: 50% 46%; position: relative; }
@@ -162,7 +162,8 @@ footer a:hover { color: var(--ink); }
 #mtbp .drip { transform-box: fill-box; transform-origin: 50% 0; opacity: 0; animation: mt-drip 9s linear infinite; }
 #mtbp .mt-copy { position: relative; z-index: 2; order: -1; }
 #mtbp .mt-lede { margin: 0; max-width: 42ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
-#mtbp .mt-links { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 30px; }
+#mtbp .mt-foot { position: relative; z-index: 2; box-sizing: border-box; max-width: 1360px; margin: 0 auto; padding: 0 max(24px, env(safe-area-inset-right, 0px)) 56px max(24px, env(safe-area-inset-left, 0px)); }
+#mtbp .mt-links { display: flex; flex-wrap: wrap; gap: 14px 28px; }
 #mtbp .mt-links a { display: inline-block; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; transition: border-color .2s; }
 #mtbp .mt-links a:hover { border-color: var(--ink); }
 #mtbp .mt-links a.alt { color: var(--dim); } #mtbp .mt-links a.alt:hover { color: var(--ink); }
@@ -208,9 +209,9 @@ footer a:hover { color: var(--ink); }
     </div>
     <div class="mt-copy">
       <p class="mt-lede">Chuck Rice is a product designer who ships production code. These experiments are designed to deeply resonate and delight, within the confines of a lightweight static app.</p>
-      <div class="mt-links"><a href="performance/">Performance &rarr;</a><a class="alt" href="https://github.com/chuckwired/labs" target="_blank" rel="noopener">View source on GitHub &#8599;</a></div>
     </div>
   </div>
+  <div class="mt-foot"><div class="mt-links"><a href="performance/">Performance &rarr;</a><a class="alt" href="https://github.com/chuckwired/labs" target="_blank" rel="noopener">View source on GitHub &#8599;</a></div></div>
 </header>
 
 <main>
