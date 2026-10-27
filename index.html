@@ -31,18 +31,19 @@ body {
 #dots { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
 .nav {
-  position: relative; z-index: 2;
+  position: sticky; top: 0; z-index: 5;   /* above the hero and cards, which sit at 1 and 2 */
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
-  max-width: 1120px; margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) 22px max(20px, env(safe-area-inset-left, 0px));
+  max-width: 1120px; margin: 0 auto -22px;   /* the 22px of bottom room is the fade; the negative margin keeps the layout where it was */
 }
+.nav::before { content: ''; position: absolute; z-index: -1; inset: 0 calc(50% - 50vw); background: linear-gradient(var(--bg) 70%, rgba(7,7,10,0)); }   /* full-bleed fade, so content slides under it */
 .mark { text-decoration: none; font: 500 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
 .mark span { color: var(--dim); }
 .links { display: flex; gap: 22px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
 .links a { color: var(--dim); text-decoration: none; transition: color .2s; }
 .links a:hover { color: var(--ink); }
 .links a[aria-current] { color: var(--ink); }
-.links .sep { color: var(--dim); opacity: .5; }
+.links .sep { color: var(--dim); opacity: .5; margin: 0 -7px; }   /* pulls the // closer to its neighbours than the link gap */
 
 main { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 0 max(20px, env(safe-area-inset-left, 0px)) 80px; }
 
@@ -112,7 +113,7 @@ footer a:hover { color: var(--ink); }
 @media (max-width: 560px) {
   .nav { flex-wrap: wrap; gap: 12px 0; }
   .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
-  .links { width: 100%; gap: 20px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }   /* second line under the wordmark: Performance, Impact, //, Portfolio */
+  .links { width: 100%; gap: 20px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }   /* second line under the wordmark: Performance, Impact, //, Portfolio (Writing is desktop only, after Portfolio) */
   .links a.desk { display: none; }
 }
 
@@ -169,8 +170,8 @@ footer a:hover { color: var(--ink); }
     <a href="performance/">Performance</a>
     <a href="impact/">Impact</a>
     <span class="sep" aria-hidden="true">//</span>
-    <a class="desk" href="https://chuckwired.medium.com">Writing</a>
     <a href="https://chuckwired.com">Portfolio</a>
+    <a class="desk" href="https://chuckwired.medium.com">Writing</a>
   </div>
 </nav>
 
