@@ -69,10 +69,11 @@ a:hover { border-color: var(--ink); }
   }
   P.sort(function (a, b) { return a.a0 - b.a0; });       /* dim ones first so bright ones draw on top */
 
-  var phase = 'in', ps, END = 0, raf = 0;                /* in: sky to figure, out: figure to sky, idle: settled */
-  function plan(lead) {                                  /* delays for the sky-to-figure trip, top of the figure first */
-    END = 0;
-    P.forEach(function (p) { p.d = lead + p.y * 2.6 + r() * 1.6; p.t = 2.8 + r() * 1.6; p.k = (r() - 0.5) * 0.5; END = Math.max(END, p.d + p.t); });
+  var phase = 'in', ps, END = 0, raf = 0, qk = false;                /* in: sky to figure, out: figure to sky, idle: settled */
+  function plan(lead, quick) {                           /* delays for the sky-to-figure trip, top of the figure first. quick = the page-load arrival: someone who lands here may leave in two seconds, so the figure is readable by then (about 3s all in, was 8.6s): an ease-out, so it is mostly formed by ~2.2s and the last stretch settles slowly. The reform after a scatter keeps the slow, watchable pace. */
+    var sp = quick ? 0.6 : 2.6, sj = quick ? 0.3 : 1.6, tb = quick ? 1.2 : 2.8, tj = quick ? 0.8 : 1.6;
+    qk = quick; END = 0;
+    P.forEach(function (p) { p.d = lead + p.y * sp + r() * sj; p.t = tb + r() * tj; p.k = (r() - 0.5) * 0.5; END = Math.max(END, p.d + p.t); });
   }
   function scatter(px, py) {                             /* ripple outward from the pointer, bowing off to new places in the sky */
     END = 0;
@@ -83,7 +84,7 @@ a:hover { border-color: var(--ink); }
     });
     phase = 'out'; ps = performance.now(); run();
   }
-  plan(0);
+  plan(0, true);
 
   var W, H, dpr, fx, fy, fh, stars = [];
   function layout() {
@@ -94,6 +95,7 @@ a:hover { border-color: var(--ink); }
     seed = 99; stars = [];
     for (var i = 0, n = Math.round(W * H / 9000); i < n; i++) stars.push([r() * W, r() * H, 0.05 + r() * 0.3, r() < 0.15 ? 1.6 : 1]);
   }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
   function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
   function draw(el) {
     cx.clearRect(0, 0, W, H); cx.fillStyle = '#e8e6df';
@@ -104,7 +106,7 @@ a:hover { border-color: var(--ink); }
         e = ease(Math.max(0, Math.min(1, (el - p.od) / p.ot)));
         x0 = fxp; y0 = fyp; x1 = p.ox * W; y1 = p.oy * H; al = a1 + (p.a0 - a1) * e;
       } else {
-        e = still || phase === 'idle' ? 1 : ease(Math.max(0, Math.min(1, (el - p.d) / p.t)));
+        e = still || phase === 'idle' ? 1 : (qk ? easeOut : ease)(Math.max(0, Math.min(1, (el - p.d) / p.t)));
         x0 = p.sx * W; y0 = p.sy * H; x1 = fxp; y1 = fyp; al = p.a0 + (a1 - p.a0) * e;
       }
       var bow = Math.sin(Math.PI * e) * p.k;
