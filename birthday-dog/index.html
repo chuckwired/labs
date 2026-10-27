@@ -1103,5 +1103,6 @@ else setTimeout(() => say('Happy birthday!', 2.5), 600);
 }
 window.__pop = { cake, micInfo: () => mic && { state: mic.ac.state, level: +mic.level.toFixed(3), floor: +mic.floor.toFixed(3), hot: +mic.hot.toFixed(2) }, step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { T += dt; updateToy(dt); updateDog(dt); updateCake(dt); pollMic(dt); updateConfetti(dt); updateBubble(dt); } renderer.render(scene, camera); }, dog, toy, D, jump, pat, burst, startWish, blowOut, cakeTap, camera, view, CONFIG };
 </script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "39c03cb1af4b49529d06de9906e86289"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

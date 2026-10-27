@@ -20,6 +20,7 @@ Chuck's monorepo of small interactive experiments. Owner: Chuck (product designe
 - Adding a lab: create folder + `index.html`, include the doctype/viewport/theme-color head and a "← Labs" back link, then add it to `LABS`.
 
 ## Hosting
+- Analytics: Cloudflare Web Analytics, cookie-free. The beacon snippet sits before `</body>` on every live page (not `*/archive/*`; `hackers-delight/index.html` gets it from `404.html`, which comes from `tools/404-dots/template.html`). `tools/lint-pages.mjs` fails a commit that lacks it; the write-up template carries it. Not DO's own tooling: DO App Platform has no visitor analytics, and the Cloudflare in front of DO is DO's CDN, not Chuck's account, so there is no automatic injection. Dashboard: Cloudflare > Analytics & Logs > Web Analytics.
 - DigitalOcean App Platform, static site, source dir `/`, build command `rm -rf originals` (keeps full-quality originals off the public site; verify after deploy, see `IMAGES.md`). Free tier = 3 static-only apps (counts apps, not components; one app can hold several static components). Extra apps $3/mo. Each app: 1 GiB outbound/month, then $0.02/GiB.
 - Goal: this one app serves `labs.chuckwired.com` (add the domain in app Settings > Domains, CNAME at DNS). Main site is Ghost on a DO droplet; leave it alone (ghost-cli regenerates its nginx config).
 - Old standalone app `lab-rs2-capes-6z7et.ondigitalocean.app` (repo `lab-rs2-capes`) can be deleted once the monorepo is live.
