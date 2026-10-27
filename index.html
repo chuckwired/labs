@@ -42,6 +42,7 @@ body {
 .links a { color: var(--dim); text-decoration: none; transition: color .2s; }
 .links a:hover { color: var(--ink); }
 .links a[aria-current] { color: var(--ink); }
+.links .sep { color: var(--dim); opacity: .5; }
 
 main { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 0 max(20px, env(safe-area-inset-left, 0px)) 80px; }
 
@@ -111,7 +112,7 @@ footer a:hover { color: var(--ink); }
 @media (max-width: 560px) {
   .nav { flex-wrap: wrap; gap: 12px 0; }
   .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
-  .links { width: 100%; gap: 20px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }   /* second line under the wordmark: Portfolio, Performance, Impact */
+  .links { width: 100%; gap: 20px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }   /* second line under the wordmark: Performance, Impact, //, Portfolio */
   .links a.desk { display: none; }
 }
 
@@ -165,10 +166,11 @@ footer a:hover { color: var(--ink); }
 <nav class="nav" aria-label="Primary">
   <a class="mark" href="/">chuckwired <span>/ labs</span></a>
   <div class="links">
-    <a href="https://chuckwired.com">Portfolio ↗</a>
-    <a class="desk" href="https://chuckwired.medium.com">Writing ↗</a>
-    <a href="performance/">Performance →</a>
-    <a href="impact/">Impact →</a>
+    <a href="performance/">Performance</a>
+    <a href="impact/">Impact</a>
+    <span class="sep" aria-hidden="true">//</span>
+    <a class="desk" href="https://chuckwired.medium.com">Writing</a>
+    <a href="https://chuckwired.com">Portfolio</a>
   </div>
 </nav>
 
