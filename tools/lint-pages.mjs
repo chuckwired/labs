@@ -16,7 +16,7 @@ const LEGACY = {
   'birthday-dog/direction/index.html': ['byline'], 'hackers-delight/direction/index.html': ['byline', 'img-webp', 'placeholder'],
 };
 
-// Every live page carries the Cloudflare Web Analytics beacon (cookie-free; see SEO.md). Archived experiments and generated copies are exempt.
+// Every live page carries the Cloudflare Web Analytics beacon and the Umami script (both cookie-free; see SEO.md). Archived experiments and generated copies are exempt.
 const BEACON_SKIP = /(^|\/)(archive|originals|node_modules|\.git)(\/|$)|^hackers-delight\/index\.html$/;
 function htmlFiles(dir = '') {
   return readdirSync(join(ROOT, dir)).flatMap(n => {
@@ -28,6 +28,7 @@ function htmlFiles(dir = '') {
 
 export function lintPages(err0, warn) {
   const err = (f, m, rule) => (LEGACY[f]?.includes(rule) ? warn(f, m + ' (legacy page)') : err0(f, m));
+  for (const f of htmlFiles()) if (!/cloud\.umami\.is\/script\.js[^>]*data-website-id/.test(read(f))) err0(f, 'no Umami script after the Cloudflare beacon (copy it from tools/templates/direction.html)');
   for (const f of htmlFiles()) if (!/static\.cloudflareinsights\.com\/beacon\.min\.js[^>]*data-cf-beacon/.test(read(f))) err0(f, 'no Cloudflare Web Analytics beacon before </body> (copy it from tools/templates/direction.html)');
   const index = read('index.html');
   const a = index.indexOf('var LABS = ['), b = index.indexOf('];', a) + 1;
