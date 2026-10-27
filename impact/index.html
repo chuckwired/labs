@@ -42,7 +42,7 @@ td.num { font-variant-numeric: tabular-nums; }
 code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 3px; }
 .todo { margin: 0 0 12px; padding-left: 1.2em; max-width: 62ch; }
 .todo li { margin: 0 0 6px; }
-@media (max-width: 560px) { .lede { font-size: 15px; } .crow { grid-template-columns: 104px 1fr 58px; gap: 0 8px; } .cl { font-size: 11px; } }
+@media (max-width: 560px) { th, td { white-space: normal; vertical-align: top; } .lede { font-size: 15px; } .crow { grid-template-columns: 104px 1fr 58px; gap: 0 8px; } .cl { font-size: 11px; } }
 </style>
 <body>
 <div class="wrap">
@@ -69,11 +69,11 @@ code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padd
     <p>Less than I hoped. There is good evidence about how quickly people decide to stay or go, and almost none about how long a toy should hold someone. Nielsen Norman Group looked at billions of page visits: the first 10 seconds decide whether you stay, the risk of leaving stays high until about 30 seconds, and after that it flattens. Chartbeat's 2014 analysis found 55% of visitors spent under 15 seconds actively on a page, though that was mostly news.</p>
     <div class="tw"><table>
 <tr><th>Engaged time</th><th>What I think it means</th><th>Basis</th></tr>
-<tr><td>Under 10 s</td><td>Glanced and left</td><td>Research</td></tr>
-<tr><td>10 to 30 s</td><td>Still deciding</td><td>Research</td></tr>
-<tr><td>30 to 60 s</td><td>Chose to stay</td><td>Research</td></tr>
-<tr><td>1 to 2 min</td><td>Properly engaged; rare on most pages</td><td>My read</td></tr>
-<tr><td>2 min or more</td><td>Absorbed, maybe loved</td><td>My rule of thumb</td></tr>
+<tr><td>Under&nbsp;10&nbsp;s</td><td>Glanced and left</td><td>Research</td></tr>
+<tr><td>10&nbsp;to&nbsp;30&nbsp;s</td><td>Still deciding</td><td>Research</td></tr>
+<tr><td>30&nbsp;to&nbsp;60&nbsp;s</td><td>Chose to stay</td><td>Research</td></tr>
+<tr><td>1&nbsp;to&nbsp;2&nbsp;min</td><td>Properly engaged; rare on most pages</td><td>My read</td></tr>
+<tr><td>2&nbsp;min or&nbsp;more</td><td>Absorbed, maybe loved</td><td>My rule of thumb</td></tr>
 </table></div>
     <p class="say">The last two rows are my own guess, not a study. One vendor reports 2 to 7 minutes on interactive content, but it is self-reported from its own campaigns, so I treat it as a hint.</p>
     <p class="say"><b>Rule:</b> compare the labs with each other before comparing them with anyone else.</p>

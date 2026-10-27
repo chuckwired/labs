@@ -111,7 +111,7 @@ footer a:hover { color: var(--ink); }
   .art { aspect-ratio: 1.55; }
 }
 @media (max-width: 560px) {
-  .nav { flex-wrap: wrap; gap: 12px 0; }
+  .nav { flex-wrap: wrap; gap: 12px 0; padding-bottom: 36px; margin-bottom: -36px; }   /* two lines of nav need a deeper fade; the negative margin keeps the layout where it was */
   .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
   .links { width: 100%; gap: 20px; font-size: 10px; letter-spacing: .12em; white-space: nowrap; }   /* second line under the wordmark: Performance, Impact, //, Portfolio (Writing is desktop only, after Portfolio) */
   .links a.desk { display: none; }

@@ -22,3 +22,4 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 .by a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .by a:hover { color: var(--ink); border-color: var(--ink); }
 .more { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
 .more span { color: var(--dim); } .more a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .more a:hover { border-color: var(--ink); }
+@media (max-width: 560px) { .top { padding-bottom: 30px; margin-bottom: -18px; } }   /* more fade room under the sticky bar on phones; the margin keeps the layout where it was */
