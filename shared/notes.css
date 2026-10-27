@@ -1,7 +1,7 @@
 /* Shared layout for the "Behind the design" pages: narrow reading column, numbered sections, rule lines. Needs base.css. Page-specific bits (charts, figures, tables) stay in each page. */
 body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.6 var(--mono); -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 720px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px) max(20px, env(safe-area-inset-left, 0px)); }
-.top { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.top { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; gap: 16px; margin: calc(-1 * (env(safe-area-inset-top, 0px) + 20px)) -20px -10px; padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px 22px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; background: linear-gradient(var(--bg) 70%, rgba(7,7,10,0)); }
 .top a { color: var(--dim); text-decoration: none; transition: color .2s; }
 .top a:hover { color: var(--ink); }
 h1 { margin: clamp(48px, 10vw, 96px) 0 0; font: italic 400 clamp(44px, 9vw, 84px)/0.95 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }

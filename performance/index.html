@@ -140,7 +140,7 @@ code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padd
 <tr><td>Performance</td><td class="num">100 / 100 / 100 / 100</td><td class="num">100 / 100 / 100 / 100</td></tr>
 </table></div>
 <p class="say">Each cell is performance / accessibility / best practices / SEO. Unlisted pages score lower on SEO because they are set to <code>noindex</code> on purpose, and the 404 has no description.</p>
-<p>The honest low points, all on mobile: the ocean scores 73 and the birthday card 61 because Lighthouse throttles the CPU four times and the software renderer does the 3D work, so blocking time balloons (1.7 s and 4.6 s). That is the test rig, not a phone, but the birthday card is also the page that pulls in three.js, so it is the one I would test on a real device first. Lighthouse also flags small text on phones for the three labs with compact control labels (10 to 12 px by design); I may nudge those up.</p>
+<p>The honest low points, all on mobile: the ocean scores 73 and the birthday card 61 because Lighthouse throttles the CPU four times and the software renderer does the 3D work, so blocking time balloons (1.7 s and 4.6 s). That is the test rig, not a phone: I have since run every lab on an iPhone 17 Pro Max, and wherever an FPS readout was available it held 120 fps. Lighthouse also flags small text on phones for the three labs with compact control labels (10 to 12 px by design); I may nudge those up.</p>
     <p class="say"><b>Rule:</b> re-run it on the deployed URL before trusting it.</p>
   </section>
 
@@ -148,7 +148,7 @@ code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padd
     <div class="n">07</div>
     <h2>What isn't measured yet</h2>
     <ul class="todo">
-      <li>Anything on a real phone: ocean and pipes performance, touch, battery.</li>
+      <li>Older or cheaper phones, and battery drain. Every lab has been tried on an iPhone 17 Pro Max and held 120 fps wherever an FPS readout was available, but that is the top of the range, so older phones are still unknown.</li>
       <li>Lighthouse against the live site, with real compression and caching.</li>
       <li>Real-user numbers (Core Web Vitals from actual visitors) and search performance.</li>
       <li>A screen-reader pass and a keyboard-only run of every lab.</li>

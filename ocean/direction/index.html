@@ -68,7 +68,7 @@ td.num { font-variant-numeric: tabular-nums; }
 <div class="wrap">
   <nav class="top" aria-label="Primary">
     <a href="../../">&larr; Labs</a>
-    <a href="../">Dive in &rarr;</a>
+    <a href="../" aria-label="Dive in: open the Ocean lab">Dive in &rarr;</a>
   </nav>
 
   <h1>Behind the design.</h1>
@@ -173,7 +173,7 @@ td.num { font-variant-numeric: tabular-nums; }
       <tr><td>C, golden hour (iteration)</td><td class="num">2.56 MP</td><td class="num">~1.9 ms</td><td class="num">0.7 ms</td></tr>
     </table></div>
     <p>A, at 7.3ms, was nearly out of budget for 120fps on a laptop and just over the 144fps line, which is why it worried me. Both iterations clear 144fps with room to spare. After the second round I was happy with the performance of both. Each look also renders at a lower resolution when frames run slow, steps back up when there's room, and stops when the tab is hidden. Only the visible look runs, and the other is built the first time you ask for it. The FPS button on the lab shows a live readout.</p>
-    <p>One honest caveat: these are numbers from one Mac. I haven't tried a phone yet. A phone GPU is a lot slower, so the point is the gaps between rows, not the milliseconds.</p>
+    <p>One honest caveat: these are numbers from one Mac. I have since tried it on an iPhone 17 Pro Max and the FPS readout sat at 120, but I didn't time individual frames there, and an older phone GPU will be slower. So the point is the gaps between rows, not the milliseconds.</p>
     <p class="say"><b>Rule:</b> measure the cost of a frame, not whether it kept up.</p>
   </section>
 
