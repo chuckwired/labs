@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="description" content="What the labs do to people: how I measure engagement without cookies, what the research says about time on page, and what visitors have told me.">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/impact/">
+<meta property="og:site_name" content="Chuck Rice Labs">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Impact · Chuck Rice Labs">
+<meta property="og:description" content="What the labs do to people: how I measure engagement without cookies, what the research says about time on page, and what visitors have told me.">
+<meta property="og:url" content="https://labs.chuckwired.com/impact/">
+<meta property="og:image" content="https://labs.chuckwired.com/ocean/cover.og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Impact","url":"https://labs.chuckwired.com/impact/","description":"What the labs do to people: how I measure engagement without cookies, what the research says about time on page, and what visitors have told me.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"datePublished":"2026-10-27","isPartOf":{"@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/"},"inLanguage":"en-GB"}</script>
+<title>Impact · Chuck Rice Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cpath d='M12 6h8v6l5 11a3 3 0 0 1-3 4H10a3 3 0 0 1-3-4l5-11z' fill='none' stroke='%23e8e6df' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preload" href="../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="../shared/notes.css">
+<style>
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin: 28px 0 0; border-top: 1px solid var(--line); }
+.stat { padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); }
+.stat b { display: block; font: italic 400 clamp(34px, 6vw, 46px)/1 var(--serif); letter-spacing: -0.01em; font-weight: 400; }
+.stat span { display: block; margin-top: 6px; color: var(--dim); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.chart { margin: 18px 0 8px; }
+.crow { display: grid; grid-template-columns: 150px 1fr 70px; align-items: center; gap: 0 12px; min-height: 34px; border-bottom: 1px solid var(--line); }
+.cl { font-size: 12px; color: var(--dim); }
+.track { position: relative; height: 34px; }
+.bar { position: absolute; left: 0; top: 9px; height: 16px; width: var(--w); background: rgba(232,230,223,.55); border-radius: 0 2px 2px 0; }
+.cv { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.ct { margin: 22px 0 0; font: 400 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.tw { overflow-x: auto; }
+table { border-collapse: collapse; margin: 16px 0 8px; font-size: 12px; width: 100%; }
+th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); font-weight: 400; white-space: nowrap; }
+th { color: var(--dim); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; }
+code { font: inherit; color: var(--ink); background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 3px; }
+.todo { margin: 0 0 12px; padding-left: 1.2em; max-width: 62ch; }
+.todo li { margin: 0 0 6px; }
+@media (max-width: 560px) { .lede { font-size: 15px; } .crow { grid-template-columns: 104px 1fr 58px; gap: 0 8px; } .cl { font-size: 11px; } }
+</style>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../">&larr; Labs</a>
+    <a href="../performance/">Performance &rarr;</a>
+  </nav>
+
+  <h1>Impact.</h1>
+  <p class="lede">Performance is how the site behaves. This is what it does to people: whether they stay, whether they play, and what they say. It is early, so this page is mostly how I will read the numbers, plus what people have already told me.</p>
+  <p class="by">By <a href="https://chuckwired.com" rel="author">Chuck Rice</a> · <time datetime="2026-10-27">27 Oct 2026</time></p>
+
+  <section>
+    <div class="n">01</div>
+    <h2>What I count</h2>
+    <p>I don't follow people. Two cookie-free tools count visits (Cloudflare) and what happens during them (Umami). The measure I care about most is engaged time: seconds the page is open and in front of you.</p>
+    <p>Umami can't average that for me, because a visit to one lab is a single page and reads as zero. So every page sends a small note as a visit passes 10 seconds, 30 seconds, 1 minute, 2 minutes and 5 minutes. I read the result as shares: what fraction of visitors to the dog got past a minute.</p>
+    <p class="say"><b>Rule:</b> count moments, not people.</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
+    <h2>What the research says</h2>
+    <p>Less than I hoped. There is good evidence about how quickly people decide to stay or go, and almost none about how long a toy should hold someone. Nielsen Norman Group looked at billions of page visits: the first 10 seconds decide whether you stay, the risk of leaving stays high until about 30 seconds, and after that it flattens. Chartbeat's 2014 analysis found 55% of visitors spent under 15 seconds actively on a page, though that was mostly news.</p>
+    <div class="tw"><table>
+<tr><th>Engaged time</th><th>What I think it means</th><th>Basis</th></tr>
+<tr><td>Under 10 s</td><td>Glanced and left</td><td>Research</td></tr>
+<tr><td>10 to 30 s</td><td>Still deciding</td><td>Research</td></tr>
+<tr><td>30 to 60 s</td><td>Chose to stay</td><td>Research</td></tr>
+<tr><td>1 to 2 min</td><td>Properly engaged; rare on most pages</td><td>My read</td></tr>
+<tr><td>2 min or more</td><td>Absorbed, maybe loved</td><td>My rule of thumb</td></tr>
+</table></div>
+    <p class="say">The last two rows are my own guess, not a study. One vendor reports 2 to 7 minutes on interactive content, but it is self-reported from its own campaigns, so I treat it as a hint.</p>
+    <p class="say"><b>Rule:</b> compare the labs with each other before comparing them with anyone else.</p>
+  </section>
+
+  <section>
+    <div class="n">03</div>
+    <h2>What people have told me</h2>
+    <p>A handful of reactions from friends and colleagues, so a small and friendly sample. Several went straight to the birthday dog, and the neon sign on the landing page got a good response.</p>
+    <p>My daughter loves the dog. She blew out the candle again and again, and stroked the dog every time. No chart will show that. It is the same person doing the same thing on purpose, loads of times, which is the best sign I have.</p>
+    <p class="say"><b>Rule:</b> a repeat is worth more than a minute.</p>
+  </section>
+
+  <section>
+    <div class="n">04</div>
+    <h2>What the numbers say</h2>
+    <p>Nothing yet. Engagement tracking went live on 27 October. Once there are a few weeks of visits I will add, for each lab, the share of visitors who passed each mark, where they came from, and which write-ups get read to the end.</p>
+    <p class="say"><b>Rule:</b> don't publish a number until there are enough visitors for it to mean something.</p>
+  </section>
+
+  <section>
+    <div class="n">05</div>
+    <h2>What I can't see</h2>
+    <ul class="todo">
+      <li>Enjoyment. A tab left open in the foreground counts as engaged, and someone who loved it for 20 seconds doesn't.</li>
+      <li>Return visits after a day. Without cookies, a returning visitor looks new.</li>
+      <li>Clean samples. My own visits, friends and bots all count, and early numbers will be small.</li>
+      <li>Background tabs. Time stops counting when the tab is hidden, on purpose.</li>
+    </ul>
+    <p class="say"><b>Rule:</b> say what the number can't tell you.</p>
+  </section>
+
+  <section>
+    <div class="n">06</div>
+    <h2>Sources</h2>
+    <ul class="todo">
+      <li><a href="https://www.nngroup.com/articles/how-long-do-users-stay-on-web-pages/" rel="noopener">How long do users stay on web pages?</a>, Nielsen Norman Group.</li>
+      <li><a href="https://outgrow.co/blog/user-engagement-benchmarks/" rel="noopener">User engagement benchmarks for interactive content</a>, Outgrow (vendor data).</li>
+      <li>Chartbeat's 2014 engaged-time analysis, via Tony Haile's article in Time. I haven't read the original report.</li>
+    </ul>
+  </section>
+
+  <!--more-->
+  <nav class="more" aria-label="More write-ups"><span>Also read</span> <a href="../performance/">Performance</a> <a href="../ocean/direction/">Ocean</a> <a href="../windows-pipes/direction/">Pipes</a> <a href="../rs2-capes/direction/">Cape Void</a></nav>
+  <!--/more-->
+  <div class="actions"><a class="go" href="../">&larr; Back to labs</a><a class="go" href="../performance/">Performance &rarr;</a></div>
+  <footer>&copy; 2026 Chuck Rice</footer>
+</div>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "39c03cb1af4b49529d06de9906e86289"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- Umami --><script defer src="https://cloud.umami.is/script.js" data-website-id="b14c6803-bbbf-4a7d-b818-f2e5f754aabb" data-domains="labs.chuckwired.com"></script><!-- End Umami -->
+<script defer src="/shared/engage.js"></script>
+</body>
+</html>

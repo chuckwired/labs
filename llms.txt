@@ -15,4 +15,5 @@
 
 ## About the site
 - [Performance](https://labs.chuckwired.com/performance/): how the site is built, what each page weighs, and how it handles performance, accessibility and search.
+- [Impact](https://labs.chuckwired.com/impact/): how engagement is measured without cookies, what the research says about time on page, and what visitors have said.
 - [Portfolio](https://chuckwired.com) and [writing](https://chuckwired.medium.com) by the same author.
