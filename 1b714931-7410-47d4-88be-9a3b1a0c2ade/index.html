@@ -88,14 +88,17 @@ footer{padding:12vh 0 14vh;text-align:center;font:400 12px var(--sans);letter-sp
   }
 }
 
-.cord{position:fixed;top:0;right:calc(env(safe-area-inset-right,0px) + max(22px,2.4vw) - 46px);z-index:30;width:220px;height:270px;color:var(--ink);pointer-events:none}
-.cord svg{display:block;width:100%;height:100%;overflow:visible}
-.cord-hit{pointer-events:auto;cursor:grab;touch-action:none;fill:transparent}
-.cord.drag .cord-hit{cursor:grabbing}
+.cord{position:fixed;top:0;right:calc(env(safe-area-inset-right,0px) + max(22px,2.4vw) - 18px);z-index:30;width:64px;height:340px;color:var(--ink);pointer-events:none}
+.cord svg{display:block;width:64px;height:340px;overflow:visible}
+.cord-inner{position:absolute;inset:0}
+.cord-inner.drop{animation:cord-drop .6s .4s cubic-bezier(.45,0,.9,.5) both}
+@keyframes cord-drop{0%{opacity:0;transform:translateY(-230px)}20%{opacity:1}100%{transform:none}}
+.cord-line{stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .cord-bead{fill:var(--bg);stroke:currentColor;stroke-width:1.2}
-.cord-line{stroke:currentColor;stroke-width:1.1;fill:none;stroke-linecap:round}
-.cord-btn{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.cord-btn:focus-visible{clip:auto;width:auto;height:auto;right:8px;top:8px;padding:6px 10px;background:var(--bg);color:var(--ink);border:1px solid var(--line2);font:400 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;pointer-events:auto}
+.cord-knob{position:absolute;left:9px;top:153px;width:46px;height:46px;padding:0;border:0;border-radius:50%;background:transparent;cursor:grab;touch-action:none;pointer-events:auto;-webkit-tap-highlight-color:transparent}
+.cord-knob:active{cursor:grabbing}
+.cord-knob:focus-visible{outline:2px solid var(--dim);outline-offset:-9px}
+@media (prefers-reduced-motion:reduce){.cord-inner.drop{animation:none}}
 .theming,.theming *{transition-property:background-color,color,border-color,fill,stroke!important;transition-duration:.55s!important;transition-delay:0s!important}
 nav.rail-nav a{height:56px;position:relative;opacity:.4}
 nav.rail-nav a[aria-current="true"],nav.rail-nav a:hover{opacity:1}
@@ -163,10 +166,10 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 @media print{:root,:root:not([data-theme="light"]),:root[data-theme="dark"],:root[data-theme="light"]{--bg:#fff;--ink:#000;--dim:#555;--line:#ccc;--line2:#bbb;--plate:#fff;--glass:#fff;--serif:"Newsreader Print",Georgia,"Times New Roman",serif;--sans:"Hanken Print",Arial,Helvetica,sans-serif}.cord{display:none!important}@page{size:A4;margin:11mm 13mm}.scr{display:none}.prt{display:inline}body{font-size:8.4pt;line-height:1.36;overflow:visible}.wrap{max-width:none;padding:0}.label{font-size:6pt;letter-spacing:.16em}.hero{min-height:0;display:block;text-align:left;padding:0 0 3.5mm}.hero h1{font-size:32pt;margin:1.5mm 0 1.5mm;line-height:.95}.hero p.l{font-size:9pt;max-width:none;color:#444}.hero .links{justify-content:flex-start;margin-top:2mm;font-size:7pt}.nm{display:flex;align-items:baseline;justify-content:flex-start;gap:4mm}.nm b{font-size:14pt}.sum{max-width:none;margin:0;padding:3.5mm 0;display:grid;grid-template-columns:4fr 6fr;gap:6mm;border-top:.3mm solid #000}.sum p,.sum p:first-child{font-size:8.4pt;line-height:1.38;font-weight:400}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4mm;border-top:.2mm solid #ccc;border-bottom:.2mm solid #ccc;padding:3mm 0}.stat{display:block;padding:0;border:0}.stat b{font-size:19pt;line-height:1}.stat.long b{font-size:11.5pt;line-height:1.1}.stat p{font-size:6.6pt;line-height:1.3;margin-top:1.5mm;max-width:none}.stat .label{margin-top:1mm;font-size:5.5pt}.xp{padding:3mm 0 0;max-width:none}.xp-head{padding:0 0 1.5mm}.shell{display:block}.roles{padding:0}.role{grid-template-columns:15mm 1fr;gap:0 4mm;padding:2.4mm 0;border-top:.2mm solid #ccc;break-inside:avoid}.role .side{position:static;margin-top:0;visibility:visible;gap:1.5mm;grid-auto-flow:row;align-items:start}.role .side .tile{display:none}.role .side .meta{margin-left:0;width:auto;text-align:left;opacity:1;transform:none}.role .side .meta i{height:1.6mm;margin:.8mm 0}.role>div:last-child{border-top:0;margin-left:0;padding:0}.role ul{margin-left:0}.role ul,.role .lead{max-width:none}.role li{font-size:8pt}.role .side .meta{font-size:5.4pt;line-height:1.4}.role h2{font-size:11pt;margin:0 0 .3mm}.role .rl{font-size:5.8pt}.role .lead{font-size:7.8pt;margin:1mm 0 .6mm}.role li{padding:.4mm 0 .4mm 2.5mm;border:0;position:relative;font-size:7.5pt;line-height:1.28}.role li:first-child{padding-top:.4mm}.role li::before{content:"–";position:absolute;left:0}.cols{padding:3mm 0 0;gap:5mm;grid-template-columns:repeat(5,1fr);border-top:.3mm solid #000}.cols p{font-size:6.8pt;line-height:1.3}.cols h3{font-size:5.6pt;margin-bottom:1mm}*{letter-spacing:0!important;font-variant-ligatures:none!important;font-feature-settings:"liga" 0,"clig" 0!important}.label,.rl,.cols h3,.hero .links{letter-spacing:.04em!important}.sp{display:none}.pc{display:inline}.pdates{display:inline;font:400 7.4pt var(--sans)}.role h2{display:block}.pdates{margin-left:3mm}.role{grid-template-columns:1fr}.role .side{display:none}.sum{display:block}.sum p+p{margin-top:1.8mm}.stats{display:block;padding:1.5mm 0}.stat{display:block;padding:.8mm 0;border:0}.stat>div,.stat p,.stat .label,.stat b{display:inline}.stat p{margin:0}.stat b{font-size:10.5pt;font-weight:400;margin-right:2mm}.stat.long b{font-size:10.5pt}.stat .label{margin:0 0 0 1.5mm;font-size:6pt}.stat .label::before{content:"("}.stat .label::after{content:")"}.cols{display:block}.cols>div{display:grid;grid-template-columns:24mm 1fr;gap:0 3mm;padding:1mm 0}.cols h3{margin:0}.cols p{max-width:none;font-size:7.6pt}.role li{font-size:8.2pt;padding-left:2.4mm;text-indent:-2.4mm}.role li::before{position:static;content:"– "}footer{display:none}}</style>
 </head>
 <body>
-<div class="cord noprint">
-  <svg viewBox="0 0 220 270" aria-hidden="true"><path class="cord-line" d="M160 0V104"/><circle class="cord-bead" cx="160" cy="113" r="6"/><circle class="cord-hit" cx="160" cy="113" r="18"/></svg>
-  <button class="cord-btn" type="button" aria-label="Switch between light and dark" aria-pressed="false">Light / dark</button>
-</div>
+<div class="cord noprint"><div class="cord-inner drop">
+  <svg viewBox="0 0 64 340" aria-hidden="true"><path class="cord-line" d="M32 0V176"/><circle class="cord-bead" cx="32" cy="176" r="6.5"/></svg>
+  <button class="cord-knob" type="button" aria-label="Switch between light and dark" aria-pressed="false" title="Switch between light and dark"></button>
+</div></div>
 <header class="hero">
   <div class="nm"><b>Chuck Rice</b><span class="label">Manchester, UK</span></div>
   <h1>Staff Design Engineer</h1>
@@ -311,87 +314,104 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 })();
 </script>
 <script>
+/* Pull cord: a vanilla port of the physics in "pullcord" (MIT, Copyright (c) 2026 iisac, github.com/mortspace/feralui):
+   verlet nodes with distance constraints, time-based so it feels the same at 60 and 120Hz,
+   a toggle that clicks part-way through the pull, a velocity cap on release, and a sleeping loop. */
 (function(){
   var box=document.querySelector('.cord');
   if(!box)return;
-  var svg=box.querySelector('svg'),line=box.querySelector('.cord-line'),bead=box.querySelector('.cord-bead'),hit=box.querySelector('.cord-hit'),btn=box.querySelector('.cord-btn'),
+  var inner=box.querySelector('.cord-inner'),svg=box.querySelector('svg'),line=box.querySelector('.cord-line'),bead=box.querySelector('.cord-bead'),knob=box.querySelector('.cord-knob'),
       root=document.documentElement,meta=document.querySelector('meta[name=theme-color]'),reduce=matchMedia('(prefers-reduced-motion:reduce)'),
-      N=12,REST=104,L=REST/(N-1),AX=160,pts=[],drag=false,run=false,tgt=null,dx0=0,dy0=0,travel=0,i;
-  for(i=0;i<N;i++)pts.push({x:AX,y:i*L,px:AX,py:i*L});
+      G=1250,DAMP=.94,ITER=20,STRETCH=26,CLICK_AT=20,MAXV=22,SLEEP=.15,
+      AX=32,REST=176,N=17,SEG=REST/16,pts=[],drag=false,clicked=false,didDrag=false,run=false,raf=0,prevT=0,prevDt=0,sx=0,sy=0,tx=AX,ty=REST,i;
+  for(i=0;i<N;i++)pts.push({x:AX,y:SEG*i,ox:AX,oy:SEG*i});
   function cur(){var t=root.getAttribute('data-theme');return t||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}
   function setTheme(t){
     root.classList.add('theming');root.setAttribute('data-theme',t);
     try{localStorage.setItem('cv-theme',t)}catch(e){}
     if(meta)meta.setAttribute('content',t==='dark'?'#0f0f0d':'#f6f3ec');
-    btn.setAttribute('aria-pressed',String(t==='dark'));
+    knob.setAttribute('aria-pressed',String(t==='dark'));
     setTimeout(function(){root.classList.remove('theming')},650);
   }
   function toggle(){setTheme(cur()==='dark'?'light':'dark')}
   function draw(){
-    var d='M'+pts[0].x+' '+pts[0].y,k,m,e=pts[N-1];
+    var d='M'+pts[0].x.toFixed(1)+' '+pts[0].y.toFixed(1),k,m,e=pts[N-1];
     for(k=1;k<N-1;k++){m=pts[k+1];d+=' Q'+pts[k].x.toFixed(1)+' '+pts[k].y.toFixed(1)+' '+((pts[k].x+m.x)/2).toFixed(1)+' '+((pts[k].y+m.y)/2).toFixed(1)}
     d+=' L'+e.x.toFixed(1)+' '+e.y.toFixed(1);
     line.setAttribute('d',d);
-    bead.setAttribute('cx',e.x.toFixed(1));bead.setAttribute('cy',(e.y+9).toFixed(1));
-    hit.setAttribute('cx',e.x.toFixed(1));hit.setAttribute('cy',(e.y+9).toFixed(1));
+    bead.setAttribute('cx',e.x.toFixed(1));bead.setAttribute('cy',e.y.toFixed(1));
   }
-  function room(){var r=svg.getBoundingClientRect();return Math.max(6,Math.min(70,innerWidth-(r.left+AX)-10))}
-  function step(){
-    var energy=0,k,j,a,b,dx,dy,dist,diff,wa,wb,p,v,hi=AX+room(),lo=AX-130;
+  /* how far right the rope can swing before the screen edge; it bounces softly instead of sticking */
+  function room(){var r=svg.getBoundingClientRect();return Math.max(4,innerWidth-(r.left+AX)-10)}
+  function step(now){
+    var dt=prevT?Math.min(.04,Math.max(.004,(now-prevT)/1000)):1/60,tc=prevDt>0?dt/prevDt:1,vc=tc*Math.pow(DAMP,dt*60),ac=dt*dt,
+        hi=AX+room(),k,j,p,vx,vy,v,a,b,dx,dy,dist,diff,ox,oy,speed=0;
+    prevT=now;
     for(k=1;k<N;k++){
-      var p=pts[k],vx=(p.x-p.px)*.985,vy=(p.y-p.py)*.985;
-      p.px=p.x;p.py=p.y;p.x+=vx;p.y+=vy+.55;energy+=Math.abs(vx)+Math.abs(vy);
+      if(drag&&k===N-1)continue;
+      p=pts[k];vx=p.x-p.ox;vy=p.y-p.oy;p.ox=p.x;p.oy=p.y;p.x+=vx*vc;p.y+=vy*vc+G*ac;
     }
-    for(j=0;j<10;j++){
-      pts[0].x=AX;pts[0].y=0;
-      for(k=1;k<N;k++){p=pts[k];if(p.x>hi){v=p.x-p.px;p.x=hi;p.px=hi+v*.35}else if(p.x<lo){v=p.x-p.px;p.x=lo;p.px=lo+v*.35}}
-      if(drag&&tgt){pts[N-1].x=tgt.x;pts[N-1].y=tgt.y}
+    pts[0].x=AX;pts[0].y=0;
+    if(drag){p=pts[N-1];p.ox=p.x;p.oy=p.y;p.x=Math.min(tx,hi);p.y=ty}
+    for(j=0;j<ITER;j++){
       for(k=0;k<N-1;k++){
-        a=pts[k];b=pts[k+1];dx=b.x-a.x;dy=b.y-a.y;dist=Math.sqrt(dx*dx+dy*dy)||.0001;diff=(dist-L)/dist;
-        wa=k===0?0:((drag&&k+1===N-1)?1:.5);
-        wb=(drag&&k+1===N-1)?0:(k===0?1:.5);
-        a.x+=dx*diff*wa;a.y+=dy*diff*wa;b.x-=dx*diff*wb;b.y-=dy*diff*wb;
+        a=pts[k];b=pts[k+1];dx=b.x-a.x;dy=b.y-a.y;dist=Math.sqrt(dx*dx+dy*dy)||1e-4;diff=(SEG-dist)/dist*.5;ox=dx*diff;oy=dy*diff;
+        if(k>0){a.x-=ox;a.y-=oy}
+        if(!(drag&&k+1===N-1)){b.x+=ox;b.y+=oy}
       }
     }
-    return energy;
+    for(k=1;k<N;k++){p=pts[k];if(p.x>hi){v=p.x-p.ox;p.x=hi;p.ox=hi+v*.35}}
+    prevDt=dt;
+    draw();
+    for(k=1;k<N;k++)speed+=Math.abs(pts[k].x-pts[k].ox)+Math.abs(pts[k].y-pts[k].oy);
+    if(!drag&&speed<SLEEP*dt*60){run=false;return}
+    raf=requestAnimationFrame(step);
   }
-  function loop(){var e=step();draw();if(drag||e>.5)requestAnimationFrame(loop);else run=false}
-  function kick(){if(!run){run=true;requestAnimationFrame(loop)}}
-  function aim(ev){
-    var r=svg.getBoundingClientRect(),x=ev.clientX-r.left-AX,y=ev.clientY-r.top-9;
-    var lim=x>=0?room():110;x=(x>=0?1:-1)*lim*Math.tanh(Math.abs(x)/lim);y=Math.max(REST*.7,Math.min(REST+64,y));
-    tgt={x:AX+x,y:y};
-  }
-  hit.addEventListener('pointerdown',function(ev){
-    if(reduce.matches)return;
-    drag=true;travel=0;dx0=ev.clientX;dy0=ev.clientY;box.classList.add('drag');
-    try{hit.setPointerCapture(ev.pointerId)}catch(e){}
-    aim(ev);kick();ev.preventDefault();
+  function wake(){if(run)return;run=true;prevT=0;prevDt=0;raf=requestAnimationFrame(step)}
+  function nudge(dy,dx){var e=pts[N-1];e.oy-=dy;e.ox-=dx||0;wake()}
+  knob.addEventListener('pointerdown',function(ev){
+    if(reduce.matches||ev.button>0)return;
+    sx=ev.clientX;sy=ev.clientY;drag=false;clicked=false;didDrag=false;
+    try{knob.setPointerCapture(ev.pointerId)}catch(e){}
+    knob.dataset.down='1';
   });
-  hit.addEventListener('pointermove',function(ev){
-    if(!drag)return;
-    travel=Math.max(travel,Math.abs(ev.clientX-dx0)+Math.abs(ev.clientY-dy0));
-    aim(ev);
+  knob.addEventListener('pointermove',function(ev){
+    if(!knob.dataset.down)return;
+    var rx=ev.clientX-sx,ry=REST+ev.clientY-sy,dist,k,maxD=REST+STRETCH;
+    if(!drag){if(Math.abs(rx)+Math.abs(ry-REST)<3)return;drag=true;didDrag=true;inner.classList.remove('drop');wake()}
+    dist=Math.sqrt(rx*rx+ry*ry)||1e-4;k=dist>maxD?maxD/dist:1;
+    tx=AX+rx*k;ty=ry*k;
+    if(!clicked&&dist-REST>=Math.min(CLICK_AT,STRETCH-1)){clicked=true;toggle()}
+    ev.preventDefault();
   });
-  function release(){
+  function up(){
+    var e,vx,vy,v,k;
+    delete knob.dataset.down;
     if(!drag)return;
-    var pull=pts[N-1].y-REST;
-    drag=false;tgt=null;box.classList.remove('drag');
-    if(pull>26||travel<5){if(travel<5)pts[N-1].py-=10;toggle()}
-    kick();
+    drag=false;e=pts[N-1];vx=e.x-e.ox;vy=e.y-e.oy;v=Math.sqrt(vx*vx+vy*vy);
+    if(v>MAXV){k=MAXV/v;e.ox=e.x-vx*k;e.oy=e.y-vy*k}
+    wake();setTimeout(function(){didDrag=false},0);
   }
-  hit.addEventListener('pointerup',release);
-  hit.addEventListener('pointercancel',release);
-  hit.addEventListener('click',function(){if(reduce.matches)toggle()});
-  btn.addEventListener('click',function(){if(!reduce.matches){pts[N-1].py-=12;kick()}toggle()});
-  btn.setAttribute('aria-pressed',String(cur()==='dark'));
+  knob.addEventListener('pointerup',up);
+  knob.addEventListener('pointercancel',up);
+  knob.addEventListener('click',function(ev){
+    if(didDrag)return;
+    toggle();if(!reduce.matches)nudge(22);
+  });
+  inner.addEventListener('animationend',function(ev){
+    if(ev.animationName!=='cord-drop')return;
+    inner.classList.remove('drop');
+    if(!reduce.matches)nudge(13,6);
+  });
+  setTimeout(function(){if(inner.classList.contains('drop')){inner.classList.remove('drop');if(!reduce.matches)nudge(13,6)}},1700);
+  knob.setAttribute('aria-pressed',String(cur()==='dark'));
   draw();
 })();
 </script>
 <script>
 (function(){
   function load(){if(!document.fonts)return;['400 1em "Newsreader Print"','italic 400 1em "Newsreader Print"','300 1em "Newsreader Print"','400 1em "Hanken Print"','500 1em "Hanken Print"'].forEach(function(f){document.fonts.load(f).catch(function(){})})}
-  addEventListener('load',function(){(window.requestIdleCallback||setTimeout)(load,1200)});
+  addEventListener('load',function(){window.requestIdleCallback?requestIdleCallback(load,{timeout:1200}):setTimeout(load,1200)});
   addEventListener('beforeprint',load);
 })();
 </script>
