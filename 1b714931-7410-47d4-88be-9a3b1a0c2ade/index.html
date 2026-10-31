@@ -413,6 +413,9 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 })();
 </script>
 <script>
+var xl=document.querySelector('a[href="#experience"]');if(xl)xl.addEventListener('click',function(e){var t=document.getElementById('experience');if(t){e.preventDefault();t.scrollIntoView()}});
+</script>
+<script>
 (function(){
   function load(){if(!document.fonts)return;['400 1em "Newsreader Print"','italic 400 1em "Newsreader Print"','300 1em "Newsreader Print"','400 1em "Hanken Print"','500 1em "Hanken Print"'].forEach(function(f){document.fonts.load(f).catch(function(){})})}
   addEventListener('load',function(){window.requestIdleCallback?requestIdleCallback(load,{timeout:1200}):setTimeout(load,1200)});
