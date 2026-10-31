@@ -289,7 +289,7 @@ const CONFIG = {
   gyroRange: 30,          // degrees of phone tilt that reach full cape tilt (mobile, while a cape is focused)
   glowFocus: 0.8,
   starGap: [6, 15],       // seconds between shooting stars
-  defaultShown: ['herblore', 'mining', 'magic'],   // capes shown on first visit
+  defaultShown: 'all',   // capes shown on first visit: 'all', or a list of ids
   storageKey: 'cape-void:shown:v2'
 };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -547,7 +547,7 @@ function makeCape(d, i, born) {
   const c = {
     def: d, el, i,
     glowEl: el.querySelector('.glow'), flatEl: el.querySelector('.flat'), tiltEl: el.querySelector('.tilt'), sheenEl: null, flatBuilt: false, stackBuilt: false,
-    enabled: STRESS ? true : saved ? saved.includes(d.id) : CONFIG.defaultShown.includes(d.id),
+    enabled: STRESS ? true : saved ? saved.includes(d.id) : CONFIG.defaultShown === 'all' || CONFIG.defaultShown.includes(d.id),
     x: 0, y: 0, s: 0.3, r: 0, vx: 0, vy: 0, vs: 0, vr: 0,
     home: { x: 0, y: 0, s: 0.3 },
     mix: 0, op: 0, rx: 0, ry: 0, hover: false, born: born === undefined ? 0.4 + i * 0.22 : born,
