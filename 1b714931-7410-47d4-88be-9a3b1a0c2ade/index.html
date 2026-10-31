@@ -88,7 +88,7 @@ footer{padding:12vh 0 14vh;text-align:center;font:400 12px var(--sans);letter-sp
   }
 }
 
-.cord{position:fixed;top:0;right:calc(env(safe-area-inset-right,0px) + max(22px,2.4vw) - 46px);z-index:30;width:120px;height:270px;color:var(--ink);pointer-events:none}
+.cord{position:fixed;top:0;right:calc(env(safe-area-inset-right,0px) + max(22px,2.4vw) - 46px);z-index:30;width:220px;height:270px;color:var(--ink);pointer-events:none}
 .cord svg{display:block;width:100%;height:100%;overflow:visible}
 .cord-hit{pointer-events:auto;cursor:grab;touch-action:none;fill:transparent}
 .cord.drag .cord-hit{cursor:grabbing}
@@ -164,7 +164,7 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 </head>
 <body>
 <div class="cord noprint">
-  <svg viewBox="0 0 120 270" aria-hidden="true"><path class="cord-line" d="M60 0V104"/><circle class="cord-bead" cx="60" cy="113" r="6"/><circle class="cord-hit" cx="60" cy="113" r="18"/></svg>
+  <svg viewBox="0 0 220 270" aria-hidden="true"><path class="cord-line" d="M160 0V104"/><circle class="cord-bead" cx="160" cy="113" r="6"/><circle class="cord-hit" cx="160" cy="113" r="18"/></svg>
   <button class="cord-btn" type="button" aria-label="Switch between light and dark" aria-pressed="false">Light / dark</button>
 </div>
 <header class="hero">
@@ -316,7 +316,7 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
   if(!box)return;
   var svg=box.querySelector('svg'),line=box.querySelector('.cord-line'),bead=box.querySelector('.cord-bead'),hit=box.querySelector('.cord-hit'),btn=box.querySelector('.cord-btn'),
       root=document.documentElement,meta=document.querySelector('meta[name=theme-color]'),reduce=matchMedia('(prefers-reduced-motion:reduce)'),
-      N=12,REST=104,L=REST/(N-1),AX=60,pts=[],drag=false,run=false,tgt=null,dx0=0,dy0=0,travel=0,i;
+      N=12,REST=104,L=REST/(N-1),AX=160,pts=[],drag=false,run=false,tgt=null,dx0=0,dy0=0,travel=0,i;
   for(i=0;i<N;i++)pts.push({x:AX,y:i*L,px:AX,py:i*L});
   function cur(){var t=root.getAttribute('data-theme');return t||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}
   function setTheme(t){
@@ -335,16 +335,16 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
     bead.setAttribute('cx',e.x.toFixed(1));bead.setAttribute('cy',(e.y+9).toFixed(1));
     hit.setAttribute('cx',e.x.toFixed(1));hit.setAttribute('cy',(e.y+9).toFixed(1));
   }
-  function room(){var r=svg.getBoundingClientRect();return Math.max(6,Math.min(54,innerWidth-(r.left+AX)-10))}
+  function room(){var r=svg.getBoundingClientRect();return Math.max(6,Math.min(70,innerWidth-(r.left+AX)-10))}
   function step(){
-    var energy=0,k,j,a,b,dx,dy,dist,diff,wa,wb;
+    var energy=0,k,j,a,b,dx,dy,dist,diff,wa,wb,p,v,hi=AX+room(),lo=AX-130;
     for(k=1;k<N;k++){
       var p=pts[k],vx=(p.x-p.px)*.985,vy=(p.y-p.py)*.985;
       p.px=p.x;p.py=p.y;p.x+=vx;p.y+=vy+.55;energy+=Math.abs(vx)+Math.abs(vy);
     }
     for(j=0;j<10;j++){
       pts[0].x=AX;pts[0].y=0;
-      for(k=1;k<N;k++)pts[k].x=Math.max(AX-54,Math.min(AX+room(),pts[k].x));
+      for(k=1;k<N;k++){p=pts[k];if(p.x>hi){v=p.x-p.px;p.x=hi;p.px=hi+v*.35}else if(p.x<lo){v=p.x-p.px;p.x=lo;p.px=lo+v*.35}}
       if(drag&&tgt){pts[N-1].x=tgt.x;pts[N-1].y=tgt.y}
       for(k=0;k<N-1;k++){
         a=pts[k];b=pts[k+1];dx=b.x-a.x;dy=b.y-a.y;dist=Math.sqrt(dx*dx+dy*dy)||.0001;diff=(dist-L)/dist;
@@ -359,7 +359,7 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
   function kick(){if(!run){run=true;requestAnimationFrame(loop)}}
   function aim(ev){
     var r=svg.getBoundingClientRect(),x=ev.clientX-r.left-AX,y=ev.clientY-r.top-9;
-    x=Math.max(-44,Math.min(room(),x))*.9;y=Math.max(REST*.7,Math.min(REST+64,y));
+    var lim=x>=0?room():110;x=(x>=0?1:-1)*lim*Math.tanh(Math.abs(x)/lim);y=Math.max(REST*.7,Math.min(REST+64,y));
     tgt={x:AX+x,y:y};
   }
   hit.addEventListener('pointerdown',function(ev){
