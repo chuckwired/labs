@@ -173,7 +173,7 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 <header class="hero">
   <div class="nm"><b>Chuck Rice</b><span class="label">Manchester, UK</span></div>
   <h1>Staff Design Engineer</h1>
-  <p class="l">Twelve years of designing and building interfaces: design systems, React and TypeScript, and the pages people meet first.</p>
+  <p class="l">Twelve years solving business problems by designing and building systems and interfaces.</p>
   <div class="links"><a href="https://chuckwired.com"><span class="scr">Portfolio</span><span class="prt">chuckwired.com</span></a><a class="noprint" href="https://labs.chuckwired.com/">Labs</a><a class="noprint" href="#experience">Experience</a></div>
 </header>
 <main>
@@ -341,18 +341,16 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
     line.setAttribute('d',d);
     bead.setAttribute('cx',e.x.toFixed(1));bead.setAttribute('cy',e.y.toFixed(1));
   }
-  /* how far right the rope can swing before the screen edge; it bounces softly instead of sticking */
-  function room(){var r=svg.getBoundingClientRect();return Math.max(4,innerWidth-(r.left+AX)-10)}
   function step(now){
     var dt=prevT?Math.min(.04,Math.max(.004,(now-prevT)/1000)):1/60,tc=prevDt>0?dt/prevDt:1,vc=tc*Math.pow(DAMP,dt*60),ac=dt*dt,
-        hi=AX+room(),k,j,p,vx,vy,v,a,b,dx,dy,dist,diff,ox,oy,speed=0;
+        k,j,p,vx,vy,v,a,b,dx,dy,dist,diff,ox,oy,speed=0;
     prevT=now;
     for(k=1;k<N;k++){
       if(drag&&k===N-1)continue;
       p=pts[k];vx=p.x-p.ox;vy=p.y-p.oy;p.ox=p.x;p.oy=p.y;p.x+=vx*vc;p.y+=vy*vc+G*ac;
     }
     pts[0].x=AX;pts[0].y=0;
-    if(drag){p=pts[N-1];p.ox=p.x;p.oy=p.y;p.x=Math.min(tx,hi);p.y=ty}
+    if(drag){p=pts[N-1];p.ox=p.x;p.oy=p.y;p.x=tx;p.y=ty}
     for(j=0;j<ITER;j++){
       for(k=0;k<N-1;k++){
         a=pts[k];b=pts[k+1];dx=b.x-a.x;dy=b.y-a.y;dist=Math.sqrt(dx*dx+dy*dy)||1e-4;diff=(SEG-dist)/dist*.5;ox=dx*diff;oy=dy*diff;
@@ -360,7 +358,6 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
         if(!(drag&&k+1===N-1)){b.x+=ox;b.y+=oy}
       }
     }
-    for(k=1;k<N;k++){p=pts[k];if(p.x>hi){v=p.x-p.ox;p.x=hi;p.ox=hi+v*.35}}
     prevDt=dt;
     draw();
     for(k=1;k<N;k++)speed+=Math.abs(pts[k].x-pts[k].ox)+Math.abs(pts[k].y-pts[k].oy);
