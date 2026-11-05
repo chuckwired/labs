@@ -198,7 +198,7 @@ footer a:hover { color: var(--ink); }
     </div>
     <div class="mt-copy">
       <p class="mt-lede">Chuck Rice is a product designer who ships production code. These experiments are designed to deeply resonate and delight, within the confines of a lightweight static app.</p>
-      <a class="mt-more" href="made-to-be-played/direction/">Behind the design &rarr;</a>
+      <a class="mt-more" href="made-to-be-played/direction/">Behind the design</a>
     </div>
   </div>
 </header>
@@ -315,8 +315,8 @@ var LABS = [
     (l.tags || []).forEach(function (t) { tags.appendChild(el('span', '', t)); });
     info.appendChild(tags);
     var acts = el('div', 'actions');
-    var go = el('a', 'btn btn-primary', (l.cta || 'Dive in') + ' \u2192'); go.href = l.path; acts.appendChild(go);
-    if (l.notes) { var n = el('a', 'btn btn-secondary', 'Behind the design \u2192'); n.href = l.notes; acts.appendChild(n); }
+    var go = el('a', 'btn btn-primary', (l.cta || 'Dive in')); go.href = l.path; acts.appendChild(go);
+    if (l.notes) { var n = el('a', 'btn btn-secondary', 'Behind the design'); n.href = l.notes; acts.appendChild(n); }
     if (l.secret) { var hb = el('button', '', 'Hide again'); hb.type = 'button'; hb.id = 'hideSecret'; acts.appendChild(hb); }
     info.appendChild(acts);
     li.appendChild(info);
