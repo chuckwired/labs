@@ -224,6 +224,7 @@ footer a:hover { color: var(--ink); }
 var LABS = [
   {
     path: 'rs2-capes/',
+    cta: 'Suit up',
     title: 'RuneScape Capes of Accomplishment',
     blurb: 'As a kid, I spent hours fawning over digital capes you get from making unreasonable commitments to clicking stuff. Now I can just code \'em up. Who\'d have thought!?',
     tags: ['SVG', 'CSS 3D', 'Canvas', 'Made with Sonnet 5.5'],
@@ -245,6 +246,7 @@ var LABS = [
   },
   {
     path: 'windows-pipes/',
+    cta: 'Save the screen',
     title: 'Pipes',
     blurb: 'The Windows XP screensaver I could have watched for hours. Copper and cyan pipes grow, turn and fill the void.',
     tags: ['WebGL', 'Instancing', 'Made with Sonnet 5.5'],
@@ -256,6 +258,7 @@ var LABS = [
   },
   {
     path: 'birthday-dog/',
+    cta: 'Let\'s pet',
     title: 'Happy Birthday, Mama Candy',
     blurb: 'A birthday card with Otto on it. Poke him, throw his toy, blow out the candle (you can actually blow). He has a trademark awkward leg.',
     tags: ['three.js', 'WebGL', 'Made with Sonnet 5.5'],
@@ -311,7 +314,7 @@ var LABS = [
     (l.tags || []).forEach(function (t) { tags.appendChild(el('span', '', t)); });
     info.appendChild(tags);
     var acts = el('div', 'actions');
-    var go = el('a', 'btn btn-primary', 'Dive in \u2192'); go.href = l.path; acts.appendChild(go);
+    var go = el('a', 'btn btn-primary', (l.cta || 'Dive in') + ' \u2192'); go.href = l.path; acts.appendChild(go);
     if (l.notes) { var n = el('a', 'btn btn-secondary', 'Behind the design \u2192'); n.href = l.notes; acts.appendChild(n); }
     if (l.secret) { var hb = el('button', '', 'Hide again'); hb.type = 'button'; hb.id = 'hideSecret'; acts.appendChild(hb); }
     info.appendChild(acts);
