@@ -255,7 +255,7 @@ button:active { transform:scale(.97); }
   </fieldset>
 
   <fieldset>
-    <legend>Pause between triplets (seconds)</legend>
+    <legend>Pause between bursts (seconds)</legend>
     <div class="row">
       <button type="button" class="step" data-period="-0.05" aria-label="Shorter pause">&minus;</button>
       <span class="val" id="periodVal"></span>
@@ -280,7 +280,7 @@ const CONFIG = {
     off:   { label: 'Red man',          rate: 1,  lamp: 'red' },   // idle: ticks like wait (rate follows wait)
     wait:  { label: 'Wait (slow)',      rate: 1,  lamp: 'red' },
     walk:  { label: 'Green man',        rate: 10,  lamp: 'green' },
-    clear: { label: 'Flashing green (triplets)', rate: 10, burst: 3, lamp: 'green' },
+    clear: { label: 'Flashing green (bursts of five)', rate: 10, burst: 5, lamp: 'green' },
   },
   voices: {
     beep:  { label: 'Beep',  pitch: 2400, ms: 28 },
@@ -439,7 +439,7 @@ function schedule() {
     const tt = state.nextTime;
     setTimeout(() => flash(tt), Math.max(0, (tt - ctx.currentTime) * 1000));
     state.nextTime += 1 / rate;
-    const burst = CONFIG.phases[state.phase].burst;   // triplets: N quick ticks, then a gap of `pause` seconds before the next triplet
+    const burst = CONFIG.phases[state.phase].burst;   // bursts: N quick ticks, then a gap of `pause` seconds before the next burst
     if (burst && ++state.burstIdx % burst === 0) state.nextTime += Math.max(0, state.pause - 1 / rate);
   }
 }

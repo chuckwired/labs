@@ -151,24 +151,29 @@ function voiceTick(t, gain) {
   }
 }
 
-// ---- stages: what I heard at each point of the build ----
-const FINAL = { voice: 'blend', pitch: 1300, ms: 120, drop: 0.8, snap: 0.5, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8, human: 0.5, shift: -1, verb: 0.2, room: 0.5, hollow: 0.3, hollowMs: 4 };
-const STAGES = [
-  { p: { voice: 'beep', pitch: 2400, ms: 28 } },
-  { p: { voice: 'click', pitch: 3200, ms: 10 } },
-  { p: { voice: 'wood', pitch: 1300, ms: 45 } },
-  { p: { voice: 'tick', pitch: 1800, ms: 18 } },
-  { p: { voice: 'blend', pitch: 1600, ms: 30 } },
-  { p: { voice: 'blend', pitch: 1600, ms: 30, bell: 0.4 } },
-  { p: { voice: 'blend', pitch: 1300, ms: 30, bell: 0.4, hi: 1600, hiMix: 0.8 } },
-  { p: { voice: 'blend', pitch: 1300, ms: 30, bell: 0.4, hi: 1600, hiMix: 0.8, lo: 700, loMix: 0.8 } },
-  { p: { voice: 'blend', pitch: 1300, ms: 120, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8 } },
-  { p: { voice: 'blend', pitch: 1300, ms: 120, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8, human: 0.5, shift: -1.15 } },
-  { p: { voice: 'blend', pitch: 1300, ms: 120, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8, human: 0.5, shift: -1.15, verb: 0.3, hollow: 0.3 } },
-  { p: FINAL, rate: 10, ticks: 10 },
-  { p: FINAL, rate: 10, burst: 3, pause: 0.71, ticks: 9 },
-];
-let playing = -1, stopTimer = 0, onEnd = null;
+// ---- stages: what I heard at each point of the build (ids are referenced by the buttons on the page) ----
+const BASE = { voice: 'blend', pitch: 1300, ms: 120, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8 };
+const SETTLED = { ...BASE, shift: -1, verb: 0.2, room: 0.5, hollow: 0.3, hollowMs: 4 };   // the shipped sound, minus imperfection
+const FINAL = { ...SETTLED, human: 0.5 };                                                  // the shipped sound
+const STAGES = {
+  beep:      { p: { voice: 'beep', pitch: 2400, ms: 28 } },
+  click:     { p: { voice: 'click', pitch: 3200, ms: 10 } },
+  wood:      { p: { voice: 'wood', pitch: 1300, ms: 45 } },
+  tick:      { p: { voice: 'tick', pitch: 1800, ms: 18 } },
+  blend:     { p: { voice: 'blend', pitch: 1600, ms: 30 } },
+  bell:      { p: { voice: 'blend', pitch: 1600, ms: 30, bell: 0.4 } },
+  two:       { p: { voice: 'blend', pitch: 1300, ms: 30, bell: 0.4, hi: 1600, hiMix: 0.8 } },
+  three:     { p: { voice: 'blend', pitch: 1300, ms: 30, bell: 0.4, hi: 1600, hiMix: 0.8, lo: 700, loMix: 0.8 } },
+  longer:    { p: { ...BASE } },
+  down:      { p: { ...BASE, shift: -1.15 } },
+  hollow:    { p: { ...BASE, shift: -1.15, verb: 0.3, hollow: 0.3 } },
+  settled:   { p: SETTLED, rate: 10, ticks: 10 },
+  perfect:   { p: SETTLED, rate: 10, ticks: 10 },
+  imperfect: { p: FINAL, rate: 10, ticks: 10 },
+  burst:     { p: FINAL, rate: 10, burst: 5, pause: 0.71, ticks: 15 },
+};
+const JOURNEY = ['beep', 'click', 'wood', 'tick', 'blend', 'bell', 'two', 'three', 'longer', 'down', 'hollow', 'settled'];
+let playing = null, stopTimer = 0, onEnd = null;
 function stageTimes(s) {
   const rate = s.rate || 7, n = s.ticks || 8, out = []; let t = 0.05;
   for (let i = 0; i < n; i++) { out.push(t); t += 1 / rate; if (s.burst && (i + 1) % s.burst === 0) t += Math.max(0, s.pause - 1 / rate); }
@@ -177,15 +182,15 @@ function stageTimes(s) {
 function stop() {
   clearTimeout(stopTimer);
   if (state.ctx) { try { state.ctx.close(); } catch (e) {} state.ctx = null; }
-  const was = playing; playing = -1;
+  const was = playing; playing = null;
   if (onEnd) onEnd(was);
 }
-function play(i, done) {
+function play(id, done) {
   stop(); onEnd = done;
-  const s = STAGES[i]; Object.assign(state, DEFAULTS, { drift: 0 }, s.p);
+  const s = STAGES[id]; Object.assign(state, DEFAULTS, { drift: 0 }, s.p);
   ensureAudio();
   const { out, end } = stageTimes(s), t0 = state.ctx.currentTime;
   out.forEach(t => voiceTick(t0 + t, 0.8));
-  playing = i; stopTimer = setTimeout(stop, end * 1000);
+  playing = id; stopTimer = setTimeout(stop, end * 1000);
 }
-window.HKG_DEMO = { play, stop, count: STAGES.length, isPlaying: () => playing };
+window.HKG_DEMO = { play, stop, journey: JOURNEY, ids: Object.keys(STAGES), isPlaying: () => playing };
