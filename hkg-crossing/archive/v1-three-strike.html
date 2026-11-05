@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="robots" content="noindex">
+<title>Crossing · Chuck Rice Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%2347d16b'/%3E%3C/svg%3E">
+<link rel="preload" href="../../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../shared/base.css">
+<style>
+:root { color-scheme: dark; --void:#07070a; --ink:#e8e6df; --dim:#8b8a93; --line:rgba(255,255,255,.14); --green:#47d16b; --red:#ff4d3d; --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace; --serif:'Instrument Serif','Iowan Old Style',Georgia,serif; }
+body { margin:0; background:var(--void); color:var(--ink); font:13px/1.5 var(--mono); }
+main { max-width:560px; margin:0 auto; padding:calc(env(safe-area-inset-top,0px) + 72px) 16px 64px; }
+.back { position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); left:16px; font:400 11px/1 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--dim); text-decoration:none; padding:9px 12px; border:1px solid var(--line); border-radius:999px; }
+.back:hover,.back:focus-visible { color:var(--ink); border-color:rgba(255,255,255,.35); outline:none; }
+h1 { font:italic 400 clamp(40px,9vw,64px)/1 var(--serif); letter-spacing:-.02em; margin:0 0 8px; }
+p.lede { color:var(--dim); margin:0 0 32px; }
+.lamp { display:flex; align-items:center; gap:14px; margin:0 0 28px; }
+.lamp i { width:18px; height:18px; border-radius:50%; background:#222; transition:background .1s; }
+.lamp i.on { background:var(--green); }
+.lamp i.on.red { background:var(--red); }
+.lamp i.pulse { animation:none; }
+.lamp output { color:var(--dim); }
+fieldset { border:0; padding:0; margin:0 0 24px; }
+legend { padding:0; margin:0 0 10px; color:var(--dim); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
+.row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+button { font:inherit; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:999px; padding:10px 16px; min-height:44px; cursor:pointer; transition:border-color .15s, background .15s; }
+button:hover { border-color:rgba(255,255,255,.4); }
+button:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
+button[aria-pressed="true"] { background:var(--ink); color:var(--void); border-color:var(--ink); }
+button:active { transform:scale(.97); }
+.step { min-width:44px; padding:10px 0; }
+.val { min-width:9ch; text-align:center; font-variant-numeric:tabular-nums; }
+.master { font-size:15px; padding:14px 26px; }
+@media (prefers-reduced-motion: reduce) { button:active { transform:none; } }
+</style>
+</head>
+<body>
+<a class="back" href="../">&larr; Labs</a>
+<main>
+  <h1>Crossing</h1>
+  <p class="lede">The tick of a Hong Kong pedestrian crossing, from the Web Audio API. Oscillators and noise, no samples. Rough numbers for now: tune by ear.</p>
+
+  <div class="lamp" aria-live="polite"><i id="lamp"></i><output id="status">silent</output></div>
+
+  <fieldset>
+    <legend>Signal</legend>
+    <div class="row" id="modes">
+      <button type="button" class="master" id="power" aria-pressed="false">Start audio</button>
+    </div>
+    <div class="row" style="margin-top:8px" id="phases"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Voice</legend>
+    <div class="row" id="voices"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Rate (ticks / second)</legend>
+    <div class="row" id="rates"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Pitch (Hz)</legend>
+    <div class="row">
+      <button type="button" class="step" data-pitch="-100" aria-label="Lower pitch by 100 hertz">&minus;</button>
+      <span class="val" id="pitchVal"></span>
+      <button type="button" class="step" data-pitch="100" aria-label="Raise pitch by 100 hertz">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Length (ms)</legend>
+    <div class="row">
+      <button type="button" class="step" data-len="-5" aria-label="Shorter tick">&minus;</button>
+      <span class="val" id="lenVal"></span>
+      <button type="button" class="step" data-len="5" aria-label="Longer tick">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Drop (Blend: pitch fall)</legend>
+    <div class="row">
+      <button type="button" class="step" data-drop="-0.05" aria-label="Less pitch fall">&minus;</button>
+      <span class="val" id="dropVal"></span>
+      <button type="button" class="step" data-drop="0.05" aria-label="More pitch fall">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Snap (Blend: click amount)</legend>
+    <div class="row">
+      <button type="button" class="step" data-snap="-0.1" aria-label="Less snap">&minus;</button>
+      <span class="val" id="snapVal"></span>
+      <button type="button" class="step" data-snap="0.1" aria-label="More snap">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Bell (Blend: ring amount)</legend>
+    <div class="row">
+      <button type="button" class="step" data-bell="-0.1" aria-label="Less bell">&minus;</button>
+      <span class="val" id="bellVal"></span>
+      <button type="button" class="step" data-bell="0.1" aria-label="More bell">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>High strike pitch (Blend, Hz)</legend>
+    <div class="row">
+      <button type="button" class="step" data-hi="-50" aria-label="Lower high strike">&minus;</button>
+      <span class="val" id="hiVal"></span>
+      <button type="button" class="step" data-hi="50" aria-label="Raise high strike">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>High strike level (0 = off)</legend>
+    <div class="row">
+      <button type="button" class="step" data-himix="-0.1" aria-label="Quieter high strike">&minus;</button>
+      <span class="val" id="hiMixVal"></span>
+      <button type="button" class="step" data-himix="0.1" aria-label="Louder high strike">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Low strike pitch (Blend, Hz)</legend>
+    <div class="row">
+      <button type="button" class="step" data-lo="-50" aria-label="Lower low strike">&minus;</button>
+      <span class="val" id="loVal"></span>
+      <button type="button" class="step" data-lo="50" aria-label="Raise low strike">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Low strike level (0 = off)</legend>
+    <div class="row">
+      <button type="button" class="step" data-lomix="-0.1" aria-label="Quieter low strike">&minus;</button>
+      <span class="val" id="loMixVal"></span>
+      <button type="button" class="step" data-lomix="0.1" aria-label="Louder low strike">+</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Cycle</legend>
+    <div class="row"><button type="button" id="cycle" aria-pressed="false">Run full crossing</button></div>
+  </fieldset>
+</main>
+
+<script>
+'use strict';
+// Everything tunable lives here. Per-phase: ticks per second, plus a "pattern"
+// of relative loudness per tick (accent first, softer after) for the wait phase.
+const CONFIG = {
+  phases: {
+    off:   { label: 'Red man (silent)', rate: 0,  lamp: 'red' },
+    wait:  { label: 'Wait (slow)',      rate: 1,  lamp: 'red' },
+    walk:  { label: 'Green man',        rate: 7,  lamp: 'green' },
+    clear: { label: 'Flashing green',   rate: 10, lamp: 'green' },
+  },
+  voices: {
+    beep:  { label: 'Beep',  pitch: 2400, ms: 28 },
+    click: { label: 'Click', pitch: 3200, ms: 10 },
+    wood:  { label: 'Wood',  pitch: 1300, ms: 45 },
+    tick:  { label: 'Tick',  pitch: 1800, ms: 18 },
+    blend: { label: 'Blend', pitch: 1300, ms: 120, drop: 0.8, snap: 0.5, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8 },
+  },
+  cycle: [['wait', 4], ['clear', 5], ['walk', 8]], // seconds per phase
+  volume: 0.5,
+  lookahead: 0.12,   // seconds scheduled ahead
+  interval: 25,      // ms between scheduler runs
+};
+
+const state = { phase: 'off', voice: 'blend', pitch: 1300, ms: 120, drop: 0.8, snap: 0.5, bell: 0.4, hi: 1450, hiMix: 0.8, lo: 750, loMix: 0.8,
+                rates: { wait: 1, walk: 7, clear: 10 }, ctx: null, master: null, noise: null,
+                nextTime: 0, timer: 0, cycling: false, cycleTimer: 0 };
+
+const $ = (id) => document.getElementById(id);
+
+// ---------- audio ----------
+function ensureAudio() {
+  if (state.ctx) { if (state.ctx.state === 'suspended') state.ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = state.ctx = new AC({ latencyHint: 'interactive' });
+  state.master = ctx.createGain(); state.master.gain.value = CONFIG.volume;
+  const comp = ctx.createDynamicsCompressor();
+  state.master.connect(comp); comp.connect(ctx.destination);
+  const len = ctx.sampleRate * 0.1, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  state.noise = buf;
+  ctx.resume();
+}
+
+function voiceTick(t, gain) {
+  const ctx = state.ctx, dur = state.ms / 1000, f = state.pitch;
+  const env = ctx.createGain();
+  env.connect(state.master);
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.exponentialRampToValueAtTime(gain, t + 0.001);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+  if (state.voice === 'click') {
+    const src = ctx.createBufferSource(); src.buffer = state.noise;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 2.5;
+    src.connect(bp); bp.connect(env); src.start(t); src.stop(t + dur + 0.01);
+    return;
+  }
+  if (state.voice === 'blend') {
+    // wood body (sine, pitch falls by `drop`) + a short triangle overtone + bandpassed noise snap
+    const o1 = ctx.createOscillator(); o1.type = 'sine';
+    o1.frequency.setValueAtTime(f, t); o1.frequency.exponentialRampToValueAtTime(f * state.drop, t + dur);
+    o1.connect(env); o1.start(t); o1.stop(t + dur + 0.01);
+    if (state.loMix > 0) {   // third strike, deeper, same instant
+      const el = ctx.createGain(); el.connect(state.master);
+      el.gain.setValueAtTime(0.0001, t); el.gain.exponentialRampToValueAtTime(gain * state.loMix, t + 0.001);
+      el.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      const ol = ctx.createOscillator(); ol.type = 'sine';
+      ol.frequency.setValueAtTime(state.lo, t); ol.frequency.exponentialRampToValueAtTime(state.lo * state.drop, t + dur);
+      ol.connect(el); ol.start(t); ol.stop(t + dur + 0.01);
+    }
+    if (state.hiMix > 0) {   // second strike struck at the same instant, at the higher pitch
+      const eh = ctx.createGain(); eh.connect(state.master);
+      eh.gain.setValueAtTime(0.0001, t); eh.gain.exponentialRampToValueAtTime(gain * state.hiMix, t + 0.001);
+      eh.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      const oh = ctx.createOscillator(); oh.type = 'sine';
+      oh.frequency.setValueAtTime(state.hi, t); oh.frequency.exponentialRampToValueAtTime(state.hi * state.drop, t + dur);
+      oh.connect(eh); oh.start(t); oh.stop(t + dur + 0.01);
+    }
+    const e2 = ctx.createGain(); e2.connect(state.master);
+    e2.gain.setValueAtTime(gain * 0.35, t); e2.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.4);
+    const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = f * 1.5;
+    o2.connect(e2); o2.start(t); o2.stop(t + dur);
+    if (state.bell > 0) {   // inharmonic partials (bell-ish ratios), ringing a little past the body
+      [[2.76, 1.6, 0.5], [5.4, 0.9, 0.25]].forEach(([r, len, a]) => {
+        const e = ctx.createGain(); e.connect(state.master);
+        e.gain.setValueAtTime(gain * state.bell * a, t); e.gain.exponentialRampToValueAtTime(0.0001, t + dur * len);
+        const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f * r;
+        o.connect(e); o.start(t); o.stop(t + dur * len + 0.01);
+      });
+    }
+    const src = ctx.createBufferSource(); src.buffer = state.noise;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 2.2; bp.Q.value = 1.2;
+    const g = ctx.createGain(); g.gain.setValueAtTime(gain * state.snap * 1.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.006);
+    src.connect(bp); bp.connect(g); g.connect(state.master); src.start(t); src.stop(t + 0.012);
+    return;
+  }
+  const o = ctx.createOscillator();
+  o.type = state.voice === 'beep' ? 'square' : state.voice === 'wood' ? 'sine' : 'triangle';
+  o.frequency.setValueAtTime(f, t);
+  if (state.voice === 'wood') o.frequency.exponentialRampToValueAtTime(f * 0.55, t + dur);
+  if (state.voice === 'beep') {                    // square softened so it isn't harsh
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = f * 2.2;
+    o.connect(lp); lp.connect(env);
+  } else o.connect(env);
+  o.start(t); o.stop(t + dur + 0.01);
+  if (state.voice === 'wood' || state.voice === 'tick') {   // a touch of noise for the attack
+    const src = ctx.createBufferSource(); src.buffer = state.noise;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2000;
+    const g = ctx.createGain(); g.gain.setValueAtTime(gain * 0.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.004);
+    src.connect(hp); hp.connect(g); g.connect(state.master); src.start(t); src.stop(t + 0.01);
+  }
+}
+
+function schedule() {
+  const ctx = state.ctx, rate = state.phase === 'off' ? 0 : state.rates[state.phase];
+  if (!rate) { state.nextTime = 0; return; }
+  const now = ctx.currentTime;
+  if (state.nextTime < now) state.nextTime = now + 0.02;
+  while (state.nextTime < now + CONFIG.lookahead) {
+    voiceTick(state.nextTime, state.phase === 'wait' ? 0.6 : 0.8);
+    const tt = state.nextTime;
+    setTimeout(() => flash(tt), Math.max(0, (tt - ctx.currentTime) * 1000));
+    state.nextTime += 1 / rate;
+  }
+}
+
+function flash() {
+  const l = $('lamp'); l.style.opacity = '1';
+  clearTimeout(flash.t); flash.t = setTimeout(() => { l.style.opacity = '.55'; }, 40);
+}
+
+// ---------- UI ----------
+function setPhase(p) {
+  state.phase = p; state.nextTime = 0;
+  const ph = CONFIG.phases[p];
+  $('lamp').className = 'on ' + (ph.lamp === 'red' ? 'red' : '');
+  $('status').textContent = ph.label + (ph.rate ? ' · ' + state.rates[p] + '/s' : '');
+  document.querySelectorAll('#phases button').forEach(b => b.setAttribute('aria-pressed', b.dataset.phase === p));
+  renderRates();
+}
+function setVoice(v) {
+  const c = CONFIG.voices[v];
+  state.voice = v; state.pitch = c.pitch; state.ms = c.ms; state.drop = c.drop ?? 0.8; state.snap = c.snap ?? 0.5; state.bell = c.bell ?? 0.4; state.hi = c.hi ?? 1450; state.hiMix = c.hiMix ?? 0.8; state.lo = c.lo ?? 750; state.loMix = c.loMix ?? 0.8;
+  $('dropVal').textContent = state.drop.toFixed(2); $('snapVal').textContent = state.snap.toFixed(2); $('bellVal').textContent = state.bell.toFixed(2); $('hiVal').textContent = state.hi; $('hiMixVal').textContent = state.hiMix.toFixed(2); $('loVal').textContent = state.lo; $('loMixVal').textContent = state.loMix.toFixed(2);
+  document.querySelectorAll('#voices button').forEach(b => b.setAttribute('aria-pressed', b.dataset.voice === v));
+  $('pitchVal').textContent = state.pitch; $('lenVal').textContent = state.ms;
+}
+function renderRates() {
+  const box = $('rates'); box.textContent = '';
+  const p = state.phase === 'off' ? 'walk' : state.phase;
+  [['−', -1], ['+', 1]].forEach(([t, d], i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'step'; b.textContent = t;
+    b.setAttribute('aria-label', (d < 0 ? 'Slower' : 'Faster') + ' ticks');
+    b.onclick = () => { const r = state.rates[p]; state.rates[p] = Math.max(0.5, +(r + (r < 4 ? 0.5 : 1) * d).toFixed(1)); renderRates(); if (state.phase === p) setPhase(p); };
+    if (i === 1) { const v = document.createElement('span'); v.className = 'val'; v.textContent = CONFIG.phases[p].label.split(' (')[0] + ' ' + state.rates[p]; box.append(v); }
+    box.append(b);
+  });
+}
+
+function build() {
+  Object.entries(CONFIG.phases).forEach(([k, ph]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.phase = k; b.textContent = ph.label;
+    b.onclick = () => { stopCycle(); if (!state.ctx) ensureAudio(); setPhase(k); };
+    $('phases').append(b);
+  });
+  Object.entries(CONFIG.voices).forEach(([k, v]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.voice = k; b.textContent = v.label;
+    b.onclick = () => { ensureAudio(); setVoice(k); if (state.phase === 'off') setPhase('walk'); };
+    $('voices').append(b);
+  });
+  document.querySelectorAll('[data-pitch]').forEach(b => b.onclick = () => { state.pitch = Math.max(200, state.pitch + +b.dataset.pitch); $('pitchVal').textContent = state.pitch; });
+  document.querySelectorAll('[data-len]').forEach(b => b.onclick = () => { state.ms = Math.max(3, state.ms + +b.dataset.len); $('lenVal').textContent = state.ms; });
+
+  document.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => { state.drop = Math.min(1.2, Math.max(0.3, +(state.drop + +b.dataset.drop).toFixed(2))); $('dropVal').textContent = state.drop.toFixed(2); });
+  document.querySelectorAll('[data-snap]').forEach(b => b.onclick = () => { state.snap = Math.min(2, Math.max(0, +(state.snap + +b.dataset.snap).toFixed(2))); $('snapVal').textContent = state.snap.toFixed(2); });
+
+  document.querySelectorAll('[data-bell]').forEach(b => b.onclick = () => { state.bell = Math.min(2, Math.max(0, +(state.bell + +b.dataset.bell).toFixed(2))); $('bellVal').textContent = state.bell.toFixed(2); });
+
+  document.querySelectorAll('[data-hi]').forEach(b => b.onclick = () => { state.hi = Math.max(300, state.hi + +b.dataset.hi); $('hiVal').textContent = state.hi; });
+  document.querySelectorAll('[data-himix]').forEach(b => b.onclick = () => { state.hiMix = Math.min(2, Math.max(0, +(state.hiMix + +b.dataset.himix).toFixed(2))); $('hiMixVal').textContent = state.hiMix.toFixed(2); });
+
+  document.querySelectorAll('[data-lo]').forEach(b => b.onclick = () => { state.lo = Math.max(100, state.lo + +b.dataset.lo); $('loVal').textContent = state.lo; });
+  document.querySelectorAll('[data-lomix]').forEach(b => b.onclick = () => { state.loMix = Math.min(2, Math.max(0, +(state.loMix + +b.dataset.lomix).toFixed(2))); $('loMixVal').textContent = state.loMix.toFixed(2); });
+
+  $('power').onclick = () => {
+    const on = $('power').getAttribute('aria-pressed') !== 'true';
+    $('power').setAttribute('aria-pressed', on); $('power').textContent = on ? 'Stop audio' : 'Start audio';
+    if (on) { ensureAudio(); setPhase('walk'); state.timer = setInterval(schedule, CONFIG.interval); }
+    else { clearInterval(state.timer); stopCycle(); setPhase('off'); $('status').textContent = 'silent'; $('lamp').className = ''; }
+  };
+  $('cycle').onclick = () => { state.cycling ? stopCycle() : startCycle(); };
+  setVoice('blend'); setPhase('off'); $('status').textContent = 'silent'; $('lamp').className = '';
+}
+
+function startCycle() {
+  ensureAudio();
+  if ($('power').getAttribute('aria-pressed') !== 'true') $('power').click();
+  state.cycling = true; $('cycle').setAttribute('aria-pressed', true); $('cycle').textContent = 'Stop crossing';
+  let i = 0;
+  const next = () => {
+    if (!state.cycling) return;
+    const [p, secs] = CONFIG.cycle[i % CONFIG.cycle.length]; i++;
+    setPhase(p); state.cycleTimer = setTimeout(next, secs * 1000);
+  };
+  next();
+}
+function stopCycle() {
+  state.cycling = false; clearTimeout(state.cycleTimer);
+  $('cycle').setAttribute('aria-pressed', false); $('cycle').textContent = 'Run full crossing';
+}
+
+document.addEventListener('visibilitychange', () => { if (document.hidden && state.ctx) state.ctx.suspend(); else if (state.ctx && $('power').getAttribute('aria-pressed') === 'true') state.ctx.resume(); });
+
+build();
+window.__crossing = state;   // debug handle
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="description" content="How I built the tick of a Hong Kong pedestrian crossing from oscillators and noise, tuned by ear against a recording, one slider at a time.">
+<meta name="author" content="Chuck Rice">
+<link rel="canonical" href="https://labs.chuckwired.com/hkg-crossing/direction/">
+<meta property="og:site_name" content="Chuck Rice Labs">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Behind the design of HKG Crossing · Chuck Rice Labs">
+<meta property="og:description" content="How I built the tick of a Hong Kong pedestrian crossing from oscillators and noise, tuned by ear against a recording, one slider at a time.">
+<meta property="og:url" content="https://labs.chuckwired.com/hkg-crossing/direction/">
+<meta property="og:image" content="https://labs.chuckwired.com/hkg-crossing/cover.og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Behind the design of HKG Crossing","url":"https://labs.chuckwired.com/hkg-crossing/direction/","description":"How I built the tick of a Hong Kong pedestrian crossing from oscillators and noise, tuned by ear against a recording, one slider at a time.","author":{"@type":"Person","name":"Chuck Rice","url":"https://chuckwired.com"},"datePublished":"2026-11-05","isPartOf":{"@type":"WebSite","name":"Chuck Rice Labs","url":"https://labs.chuckwired.com/"},"inLanguage":"en-GB","image":"https://labs.chuckwired.com/hkg-crossing/cover.og.jpg"}</script>
+<title>Behind the design of HKG Crossing · Chuck Rice Labs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%2347d16b'/%3E%3C/svg%3E">
+<link rel="preload" href="../../shared/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../shared/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../shared/base.css">
+<link rel="stylesheet" href="../../shared/notes.css">
+<style>
+.shot { display: block; width: 100%; max-width: 420px; height: auto; margin: 22px 0 8px; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); }
+.cap { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
+@media (max-width: 560px) { .lede { font-size: 15px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top" aria-label="Primary">
+    <a href="../../">&larr; Labs</a>
+    <a href="../" aria-label="Dive in: open the HKG Crossing lab">Dive in &rarr;</a>
+  </nav>
+
+  <h1>Behind the design.</h1>
+  <p class="lede">A Hong Kong pedestrian crossing, as sound: a signal, a button, and a tick I tuned by ear until it matched a recording. The story is mostly about sliders.</p>
+  <p class="by">By <a href="https://chuckwired.com" rel="author">Chuck Rice</a> · <time datetime="2026-11-05">5 Nov 2026</time></p>
+
+  <section>
+    <div class="n">01</div>
+    <h2>Build the sound, don't sample it</h2>
+    <p>I could have recorded a crossing and looped it. I wanted every part of the tick to be something I could turn, so it is all Web Audio: sine and triangle oscillators, a burst of filtered noise for the click, and nothing downloaded. The page ships no audio file.</p>
+    <p>It also means the sound can be wrong in useful ways. When the tick was off I could say which part was off, instead of throwing the whole recording away.</p>
+    <p class="say"><b>Rule:</b> build it from what it is made of, so you can change one thing at a time.</p>
+  </section>
+
+  <section>
+    <div class="n">02</div>
+    <h2>Tuning by ear, one slider at a time</h2>
+    <p>The first version had four voices: beep, click, wood and tick. None was right, but "somewhere between wood and tick" was close, so I blended them. Then it needed to be "more bell like", so I added overtones at bell ratios. Then the real thing turned out to be a chord: 1300 Hz as the base, a higher pitch struck at the same instant, and a deeper one underneath. It ended up at 750, 1300 and 1450 Hz, 120 ms long, shifted down 1.00 semitone against my recording.</p>
+    <p>None of that was in a spec. I couldn't have told you the numbers in words, so every one got a stepper or a slider and I moved them until it sounded like the recording.</p>
+    <img class="shot" src="shots/3-tune.webp" alt="The tuning panel opened under the signal, showing the signal, transpose and voice controls" width="800" height="1000" loading="lazy">
+    <p class="cap">The tuning panel: every number I changed by ear is still in here. Open it with ?tune.</p>
+    <p class="say"><b>Rule:</b> if you can't describe a number in words, give yourself a slider.</p>
+  </section>
+
+  <section>
+    <div class="n">03</div>
+    <h2>Imperfection is the likeness</h2>
+    <p>A perfect tick sounds like a test tone. A real unit has a speaker that has seen some weather. So each tick differs a little from the last: a slow drift in pitch, a small wobble per tick, a touch of detune between the three strikes, and the length, level and timing all nudged. There is one control for the lot, default 0.5, and 0 gives you the machine-perfect version back.</p>
+    <p class="say"><b>Rule:</b> the flaws are the likeness.</p>
+  </section>
+
+  <section>
+    <div class="n">04</div>
+    <h2>The hollow box</h2>
+    <p>The recording had a hollowness mine didn't. I added reverb from a generated room (fading noise, with the highs dying first) and a very short feedback echo for the boxy, tube-like ring you get from a unit in a metal housing on a pole. A 0.5 second room felt "very very close", and once it was in, the pitch wanted to go from -1.15 to -1.00.</p>
+    <p class="say"><b>Rule:</b> the room is part of the instrument, so tune it with the room on.</p>
+  </section>
+
+  <section>
+    <div class="n">05</div>
+    <h2>A crossing, in order</h2>
+    <p>A set of buttons wasn't enough, so the page is now the thing itself: a signal and a button. Press it and the red man waits on a slow tick, then the green man comes in fast at ten ticks a second, then it flashes in triplets with a pause, then back to red. The first order I tried was wrong and I fixed it from what I remember of the real one. The pause between triplets (0.71 seconds) was the one number I didn't have to touch.</p>
+    <p>The red man never goes silent: it ticks once a second, before and after your crossing, because that is how I remember them.</p>
+    <img class="shot" src="shots/2-green.webp" alt="A pedestrian signal with the red man dark and the green man lit, a push button below and the label Cross now" width="800" height="1000" loading="lazy">
+    <p class="cap">The green phase, previewed silently with ?phase=walk (also wait and clear).</p>
+    <p class="say"><b>Rule:</b> ask the person who has heard it.</p>
+  </section>
+
+  <section>
+    <div class="n">06</div>
+    <h2>Quiet hours</h2>
+    <p>From midnight to 6am, local time, it stays silent and says so. A sound built to help one person cross is noise to everyone sleeping above the road, so at night it gets the night off. There is a Mute button for the rest of the day.</p>
+    <p>Browsers won't play sound before you touch the page, so the ticking starts the first time you press the button. After that, the red man keeps ticking between crossings. <code>?hour=2</code> pretends it's 2am if you want to see the note.</p>
+    <img class="shot" src="shots/4-quiet.webp" alt="The signal page at night with a note saying quiet hours from midnight to 6am and the crossing stays silent" width="800" height="1000" loading="lazy">
+    <p class="cap">The night note. It appears on load and when you press the button.</p>
+    <p class="say"><b>Rule:</b> a sound made to help one person is noise to everyone else, so give it a night off.</p>
+  </section>
+
+  <section>
+    <div class="n">07</div>
+    <h2>What I could and couldn't check</h2>
+    <p>I built this with Claude, which can't hear any of it. The code and timing were checked in a headless browser: the phases run in order, ticks land 0.1 seconds apart inside a triplet with a 0.71 second gap, and the red man ticks once a second. Whether it sounds right was my call by ear, against a recording, on my Mac. I haven't tested it on an iPhone yet, where audio has its own unlock rules.</p>
+    <p>It is a first pass. I want to refine it more, but it is good enough to share.</p>
+    <p class="say"><b>Rule:</b> say who made which call.</p>
+  </section>
+
+  <!--more-->
+  <nav class="more" aria-label="More write-ups"><span>Also read</span> <a href="../../windows-pipes/direction/">Pipes</a> <a href="../../ocean/direction/">Ocean</a> <a href="../../performance/">Performance</a></nav>
+  <!--/more-->
+  <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
+  <footer>&copy; 2026 Chuck Rice</footer>
+</div>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "39c03cb1af4b49529d06de9906e86289"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- Umami --><script defer src="https://cloud.umami.is/script.js" data-website-id="b14c6803-bbbf-4a7d-b818-f2e5f754aabb" data-domains="labs.chuckwired.com"></script><!-- End Umami -->
+<script defer src="/shared/engage.js"></script>
+</body>
+</html>
