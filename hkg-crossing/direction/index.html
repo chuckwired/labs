@@ -24,6 +24,17 @@
 <style>
 .shot { display: block; width: 100%; max-width: 420px; height: auto; margin: 22px 0 8px; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); }
 .cap { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
+.stages { list-style: none; margin: 18px 0 8px; padding: 0; border-top: 1px solid var(--line); }
+.stage { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.stage b { display: block; font-weight: 500; }
+.stage span { display: block; color: var(--dim); font-size: 13px; }
+.play, .playall { font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+.play { flex: none; width: 44px; height: 44px; padding: 0; font-size: 13px; }
+.playall { padding: 10px 18px; min-height: 44px; }
+.play:hover, .playall:hover { border-color: rgba(255,255,255,.4); }
+.play:focus-visible, .playall:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.play[aria-pressed="true"], .playall[aria-pressed="true"] { background: var(--ink); color: var(--void, #07070a); border-color: var(--ink); }
+.now { color: var(--dim); font-size: 13px; margin-left: 8px; }
 @media (max-width: 560px) { .lede { font-size: 15px; } }
 </style>
 </head>
@@ -66,12 +77,35 @@
   <section>
     <div class="n">04</div>
     <h2>The hollow box</h2>
-    <p>The recording had a hollowness mine didn't. I added reverb from a generated room (fading noise, with the highs dying first) and a very short feedback echo for the boxy, tube-like ring you get from a unit in a metal housing on a pole. A 0.5 second room felt "very very close", and once it was in, the pitch wanted to go from -1.15 to -1.00.</p>
+    <p>The recording had a hollowness mine didn't. I added reverb from a generated room (fading noise, with the highs dying first) and a very short feedback echo for the boxy, tube-like ring you get from a unit in a metal housing on a pole. A 0.5 second room felt "very very close", and once it was in, the pitch wanted to go from -1.15 to -1.00. On my phone the reverb was a touch strong, so the level now sits at 0.2.</p>
     <p class="say"><b>Rule:</b> the room is part of the instrument, so tune it with the room on.</p>
   </section>
 
   <section>
     <div class="n">05</div>
+    <h2>Listen to it grow</h2>
+    <p>This is the part I'd have wanted to hear, so here it is: the sound at each point of the build, played by the same synthesis code the lab uses. Headphones help. Each one plays a short run of ticks at the speed I had it at the time.</p>
+    <p><button type="button" class="playall" id="playall">Play all in order</button> <span class="now" id="now" role="status"></span></p>
+    <ol class="stages">
+    <li class="stage"><button type="button" class="play" data-i="0" aria-label="Play stage 1: Beep">&#9654;</button><div><b>1. Beep</b><span>Where I started: a softened square wave at 2400 Hz. A beep, not a tick.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="1" aria-label="Play stage 2: Click">&#9654;</button><div><b>2. Click</b><span>Filtered noise. The right rhythm, no body.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="2" aria-label="Play stage 3: Wood">&#9654;</button><div><b>3. Wood</b><span>A sine that falls in pitch. Warm, but soft at the front.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="3" aria-label="Play stage 4: Tick">&#9654;</button><div><b>4. Tick</b><span>A short triangle with a noise attack. Crisp, a bit thin.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="4" aria-label="Play stage 5: Blend">&#9654;</button><div><b>5. Blend</b><span>"Somewhere between wood and tick feels close", so I mixed the two: 1600 Hz, 30 ms.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="5" aria-label="Play stage 6: Bell">&#9654;</button><div><b>6. Bell</b><span>"More bell like": two overtones at bell ratios that ring a little longer.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="6" aria-label="Play stage 7: Two strikes">&#9654;</button><div><b>7. Two strikes</b><span>1300 Hz as the base, with 1600 Hz struck at the same instant.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="7" aria-label="Play stage 8: Three strikes">&#9654;</button><div><b>8. Three strikes</b><span>A deeper 700 Hz underneath, so a triplet of tones.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="8" aria-label="Play stage 9: Longer, retuned">&#9654;</button><div><b>9. Longer, retuned</b><span>120 ms long, the bass at 750 Hz and the high strike at 1450.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="9" aria-label="Play stage 10: Imperfection">&#9654;</button><div><b>10. Imperfection</b><span>Each tick drifts a little, and the whole thing moves down 1.15 semitones.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="10" aria-label="Play stage 11: Hollow and reverb">&#9654;</button><div><b>11. Hollow and reverb</b><span>A 0.5 second room and a short boxy echo, the 'metal box on a pole' sound.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="11" aria-label="Play stage 12: Where it is now">&#9654;</button><div><b>12. Where it is now</b><span>Down 1.00 semitone, reverb eased to 0.2, green man at 10 ticks a second.</span></div></li>
+    <li class="stage"><button type="button" class="play" data-i="12" aria-label="Play stage 13: Flashing triplets">&#9654;</button><div><b>13. Flashing triplets</b><span>The same sound in bursts of three, with a 0.71 second pause.</span></div></li>
+    </ol>
+    <p class="say"><b>Rule:</b> keep every step you can hear, so you can go back to the one that was right.</p>
+  </section>
+
+  <section>
+    <div class="n">06</div>
     <h2>A crossing, in order</h2>
     <p>A set of buttons wasn't enough, so the page is now the thing itself: a signal and a button. Press it and the red man waits on a slow tick, then the green man comes in fast at ten ticks a second, then it flashes in triplets with a pause, then back to red. The first order I tried was wrong and I fixed it from what I remember of the real one. The pause between triplets (0.71 seconds) was the one number I didn't have to touch.</p>
     <p>The red man never goes silent: it ticks once a second, before and after your crossing, because that is how I remember them.</p>
@@ -81,7 +115,7 @@
   </section>
 
   <section>
-    <div class="n">06</div>
+    <div class="n">07</div>
     <h2>Quiet hours</h2>
     <p>From midnight to 6am, local time, it stays silent and says so. A sound built to help one person cross is noise to everyone sleeping above the road, so at night it gets the night off. There is a Mute button for the rest of the day.</p>
     <p>Browsers won't play sound before you touch the page, so the ticking starts the first time you press the button. After that, the red man keeps ticking between crossings. <code>?hour=2</code> pretends it's 2am if you want to see the note.</p>
@@ -91,7 +125,7 @@
   </section>
 
   <section>
-    <div class="n">07</div>
+    <div class="n">08</div>
     <h2>What I could and couldn't check</h2>
     <p>I built this with Claude, which can't hear any of it. The code and timing were checked in a headless browser: the phases run in order, ticks land 0.1 seconds apart inside a triplet with a 0.71 second gap, and the red man ticks once a second. Whether it sounds right was my call by ear, against a recording, on my Mac. I haven't tested it on an iPhone yet, where audio has its own unlock rules.</p>
     <p>It is a first pass. I want to refine it more, but it is good enough to share.</p>
@@ -104,6 +138,26 @@
   <div class="actions"><a class="go" href="../../">&larr; Back to labs</a><a class="go" href="../">Dive in &rarr;</a></div>
   <footer>&copy; 2026 Chuck Rice</footer>
 </div>
+<script src="demo.js"></script>
+<script>
+(function () {
+  var D = window.HKG_DEMO, btns = [].slice.call(document.querySelectorAll('.play')), all = document.getElementById('playall'), now = document.getElementById('now'), chain = false, timer = 0;
+  function paint(i) { btns.forEach(function (b, k) { var on = k === i; b.setAttribute('aria-pressed', on); b.innerHTML = on ? '&#9632;' : '&#9654;'; }); }
+  function endAll() { chain = false; clearTimeout(timer); all.setAttribute('aria-pressed', 'false'); all.textContent = 'Play all in order'; now.textContent = ''; }
+  function playOne(i) { paint(i); now.textContent = chain ? 'Stage ' + (i + 1) + ' of ' + D.count : ''; D.play(i, function () { paint(-1); }); }
+  btns.forEach(function (b, i) { b.onclick = function () { if (D.isPlaying() === i) { endAll(); D.stop(); return; } endAll(); playOne(i); }; });
+  all.onclick = function () {
+    if (chain) { endAll(); D.stop(); return; }
+    chain = true; all.setAttribute('aria-pressed', 'true'); all.textContent = 'Stop';
+    var i = 0;
+    (function next() {
+      if (!chain) return;
+      if (i >= D.count) { endAll(); return; }
+      playOne(i++); timer = setTimeout(next, 2300);
+    })();
+  };
+})();
+</script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "39c03cb1af4b49529d06de9906e86289"}'></script><!-- End Cloudflare Web Analytics -->
 <!-- Umami --><script defer src="https://cloud.umami.is/script.js" data-website-id="b14c6803-bbbf-4a7d-b818-f2e5f754aabb" data-domains="labs.chuckwired.com"></script><!-- End Umami -->
 <script defer src="/shared/engage.js"></script>
