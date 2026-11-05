@@ -84,8 +84,8 @@ a.card:hover .deck, a.card:focus-visible .deck { translate: 0 -2.5%; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-top: 26px; }
 .actions button { font: inherit; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); background: none; border: 0; border-bottom: 1px solid transparent; padding: 0 0 3px; margin-left: 6px; cursor: pointer; transition: color .2s, border-color .2s; }
 .actions button:hover { color: var(--ink); border-color: rgba(255,255,255,.25); }
-/* small pill buttons: filled = primary ("Dive in"), outline = secondary ("Behind the design") */
-.actions .btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border: 1px solid var(--ink); border-radius: 999px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
+/* small buttons (2px radius): filled = primary ("Dive in"), outline = secondary ("Behind the design") */
+.actions .btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border: 1px solid var(--ink); border-radius: 2px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
 .actions .btn-primary { background: var(--ink); color: var(--bg); }
 .actions .btn-primary:hover { background: #fff; border-color: #fff; }
 .actions .btn-secondary { background: transparent; color: var(--ink); border-color: rgba(255,255,255,.28); }

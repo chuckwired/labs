@@ -70,13 +70,13 @@ p.lede { color:var(--dim); margin:0 0 32px; }
 fieldset { border:0; padding:0; margin:0 0 24px; }
 legend { padding:0; margin:0 0 10px; color:var(--dim); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
 .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-button { font:inherit; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:999px; padding:10px 16px; min-height:44px; cursor:pointer; transition:border-color .15s, background .15s; }
+button { font:inherit; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:2px; padding:10px 16px; min-height:44px; cursor:pointer; transition:border-color .15s, background .15s; }
 button:hover { border-color:rgba(255,255,255,.4); }
 button:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
 button[aria-pressed="true"] { background:var(--ink); color:var(--void); border-color:var(--ink); }
 button:active { transform:scale(.97); }
 .press:active { transform:scale(.94); }
-.step { min-width:44px; padding:10px 0; }
+.step { min-width:44px; padding:10px 0; border-radius:999px; }
 .val { min-width:9ch; text-align:center; font-variant-numeric:tabular-nums; }
 .master { font-size:15px; padding:14px 26px; }
 @media (prefers-reduced-motion: reduce) { button:active, .press:active { transform:none; } }
