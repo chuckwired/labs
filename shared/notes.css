@@ -12,9 +12,12 @@ h2 { margin: 6px 0 12px; font: italic 400 clamp(26px, 5vw, 34px)/1.1 var(--serif
 p { margin: 0 0 12px; max-width: 62ch; }
 .say { color: var(--dim); font-size: 12px; }
 .say b { color: var(--ink); font-weight: 500; }
-.actions { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 44px; }
-.go { display: inline-block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 3px; }
-.go:hover { border-color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-top: 44px; }
+/* small buttons, 2px radius: outline = secondary (back), filled .primary = the forward action (the lab's own CTA label) */
+.go { display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border: 1px solid rgba(255,255,255,.28); border-radius: 2px; color: var(--ink); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
+.go:hover { border-color: var(--ink); background: rgba(255,255,255,.07); }
+.go.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.go.primary:hover { background: #fff; border-color: #fff; }
 footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(--dim); font-size: 11px; letter-spacing: .08em; }
 @media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
