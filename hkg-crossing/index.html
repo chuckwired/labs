@@ -52,8 +52,18 @@ p.lede { color:var(--dim); margin:0 0 32px; }
 .plate { margin:0; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); text-align:center; min-height:1.4em; }
 #status { display:block; text-align:center; color:var(--dim); margin:0 0 20px; min-height:1.5em; }
 .quiet { max-width:34ch; margin:0 auto 16px; text-align:center; color:var(--dim); font-size:12px; border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
-.mute { display:block; margin:0 auto 24px; min-height:36px; padding:6px 14px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+.tools { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:0 0 24px; }
+.mute { margin:0; min-height:36px; padding:6px 14px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
 .mute[aria-pressed="true"] { background:transparent; color:var(--ink); border-color:var(--ink); }
+.real { width:min(92vw,880px); max-width:none; padding:0; border:1px solid var(--line); border-radius:12px; background:#0d0d11; color:var(--ink); }
+.real::backdrop { background:rgba(4,4,6,.82); }
+.real .bar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; }
+.real .bar b { font-weight:500; font-size:13px; }
+.real .frame { aspect-ratio:16/9; background:#000; }
+.real iframe { display:block; width:100%; height:100%; border:0; }
+.real .foot { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:12px 16px 14px; color:var(--dim); font-size:12px; }
+.real .foot a { color:var(--ink); }
+.real button:disabled { opacity:.45; cursor:default; }
 .tune { border-top:1px solid var(--line); padding-top:16px; }
 .tune summary { cursor:pointer; color:var(--dim); font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:8px 0 16px; }
 .tune summary:hover, .tune summary:focus-visible { color:var(--ink); outline:none; }
@@ -96,7 +106,7 @@ button:active { transform:scale(.97); }
   </section>
   <output id="status" aria-live="polite">Red man</output>
   <p id="quiet" class="quiet" role="status" hidden>Quiet hours, midnight to 6am: the crossing stays silent. Come back after six.</p>
-  <button type="button" class="mute" id="mute" aria-pressed="false">Mute</button>
+  <div class="tools"><button type="button" class="mute" id="mute" aria-pressed="false">Mute</button><button type="button" class="mute" id="realOpen">Hear the real one</button></div>
 
   <details class="tune"><summary>Tune the sound</summary>
 
@@ -271,6 +281,15 @@ button:active { transform:scale(.97); }
   <a class="notes" href="direction/">Behind the design</a>
 </main>
 
+<dialog class="real" id="real" aria-labelledby="realTitle">
+  <div class="bar"><b id="realTitle">The real one</b><button type="button" id="realClose">Close</button></div>
+  <div class="frame" id="realFrame"></div>
+  <div class="foot">
+    <button type="button" id="realMine" aria-pressed="false">&#9654;&nbsp; Play mine</button>
+    <span id="realNote">Pause the video first so they don't overlap.</span>
+    <span>Video: <a href="https://www.youtube.com/watch?v=sUFbdeUPjnA" target="_blank" rel="noopener">Hong Kong Traffic Lights Sound Effects | Pedestrian Crossing</a> by Traveling Erol, on YouTube.</span>
+  </div>
+</dialog>
 <script>
 'use strict';
 // Everything tunable lives here. Per-phase: ticks per second, plus a "pattern"
@@ -430,7 +449,7 @@ function quiet() { const h = localHour(); return h >= QUIET.from && h < QUIET.to
 function showQuiet() { $('quiet').hidden = !quiet(); }
 
 function schedule() {
-  const ctx = state.ctx, rate = quiet() || state.muted ? 0 : state.rates[state.phase === 'off' ? 'wait' : state.phase];
+  const ctx = state.ctx, rate = quiet() || state.muted || state.hold ? 0 : state.rates[state.phase === 'off' ? 'wait' : state.phase];
   if (!rate) { state.nextTime = 0; return; }
   const now = ctx.currentTime;
   if (state.nextTime < now) state.nextTime = now + 0.02;
@@ -584,6 +603,36 @@ build();
 { const q = new URLSearchParams(location.search);
   if (q.has('tune')) document.querySelector('.tune').open = true;
   if (CONFIG.phases[q.get('phase')]) setPhase(q.get('phase')); }   // ?phase=wait|walk|clear shows that lamp, silently (for screenshots)
+
+// ---- compare with the real thing: a lightbox with a real crossing video (loads only when opened) and a "Play mine" button
+(function () {
+  const dlg = $('real'), frame = $('realFrame'), mine = $('realMine'), on = () => $('power').getAttribute('aria-pressed') === 'true';
+  let opener = null, mineOn = false, wasOn = false;
+  function mineOff() {
+    if (!mineOn) return;
+    mineOn = false; state.hold = true; mine.setAttribute('aria-pressed', 'false'); mine.innerHTML = '&#9654;&nbsp; Play mine';
+    if (wasOn) setPhase('off'); else $('power').click();
+  }
+  $('realOpen').onclick = () => {
+    opener = $('realOpen'); endCrossing(); state.hold = true;        // park the lab's own ticks so they don't overlap the video
+    const q = quiet(); mine.disabled = q; $('realNote').textContent = q ? 'Quiet hours, midnight to 6am: mine stays silent until six.' : "Pause the video first so they don't overlap.";
+    frame.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/sUFbdeUPjnA?rel=0&autoplay=1" title="Hong Kong pedestrian crossing sound, video by Traveling Erol" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', '');
+  };
+  mine.onclick = () => {
+    if (mineOn) { mineOff(); return; }
+    wasOn = on(); ensureAudio(); if (!wasOn) $('power').click();
+    mineOn = true; state.hold = false; setPhase('walk');            // the green man tick: the sound to compare
+    mine.setAttribute('aria-pressed', 'true'); mine.innerHTML = '&#9632;&nbsp; Stop mine';
+  };
+  dlg.addEventListener('close', () => {
+    mineOff(); state.hold = false; frame.innerHTML = '';
+    if (!mineOn && on()) setPhase('off');
+    if (opener) opener.focus();
+  });
+  $('realClose').onclick = () => (dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+})();
 window.__crossing = state;   // debug handle
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "39c03cb1af4b49529d06de9906e86289"}'></script><!-- End Cloudflare Web Analytics -->

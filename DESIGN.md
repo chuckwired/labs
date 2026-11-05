@@ -39,12 +39,13 @@ Rule of thumb: if you add a text style, it must fit one row above. If it doesn't
 ## Links and buttons
 - **Nav / quiet link:** label style, `--dim`, no underline; hover goes to `--ink`.
 - **Call-to-action link** ("View source", "Behind the design", "Open the capes", "Labs" on 404): label style, `--ink`, 1px bottom border at 25% white, `padding-bottom: 3px`; hover border becomes `--ink`. At least ~26px of air above it.
+- **Button** (the index cards' "Dive in" and "Behind the design"): a small pill, label type, 36px tall, 16px side padding. Primary = filled `--ink` with `--bg` text; secondary = 1px outline (28% white, `--ink` on hover). One primary per card. Text-style CTA links (above) stay for everything else.
 - **Pill** (tags, back link on a lab): 999px radius, 1px `--line` border, label/tag type.
 - Focus: `1px solid --ink`, 3px offset, via `:focus-visible`.
 
 ## Layout
 - Content column max 1120px (index) or 720px (text pages); side gutters at least 20px plus safe-area insets.
-- Index labs: one row each. Text on the left (date, title, blurb, tags, then "Dive in" and "Behind the design" inline as call-to-action links with no indent), a single credit-card-shaped plate on the right (credit-card corner, `border-radius: 3.7% / 5.9%`, 1px `--line`, turns (max 24deg across, 13deg up/down, eased on scroll) to face the middle of the viewport, the cover over the lab's glow colours; hover lifts it). Card goes above the text under 760px.
+- Index labs: one row each. Text on the left (date, title, blurb, tags, then "Dive in" (primary button) and "Behind the design" (secondary button) side by side with no indent), a single credit-card-shaped plate on the right (credit-card corner, `border-radius: 3.7% / 5.9%`, 1px `--line`, turns (max 24deg across, 13deg up/down, eased on scroll) to face the middle of the viewport, the cover over the lab's glow colours; hover lifts it). Card goes above the text under 760px.
 - Sections on text pages: 44px apart, separated by a `--line` rule with a small numbered label.
 - Mobile: no horizontal scroll, one-row nav (drop the current-page link), type steps down per the table.
 
