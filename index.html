@@ -152,8 +152,11 @@ footer a:hover { color: var(--ink); }
 #mtbp .drip { transform-box: fill-box; transform-origin: 50% 0; opacity: 0; animation: mt-drip 9s linear infinite; }
 #mtbp .mt-copy { position: relative; z-index: 2; order: -1; }
 #mtbp .mt-lede { margin: 0; max-width: 42ch; color: var(--dim); font-size: 17px; line-height: 1.55; }
-#mtbp .mt-more { font-weight: 500; display: inline-flex; align-items: center; min-height: 36px; margin-top: 26px; padding: 0 16px; background: var(--ink); color: var(--bg); border: 1px solid var(--ink); border-radius: 2px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; transition: background .2s, border-color .2s; }   /* primary button, same as the cards' "Dive in" */
+#mtbp .mt-actions { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 26px; }
+#mtbp .mt-more { font-weight: 500; display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; background: var(--ink); color: var(--bg); border: 1px solid var(--ink); border-radius: 2px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; transition: background .2s, border-color .2s; }   /* primary button, same as the cards' "Dive in" */
 #mtbp .mt-more:hover { background: #fff; border-color: #fff; }
+#mtbp .mt-more.alt { background: transparent; color: var(--ink); border-color: rgba(255,255,255,.28); }   /* secondary: outline */
+#mtbp .mt-more.alt:hover { border-color: var(--ink); background: rgba(255,255,255,.07); }
 @media (max-width: 860px) {
   #mtbp .mt-grid { grid-template-columns: 1fr; gap: 0; padding-top: 8px; min-height: 0; }
   #mtbp .mt-copy { order: 0; }
@@ -198,7 +201,7 @@ footer a:hover { color: var(--ink); }
     </div>
     <div class="mt-copy">
       <p class="mt-lede">Chuck Rice is a product designer who ships production code. These experiments are designed to deeply resonate and delight, within the confines of a lightweight static app.</p>
-      <a class="mt-more" href="made-to-be-played/direction/">Behind the design</a>
+      <div class="mt-actions"><a class="mt-more" href="made-to-be-played/direction/">Behind the design</a><a class="mt-more alt" href="performance/">Performance</a></div>
     </div>
   </div>
 </header>
