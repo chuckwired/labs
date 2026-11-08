@@ -87,8 +87,10 @@ const SEASONS = ['winter', 'spring', 'summer', 'autumn'];
 const QS = new URLSearchParams(location.search);
 function seasonOf(m) { return m === 11 || m <= 1 ? 'winter' : m <= 4 ? 'spring' : m <= 7 ? 'summer' : 'autumn'; }
 function periodOf(h) { return h >= 6 && h < 12 ? 'morning' : h >= 12 && h < 18 ? 'afternoon' : h >= 18 ? 'evening' : 'late'; }
-function clockHour() { const v = QS.get('hour'); return v !== null && v !== '' && !isNaN(+v) ? ((+v % 24) + 24) % 24 : new Date().getHours(); }
+const OVR = { hour: null, season: null };   // set by the Time / Season preview buttons (null = follow the clock, ?hour= or ?season=)
+function clockHour() { if (OVR.hour !== null) return OVR.hour; const v = QS.get('hour'); return v !== null && v !== '' && !isNaN(+v) ? ((+v % 24) + 24) % 24 : new Date().getHours(); }
 function clockSeason() {
+  if (OVR.season !== null) return OVR.season;
   const s = QS.get('season'); if (SEASONS.includes(s)) return s;
   const m = QS.get('month'); if (m !== null && m !== '' && !isNaN(+m)) return seasonOf((((+m - 1) % 12) + 12) % 12);
   return seasonOf(new Date().getMonth());
@@ -139,15 +141,32 @@ function drawSky(ctx, sk) {
   const sky = ctx.createLinearGradient(0, 0, 0, H);
   sky.addColorStop(0, sk.top); sky.addColorStop(0.55, sk.mid); sky.addColorStop(1, sk.low);
   ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
-}
-function drawSkyline(ctx) {            // transparent canvas: the peak and the hazy far towers
-  const r = rng(7); ctx.save(); ctx.translate(0, OY - 36);
-  poly(ctx, [0, 150, 70, 96, 130, 120, 210, 70, 300, 112, 380, 84, 470, 118, 512, 100, 512, 200, 0, 200], '#a9bdb8');
-  for (let x = -10; x < W; x += 14 + Math.floor(r() * 16)) {
-    const w = 12 + Math.floor(r() * 16), h = 40 + Math.floor(r() * 90);
-    ctx.fillStyle = mix('#b6c4cc', '#9eb0bc', r()); ctx.fillRect(x, 175 - h, w, h + 60);
-    ctx.fillStyle = 'rgba(255,255,255,.18)'; for (let yy = 175 - h + 4; yy < 175; yy += 6) ctx.fillRect(x + 2, yy, w - 4, 1);
+  // sun: low and soft in the morning, high and bright in the afternoon, a big orange one setting in the evening; hidden by winter overcast
+  const sunAt = { morning: [458, 170, 9, '255,240,190', 70], afternoon: [405, 46, 8, '255,252,225', 90], evening: [478, 215, 12, '255,170,90', 110] }[state.period];
+  if (sunAt && state.season !== 'winter') {
+    const [sx, sy, r, rgbc, gr] = sunAt, gl = ctx.createRadialGradient(sx, sy, 0, sx, sy, gr);
+    gl.addColorStop(0, `rgba(${rgbc},.75)`); gl.addColorStop(1, `rgba(${rgbc},0)`); ctx.fillStyle = gl; ctx.fillRect(sx - gr, sy - gr, gr * 2, gr * 2);
+    ctx.fillStyle = `rgb(${rgbc})`; for (let yy = -r; yy <= r; yy++) { const hw = Math.round(Math.sqrt(r * r - yy * yy)); ctx.fillRect(sx - hw, sy + yy, hw * 2, 1); }
   }
+}
+function drawSkyline(ctx) {            // transparent canvas: Victoria Peak and two rows of hazy far towers (they poke above the near rooftops)
+  const r = rng(7), base = 260;
+  ctx.save();
+  // the peak and ridge, rising to the right
+  poly(ctx, [0, 232, 60, 214, 130, 196, 210, 172, 290, 142, 360, 112, 420, 86, 470, 104, 512, 124, 512, 330, 0, 330], '#a6bbb4');
+  poly(ctx, [0, 252, 90, 236, 180, 222, 270, 200, 350, 176, 430, 150, 512, 160, 512, 330, 0, 330], '#b3c6bf');
+  const row = (colA, colB, hMin, hMax, wMin, wMax, win) => {
+    for (let x = -10; x < W; ) {
+      const w = wMin + Math.floor(r() * (wMax - wMin)), h = hMin + Math.floor(r() * (hMax - hMin)), top = base - h;
+      ctx.fillStyle = mix(colA, colB, r()); ctx.fillRect(x, top, w, h + 70);
+      if (r() < 0.22) { ctx.fillRect(x + Math.floor(w / 2), top - 14, 1, 14); }                                   // antenna
+      if (r() < 0.14) poly(ctx, [x, top, x + w / 2, top - 9, x + w, top], mix(colA, colB, 0.5));                  // pitched crown
+      if (win) { ctx.fillStyle = 'rgba(255,255,255,.2)'; for (let yy = top + 4; yy < base; yy += 5) ctx.fillRect(x + 2, yy, w - 4, 1); }
+      x += w - 2 + Math.floor(r() * 5);
+    }
+  };
+  row('#bccad2', '#a9bbc6', 70, 190, 12, 24, false);       // back row: taller, hazier
+  row('#a2b3be', '#92a5b2', 40, 120, 14, 30, true);         // front row: darker, with window lines
   ctx.restore();
 }
 
@@ -253,13 +272,13 @@ function drawSign(ctx, s, glow) {
   }
 }
 
-let staticDay = null, maskSky = null, maskWorld = null;
+let backC = null, worldC = null, maskSky = null, maskWorld = null;
 const lanterns = [];
 function buildStatic() {
-  const sk = skyFor(), [c, x] = canvasOf(W, H), [sl, sx] = canvasOf(W, H), [wc, wx] = canvasOf(W, H);
-  drawSky(x, sk); drawSkyline(sx); x.drawImage(sl, 0, 0);
-  const dy = OY - 36, hz = x.createLinearGradient(0, 120 + dy, 0, 215 + dy); hz.addColorStop(0, 'rgba(0,0,0,0)'); hz.addColorStop(1, sk.low); x.fillStyle = hz; x.fillRect(0, 120 + dy, W, 95);
-  x.fillStyle = sk.low; x.fillRect(0, 215 + dy, W, H - 215 - dy);
+  const sk = skyFor(), [bc, bx] = canvasOf(W, H), [sl, sx] = canvasOf(W, H), [wc, wx] = canvasOf(W, H);
+  drawSky(bx, sk); drawSkyline(sx); bx.drawImage(sl, 0, 0);
+  const hz = bx.createLinearGradient(0, 200, 0, 330); hz.addColorStop(0, 'rgba(0,0,0,0)'); hz.addColorStop(1, sk.low); bx.fillStyle = hz; bx.fillRect(0, 200, W, 130);
+  bx.fillStyle = sk.low; bx.fillRect(0, 330, W, Math.max(0, H - 330));
   drawGround(wx);
   lit.length = 0; signs.length = 0; lanterns.length = 0;
   buildings.forEach((b, i) => drawBuilding(wx, b, i));
@@ -269,12 +288,44 @@ function buildStatic() {
     if (i % 3 !== 1) return; const col = state.season === 'winter' ? '#d8342b' : '#f0a030';
     for (let k = 0; k < 3; k++) { const u = b.u0 + 0.3 + k * (b.u1 - b.u0 - 0.95) / 2, z = CFG.kerb + GF + 4; lanterns.push({ u, z, col }); const v0 = CFG.farB + 0.04; box(wx, O, u, v0, z, u + 0.42, v0 + 0.42, z + 6.5, col); box(wx, O, u + 0.06, v0 + 0.06, z + 6.5, u + 0.36, v0 + 0.36, z + 7.6, '#e8c24a'); box(wx, O, u + 0.06, v0 + 0.06, z - 1.2, u + 0.36, v0 + 0.36, z, '#e8c24a'); box(wx, O, u + 0.19, v0 + 0.19, z - 4.5, u + 0.23, v0 + 0.23, z - 1.2, '#e8c24a'); }
   });
-  x.drawImage(wc, 0, 0);
-  staticDay = c; maskSky = sx.getImageData(0, 0, W, H).data; maskWorld = wx.getImageData(0, 0, W, H).data;
+  backC = bc; worldC = wc; maskSky = sx.getImageData(0, 0, W, H).data; maskWorld = wx.getImageData(0, 0, W, H).data;
+  buildClouds();
+}
+
+// clouds drift slowly between the sky and the street; the season sets how many and how grey
+let clouds = [];
+function cloudSprite(w, h, seed, tone) {
+  const r = rng(seed), [c, x] = canvasOf(w, h), n = 4 + Math.floor(w / 18), bl = [tone[0], tone[1], tone[2]];
+  const puffs = []; for (let i = 0; i < n; i++) puffs.push([Math.floor(10 + (w - 20) * i / (n - 1)), Math.floor(h * 0.62 - r() * h * 0.25), Math.floor(h * 0.22 + r() * h * 0.22)]);
+  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+    let hit = false, top = 99; for (const [px, py, pr] of puffs) { const d = Math.hypot(xx - px, (yy - py) * 1.15); if (d < pr) { hit = true; top = Math.min(top, py - pr); } }
+    if (!hit || yy > h * 0.78) continue;
+    x.fillStyle = yy < top + 3 ? bl[0] : yy < h * 0.6 ? bl[1] : bl[2]; x.fillRect(xx, yy, 1, 1);
+  }
+  return c;
+}
+function buildClouds() {
+  const r = rng(13), cnt = { spring: 5, summer: 6, autumn: 3, winter: 8 }[state.season], grey = state.season === 'winter';
+  const tone = grey ? ['#dfe3e8', '#c3c9d1', '#a9b1bc'] : ['#ffffff', '#eef1f4', '#d3dae2'];
+  clouds = [];
+  for (let i = 0; i < cnt; i++) { const w = 70 + Math.floor(r() * (grey ? 110 : 80)), h = 22 + Math.floor(r() * 16); clouds.push({ c: cloudSprite(w, h, 100 + i, tone), w, y: 8 + Math.floor(r() * 190), x0: r() * (W + 200), sp: 1.5 + r() * 3 }); }
+}
+function drawClouds() {
+  for (const k of clouds) { const x = ((k.x0 + state.clock * k.sp) % (W + k.w + 60)) - k.w; g.globalAlpha = 0.92; g.drawImage(k.c, Math.round(x - camX), k.y); }
+  g.globalAlpha = 1;
 }
 
 // ---------------------------------------------------------------- sprites (pre-rendered iso boxes)
-function sprite(w, h, ax, ay, fn) { const [c, x] = canvasOf(w, h); fn(x, { x: ax, y: ay }); return { c, ax, ay }; }
+function spriteRaw(w, h, ax, ay, fn) { const [c, x] = canvasOf(w, h); fn(x, { x: ax, y: ay }); return { c, ax, ay }; }   // fixed canvas, drawn in its own pixels (signal heads)
+// Iso-box sprites are drawn on a big scratch canvas and trimmed to what was actually painted, so no corner can ever be clipped.
+function sprite(w, h, ax, ay, fn) {
+  const SW = 240, SH = 220, CX = 120, CY = 150, [c, x] = canvasOf(SW, SH); fn(x, { x: CX, y: CY });
+  const d = x.getImageData(0, 0, SW, SH).data; let x0 = SW, y0 = SH, x1 = -1, y1 = -1;
+  for (let yy = 0; yy < SH; yy++) for (let xx = 0; xx < SW; xx++) if (d[(yy * SW + xx) * 4 + 3]) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; }
+  if (x1 < 0) return { c: canvasOf(1, 1)[0], ax: 0, ay: 0 };
+  const [t, tx] = canvasOf(x1 - x0 + 1, y1 - y0 + 1); tx.drawImage(c, -x0, -y0);
+  return { c: t, ax: CX - x0, ay: CY - y0 };
+}
 const GLASS = '#26333d', TYRE = '#17181c', BLACK = '#1b1c20';
 
 const VT = {
@@ -384,14 +435,14 @@ function shelterSprite() {
 // signal heads (billboards)
 function headSprite(kind, state) {
   if (kind === 'ped') {
-    return sprite(11, 20, 5, 19, (x) => {
+    return spriteRaw(11, 20, 5, 19, (x) => {
       x.fillStyle = '#16171b'; x.fillRect(0, 0, 11, 20); x.fillStyle = '#26282e'; x.fillRect(1, 1, 9, 8); x.fillRect(1, 10, 9, 9);
       const on = state === 'red', og = state === 'green';
       const fig = (px, py, c, run) => { x.fillStyle = c; x.fillRect(px + 2, py, 2, 2); x.fillRect(px + 1, py + 2, 4, 3); if (run) { x.fillRect(px, py + 5, 2, 2); x.fillRect(px + 4, py + 5, 2, 2); } else { x.fillRect(px + 1, py + 5, 1, 3); x.fillRect(px + 4, py + 5, 1, 3); } };
       fig(2, 2, on ? '#ff4d3d' : '#3a1d1b', false); fig(2, 11, og ? '#47d16b' : '#16301e', true);
     });
   }
-  return sprite(7, 22, 3, 21, (x) => {
+  return spriteRaw(7, 22, 3, 21, (x) => {
     x.fillStyle = '#16171b'; x.fillRect(0, 0, 7, 22);
     [['#ff3b30', 'red'], ['#ffb000', 'amber'], ['#38d66b', 'green']].forEach(([c, n], i) => { x.fillStyle = state === n ? c : shade(c, 0.22); x.fillRect(1, 1 + i * 7, 5, 5); });
   });
@@ -656,6 +707,8 @@ function buildEmissive() {
   lamps.forEach(([u, v]) => { const [px, py] = P(O, u, v, CFG.kerb + 27); glow(x, px, py, 22, 'rgba(255,240,190,A)', 0.55); const [gx, gy] = P(O, u, v, CFG.kerb); glow(x, gx, gy + 2, 34, 'rgba(255,236,170,A)', 0.22); });
   x.globalCompositeOperation = 'source-over';
   signs.forEach((sg) => { if (!sg.flick) drawSign(x, sg, true); });
+  // the far towers' lit windows
+  { const r2 = rng(17); x.fillStyle = 'rgba(255,224,150,.8)'; for (let i = 0, n = 0; i < 1400 && n < 260; i++) { const px = Math.floor(r2() * W), py = Math.floor(r2() * H); if (maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3] && r2() < 0.8) { x.fillRect(px, py, 1, 1); n++; } } }
   // late night: a moon and a few stars, only where the sky is actually showing
   if (state.period === 'late') {
     const open = (px, py) => px >= 0 && px < W && py >= 0 && py < H && !maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3];
@@ -737,7 +790,7 @@ function collect() {
   items.sort((a, b) => a.k - b.k);
 }
 function render() {
-  g.drawImage(staticDay, -camX, 0);
+  g.drawImage(backC, -camX, 0); drawClouds(); g.drawImage(worldC, -camX, 0);
   collect();
   for (const it of items) { if (it.a < 1) g.globalAlpha = it.a; g.drawImage(it.c, it.x - camX, it.y); if (it.a < 1) g.globalAlpha = 1; }
   drawFx();
@@ -800,7 +853,7 @@ window.HKG_SCENE = {
   pulse() { state.pulse = 0.05; },
   // debug: put a vehicle of a given type on lane li at progress s (used to check sprites)
   force(li, type, s0) { const l = lanes[li], t = VT[type], col = type === 'bus' ? { body: '#efe6c8' } : type === 'taxi' ? { body: '#c8342b' } : { body: '#e8e8ea', roof: '#c8342b' }; l.list.push({ type, len: t.len, wid: t.wid, vmax: t.vmax, s: s0, sp: 0, spr: vehSpr(type, 'dbg', col, l.dir), lane: l }); l.list.sort((a, b) => b.s - a.s); render(); },
-  setClock(hour, season) { if (hour !== undefined) QS.set('hour', hour); if (season) QS.set('season', season); if (applyClock()) rebuildClock(); else render(); },
+  setClock(hour, season) { if (hour !== undefined) OVR.hour = hour; if (season !== undefined) OVR.season = season; if (applyClock()) rebuildClock(); else render(); },
   render, warm, state, lanes, peds, CFG,
 };
 })();
