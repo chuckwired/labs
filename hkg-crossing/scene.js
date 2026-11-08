@@ -204,7 +204,7 @@ const VT = {
   car:     { len: 1.8, wid: 0.95, bh: 4.5, ch: 3.5, cab: [0.4, 1.4], vmax: 2.5, w: 5 },
   van:     { len: 2.2, wid: 1.05, bh: 9, ch: 0, vmax: 2.2, w: 2 },
   minibus: { len: 2.5, wid: 1.1, bh: 10, ch: 0, vmax: 2.7, w: 3 },
-  bus:     { len: 4.0, wid: 1.25, bh: 17, ch: 0, vmax: 1.9, w: 3 },
+  bus:     { len: 4.0, wid: 1.25, bh: 24, ch: 0, vmax: 1.9, w: 3 },
 };
 const CAR_COLS = ['#e9e9ec', '#9aa3ad', '#2a2e36', '#3a5f9a', '#7d8a74', '#a3322e', '#d8d2b8'];
 
@@ -216,11 +216,10 @@ function vehSprite(type, col, dir) {
     // body
     if (type === 'minibus') box(x, o, 0, 0, z0, t.len, t.wid, zb, { t: col.roof, l: shade(col.body, 0.82), r: shade(col.body, 0.66) });
     else if (type === 'bus') {
-      box(x, o, 0, 0, z0, t.len, t.wid, z0 + 8.5, { t: '#b3322b', l: shade('#b3322b', 0.82), r: shade('#b3322b', 0.66) });
-      box(x, o, 0, 0.03, z0 + 8.5, t.len, t.wid - 0.03, zb, { t: '#c9ccd0', l: shade(col.body, 0.82), r: shade(col.body, 0.66) });
+      box(x, o, 0, 0, z0, t.len, t.wid, z0 + 10, { t: '#b3322b', l: shade('#b3322b', 0.82), r: shade('#b3322b', 0.66) });
+      box(x, o, 0, 0.03, z0 + 10, t.len, t.wid - 0.03, zb, { t: '#c9ccd0', l: shade(col.body, 0.82), r: shade(col.body, 0.66) });
     } else box(x, o, 0, 0, z0, t.len, t.wid, zb, col.body);
     // lower body paint (bus: cream waist; van: blue stripe)
-    if (type === 'bus') faceL(x, o, 0.02, t.len - 0.02, t.wid, z0 + 2, z0 + 6.2, shade('#efe6c8', 0.82));
     if (type === 'van') faceL(x, o, 0.02, t.len - 0.02, t.wid, z0 + 2.5, z0 + 4.2, '#2f6db3');
     // glazing
     if (type === 'taxi' || type === 'car') {
@@ -237,12 +236,17 @@ function vehSprite(type, col, dir) {
     } else if (type === 'van') {
       faceR(x, o, 0.1, t.wid - 0.1, t.len, zb - 5.2, zb - 1.6, GLASS);
     } else if (type === 'bus') {
-      faceL(x, o, 0.12, t.len - 0.12, t.wid, z0 + 2.2 + 0.0, z0 + 0.0 + 6.1, '#efe6c8');
-      [[z0 + 9.5, z0 + 13.2], [z0 + 13.8, z0 + 16.2]].forEach(([a, b], k) => { if (k === 0) { faceL(x, o, 0.12, t.len - 0.12, t.wid - 0.03, a, b, GLASS); for (let u = 0.5; u < t.len - 0.2; u += 0.5) faceL(x, o, u, u + 0.06, t.wid - 0.03, a, b, '#efe6c8'); } });
-      faceL(x, o, 0.12, t.len - 0.12, t.wid, z0 + 6.2, z0 + 7.2, '#cf3a30');            // red waist band
-      faceL(x, o, 0.12, t.len - 0.12, t.wid, z0 + 2.2, z0 + 3.0, shade('#b3322b', 0.8)); // skirt
-      faceR(x, o, 0.1, t.wid - 0.1, t.len, z0 + 9.5, z0 + 15.5, GLASS);
-      faceR(x, o, 0.1, t.wid - 0.1, t.len, z0 + 3, z0 + 8.0, '#b3322b');
+      const cream = '#efe6c8', rw = t.len - 0.12;
+      faceL(x, o, 0.12, rw, t.wid, z0 + 3.2, z0 + 9.2, cream);                                   // lower deck: cream band with windows
+      faceL(x, o, 0.14, rw - 0.02, t.wid, z0 + 4.6, z0 + 8.4, GLASS);
+      faceL(x, o, 0.12, rw, t.wid - 0.03, z0 + 12, z0 + 21, GLASS);                              // upper deck: tall window band
+      for (let u = 0.5; u < t.len - 0.2; u += 0.5) { faceL(x, o, u, u + 0.06, t.wid, z0 + 4.6, z0 + 8.4, cream); faceL(x, o, u, u + 0.06, t.wid - 0.03, z0 + 12, z0 + 21, cream); }
+      faceL(x, o, 0.12, rw, t.wid, z0 + 9.2, z0 + 10.8, '#cf3a30');                              // red waist band
+      faceL(x, o, 0.12, rw, t.wid - 0.03, z0 + 21, z0 + 22.4, '#cf3a30');                         // red band under the roof line
+      faceL(x, o, 0.12, rw, t.wid, z0 + 2.2, z0 + 3.2, shade('#b3322b', 0.8));                    // skirt
+      faceR(x, o, 0.1, t.wid - 0.1, t.len, z0 + 4, z0 + 9, GLASS);                               // lower windscreen
+      faceR(x, o, 0.1, t.wid - 0.1, t.len, z0 + 12, z0 + 21, GLASS);                             // upper windscreen
+      faceR(x, o, 0.1, t.wid - 0.1, t.len, z0 + 10.2, z0 + 11.4, '#ffb347');                     // destination blind
     }
     // lights on the +u end
     const lz = type === 'bus' ? z0 + 4 : zb - 2.6;
@@ -642,6 +646,8 @@ if ('ResizeObserver' in window) new ResizeObserver(fit).observe(cv.parentElement
 window.HKG_SCENE = {
   setPhase(p) { setPhase(p); describe(); if (reduce) { warm(3); render(); } },
   pulse() { state.pulse = 0.05; },
+  // debug: put a vehicle of a given type on lane li at progress s (used to check sprites)
+  force(li, type, s0) { const l = lanes[li], t = VT[type], col = type === 'bus' ? { body: '#efe6c8' } : type === 'taxi' ? { body: '#c8342b' } : { body: '#e8e8ea', roof: '#c8342b' }; l.list.push({ type, len: t.len, wid: t.wid, vmax: t.vmax, s: s0, sp: 0, spr: vehSpr(type, 'dbg', col, l.dir), lane: l }); l.list.sort((a, b) => b.s - a.s); render(); },
   render, warm, state, lanes, peds, CFG,
 };
 })();
