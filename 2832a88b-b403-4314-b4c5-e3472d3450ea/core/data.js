@@ -1,4 +1,4 @@
-/* Shieldwall core: helpers, tunables and the definitions of troops, enemies and defences. Loaded first; shared by every mode. */
+/* Defend Humanity core: helpers, tunables and the definitions of troops, enemies and defences. Loaded first; shared by every mode. */
 'use strict';
 const $ = s => document.querySelector(s);
 const cv = $('#c'), ov = $('#ov'), ox = ov.getContext('2d');

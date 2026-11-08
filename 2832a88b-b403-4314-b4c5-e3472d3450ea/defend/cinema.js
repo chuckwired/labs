@@ -25,7 +25,7 @@ function introCinema() {
   roamOn(true); const sv = { y: 0 };
   roam.dir = () => {
     const I = G && G.intro, u = I && I.u; if (!u) return; const sc = figScale(u.key, u.scale, u.tier), h = (1.2 + (LOOK[u.key].fl || 0)) * sc;
-    if (I.t < 1.95) { roam.tx = wx(u.x); roam.ty = h * .7; roam.tz = wz(u.y); roam.yaw = .55 + I.t * .05; roam.pitch = .16; roam.dist = Math.max(6, 6 + sc * 3.5 - I.t * .9); roam.fov = 42; }
+    if (I.t < RUN) { roam.tx = wx(u.x); roam.ty = h * .7; roam.tz = wz(u.y); roam.yaw = .55 + I.t * .05; roam.pitch = .16; roam.dist = Math.max(6, 6 + sc * 3.5 - Math.min(I.t, 2.2) * .9); roam.fov = 42; }
     else { roam.tx = wx(u.x); roam.ty = h * .5; roam.tz = wz(u.y) - 3; roam.yaw = .25; roam.pitch = .3; roam.dist = 9 + sc * 2; roam.fov = 46; }
     roam.shift = 0;
   };

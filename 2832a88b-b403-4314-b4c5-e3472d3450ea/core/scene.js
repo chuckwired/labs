@@ -1,4 +1,4 @@
-/* Shieldwall core: the three.js world, figures, enemy palettes, the data centre, camera and the flat overlay. */
+/* Defend Humanity core: the three.js world, figures, enemy palettes, the data centre, camera and the flat overlay. */
 'use strict';
 /* ================= 3D scene (three.js) =================
    The simulation is flat (x across, y down toward the gate). Here it becomes a ground plane: x -> X, y -> Z, gate line at Z = 0.
@@ -181,7 +181,7 @@ function toScreen(x, y, z, out) { tV.set(x, y, z).project(camera); out[0] = (tV.
 function inst(g, mat, n) { const m = new THREE.InstancedMesh(g, mat, n); m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; m.setColorAt(0, tC.set(0xffffff)); m.instanceColor.setUsage(THREE.DynamicDrawUsage); m.count = 0; scene.add(m); return m; }
 function initScene() {
   try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: (devicePixelRatio || 1) < 2, powerPreference: 'high-performance' }); }
-  catch (e) { renderer = null; document.body.insertAdjacentHTML('beforeend', '<p style="position:absolute;z-index:9;inset:0;display:grid;place-items:center;margin:0;padding:24px;color:#8b8a93;text-align:center">Shieldwall needs WebGL, and this browser has it turned off.</p>'); return; }
+  catch (e) { renderer = null; document.body.insertAdjacentHTML('beforeend', '<p style="position:absolute;z-index:9;inset:0;display:grid;place-items:center;margin:0;padding:24px;color:#8b8a93;text-align:center">Defend Humanity needs WebGL, and this browser has it turned off.</p>'); return; }
   scene = new THREE.Scene(); scene.background = new THREE.Color(FOGC); scene.fog = new THREE.FogExp2(FOGC, .011);
   camera = new THREE.PerspectiveCamera(30, 1, .5, 260);
   scene.add(new THREE.HemisphereLight(0xb4c0e4, 0x5a4a34, 2.6));
@@ -290,9 +290,9 @@ function catPiece(i, u) {
   tE.set(-2.3 + 2.8 * r, 0, 0); tQ.setFromEuler(tE); tL.compose(tP.set(0, .85, .25), tQ, tD.set(1, 1, 1)).premultiply(M); mCatA.setMatrixAt(i, tL); mCatA.setColorAt(i, tC.set(0x8a6238)); blobAt(X, Z, 1.2 * ks / 1.5);
 }
 function drawUnits() {
-  let nU = 0, nC = 0; nB = 0; const now = performance.now();
+  let nU = 0, nC = 0; nB = 0; const now = performance.now(), introHide = !!(G && G.phase === 'intro');   // troops step aside for the new-enemy reveal
   for (let k = 0; k < U.length; k++) {
-    const u = U[k], L = LOOK[u.key];
+    const u = U[k], L = LOOK[u.key]; if (introHide && !u.side) continue;
     if (u.key === 'cat') { if (nC < 16) catPiece(nC++, u); continue; }
     if (nU >= NU - CORPSE_MAX) break;
     const tg = u.tgt, spd2 = u.vx * u.vx + u.vy * u.vy; let dx, dz;
@@ -370,9 +370,9 @@ function render(t) {
   if (G) {
     drawUnits(); drawProj();
     const seen = ++frameSeen;
-    for (const s of S) { const o = structMesh(s); o.seen = seen; o.mesh.position.set(wx(s.x), 0, wz(s.y)); o.mesh.material = s.flash > 0 ? matSF : matS; o.mesh.userData.foot.visible = tool === 'sell' && G.phase === 'build'; }
+    for (const s of S) { const o = structMesh(s); o.seen = seen; o.mesh.visible = G.phase !== 'intro'; o.mesh.position.set(wx(s.x), 0, wz(s.y)); o.mesh.material = s.flash > 0 ? matSF : matS; o.mesh.userData.foot.visible = tool === 'sell' && G.phase === 'build'; }
     for (const [id, o] of structObjs) if (o.seen !== seen) { scene.remove(o.mesh); structObjs.delete(id); }
-    banner.visible = G.phase !== 'over'; banner.position.set(wx(G.bx) + .5, 0, wz(G.by + 12)); flag.material.color.setHex(store.prestige ? 0xe0b04a : 0x3d6ab0); flag.rotation.y = Math.sin(t / 380) * .22; flag.scale.x = .9 + Math.sin(t / 190) * .08;
+    banner.visible = G.phase !== 'over' && G.phase !== 'intro'; banner.position.set(wx(G.bx) + .5, 0, wz(G.by + 12)); flag.material.color.setHex(store.prestige ? 0xe0b04a : 0x3d6ab0); flag.rotation.y = Math.sin(t / 380) * .22; flag.scale.x = .9 + Math.sin(t / 190) * .08;
     const building = !!(G.phase === 'build' && tool && tool !== 'sell'); zone.visible = zoneLine.visible = building;
     if (G.mark) { const m = G.mark; m.t -= 1 / 60; markRing.visible = m.t > 0; markRing.position.set(wx(m.x), .06, wz(m.y)); markRing.scale.set(m.r * K, m.r * K, 1); markRing.material.opacity = Math.max(0, m.t / .9) * .7; if (m.t <= 0) G.mark = null; } else markRing.visible = false;
     if (building && ghost) {

@@ -39,6 +39,7 @@ function nextIntro() {
   u.yawSet = Math.PI; u.lift = 14; I.u = u; I.k = k; I.t = 0; I.bubble = ''; I.landed = false; I.dust = 0;
   introEl.innerHTML = `<i>${ED[k].boss ? 'Boss' : 'New enemy'}</i><h3>${esc(INTRO[k][0])}</h3><p>${esc(INTRO[k][1])}</p><small>tap to skip</small>`; introEl.hidden = false; introEl.classList.remove('in'); void introEl.offsetWidth; introEl.classList.add('in');
 }
+const RUN = 3.6;   // when the new enemy gives up looking around and bolts (the drop and the "!?" are done by 1.95)
 function introTick(dt) {
   const I = G.intro; if (!I || !I.u) return; const u = I.u; I.t += dt; const t = I.t; u.anim += dt * 9; I.bubble = '';
   if (t < .6) { u.lift = Math.max(0, 14 - 40 * t * t); u.yawSet = Math.PI; }
@@ -46,14 +47,17 @@ function introTick(dt) {
     if (!I.landed) { I.landed = true; u.lift = 0; shake(2); puff(u.x, u.y, 10, '#8a8f98'); sfx.play('knock'); }
     if (t < .85) { u.lift = .35 * Math.sin((t - .6) / .25 * Math.PI); u.yawSet = Math.PI; }
     else if (t < 1.95) { I.bubble = '!?'; u.lift = Math.abs(Math.sin((t - .85) * 6.5)) * .45 * (t < 1.5 ? 1 : .4); u.yawSet = Math.PI + Math.sin(t * 8) * .5; if (!I.hit && t > .88) { I.hit = true; sfx.play('hitA', u.x); } }
-    else if (t < 2.15) { u.lift = 0; u.yawSet = Math.PI * (1 - (t - 1.95) / .2); I.bubble = '…'; }
+    else if (t < RUN - .25) {                       // it realises it is alone and looks around, suspiciously
+      const s = t - 1.95, k = clamp((RUN - .25 - t) * 5, 0, 1); u.lift = 0; u.yawSet = Math.PI + Math.sin(s * 4.6) * 1.25 * k; I.bubble = Math.floor(s * 2.2) % 2 ? '?' : '…';
+    }
+    else if (t < RUN) { u.lift = 0; u.yawSet = Math.PI * (1 - (t - (RUN - .25)) / .25); I.bubble = '…'; }
     else {
-      u.lift = 0; u.yawSet = 0; const sp = 60 + (t - 2.15) * 900; u.vy = -sp; u.vx = 0; u.y += u.vy * dt; I.dust -= dt; if (I.dust <= 0) { I.dust = .05; puff(u.x, u.y + 10, 1, '#786850'); }
+      u.lift = 0; u.yawSet = 0; const sp = 60 + (t - RUN) * 900; u.vy = -sp; u.vx = 0; u.y += u.vy * dt; I.dust -= dt; if (I.dust <= 0) { I.dust = .05; puff(u.x, u.y + 10, 1, '#786850'); }
       if (introEl.classList.contains('in')) introEl.classList.remove('in');
       if (u.y < -70) return nextIntro();
     }
   }
-  if (t > 3.8) nextIntro();
+  if (t > RUN + 2.4) nextIntro();
 }
 function endIntro() { const I = G.intro; if (I && I.u) { const n = U.indexOf(I.u); if (n >= 0) U.splice(n, 1); } G.intro = null; introEl.hidden = true; introEl.classList.remove('in'); roamOn(false); beginWave(); }
 function skipIntro() { if (G && G.phase === 'intro') { G.intro.i = G.intro.keys.length; nextIntro(); } }

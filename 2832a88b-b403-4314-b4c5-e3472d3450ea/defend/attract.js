@@ -74,7 +74,8 @@ function attractTick(now) {
   else if (ATT.fade && now - ATT.fade > 550) { ATT.fade = 0; ATT.i++; attractScene(ATT.i); attEl.classList.remove('black'); }
 }
 for (const ev of ['pointerdown', 'keydown', 'touchstart', 'wheel']) addEventListener(ev, e => {
+  if (e.target && e.target.closest && e.target.closest('#mute')) return;   // the sound button works during the film
   if (ATT.on) { e.preventDefault(); e.stopPropagation(); if (ev !== 'wheel') { sfx.unlock(); attractStop(); } } else ATT.last = performance.now();
 }, { capture: true, passive: false });
-addEventListener('click', e => { if (ATT.on) { e.preventDefault(); e.stopPropagation(); } }, true);
+addEventListener('click', e => { if (e.target && e.target.closest && e.target.closest('#mute')) return; if (ATT.on) { e.preventDefault(); e.stopPropagation(); } }, true);
 addEventListener('mousemove', () => { if (!ATT.on) ATT.last = performance.now(); }, { passive: true });

@@ -1,4 +1,4 @@
-/* Shieldwall: frame loop and boot. Loaded last. */
+/* Defend Humanity: frame loop and boot. Loaded last. */
 'use strict';
 /* ================= loop ================= */
 let last = 0;

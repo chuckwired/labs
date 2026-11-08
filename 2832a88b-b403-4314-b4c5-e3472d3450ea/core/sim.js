@@ -1,4 +1,4 @@
-/* Shieldwall core: units, spatial grid, effects, combat and the fixed-step simulation. */
+/* Defend Humanity core: units, spatial grid, effects, combat and the fixed-step simulation. */
 'use strict';
 /* ================= units ================= */
 function spawnAlly(key, x, y, tier) {

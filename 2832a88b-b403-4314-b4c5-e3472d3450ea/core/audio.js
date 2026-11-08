@@ -1,4 +1,4 @@
-/* Shieldwall core: all sound, synthesised with Web Audio (no files). */
+/* Defend Humanity core: all sound, synthesised with Web Audio (no files). */
 'use strict';
 /* ================= sound (all synthesised with Web Audio, no files) ================= */
 const sfx = (() => {
