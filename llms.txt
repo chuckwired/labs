@@ -6,7 +6,7 @@
 - [RuneScape Capes of Accomplishment](https://labs.chuckwired.com/rs2-capes/): As a kid, I spent hours fawning over digital capes you get from making unreasonable commitments to clicking stuff. Now I can just code 'em up. Who'd have thought!?
 - [Ocean](https://labs.chuckwired.com/ocean/): As realistic a sea as I could get without a single library, at golden hour or sunset. Somewhere out there, a penguin. Look for it.
 - [Pipes](https://labs.chuckwired.com/windows-pipes/): The Windows XP screensaver I could have watched for hours. Copper and cyan pipes grow, turn and fill the void.
-- [HKG Crossing](https://labs.chuckwired.com/hkg-crossing/): The tick of a Hong Kong pedestrian crossing, built from oscillators and noise. Press the button, wait for the green man, and listen to it hurry you across. It goes quiet from midnight to 6am.
+- [HKG Crossing](https://labs.chuckwired.com/hkg-crossing/): The tick of a Hong Kong pedestrian crossing, built from oscillators and noise, with a pixel-art street to watch. Press the button, wait for the green man, and join the crowd. It goes quiet from midnight to 6am.
 
 ## Behind the design
 - [RuneScape Capes of Accomplishment: behind the design](https://labs.chuckwired.com/rs2-capes/direction/)

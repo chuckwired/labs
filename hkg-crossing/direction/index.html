@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="../../shared/notes.css">
 <style>
 .shot { display: block; width: 100%; max-width: 420px; height: auto; margin: 22px 0 8px; border: 1px solid var(--line); border-radius: 7px; background: rgba(14,14,19,.6); }
+.shot.wide { max-width: 100%; }
 .cap { margin: 0 0 14px; color: var(--dim); font-size: 12px; }
 .stages { list-style: none; margin: 18px 0 8px; padding: 0; border-top: 1px solid var(--line); }
 .stage { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -129,6 +130,18 @@ dialog.real::backdrop { background: rgba(4,4,6,.82); }
 
   <section>
     <div class="n">06</div>
+    <h2>A street to watch</h2>
+    <p>A lamp and a button were enough to carry the sound for a while, but a crossing is really about the people on it. So the page is now a small isometric Hong Kong street, drawn entirely in code with no image files: tenements with air-con units and neon signs, double-decker buses, red taxis and minibuses driving on the left, and a proper crowd. Press the button and it plays out on the street. The crowd gathers at both kerbs while the car lights go amber, then red. The scramble starts on the green man, the last few hurry on the flashing green, and the traffic pulls away when it's over.</p>
+    <img class="shot wide" src="shots/5-street-day.webp" alt="An isometric pixel-art Hong Kong street in daylight with a crowd crossing a zebra crossing between stopped taxis and a bus" width="848" height="476" loading="lazy">
+    <p class="cap">The green man: cars stopped at the lights, the crowd on the zebra. Preview any moment with ?phase=wait, walk or clear.</p>
+    <p>It follows your clock, too. After 7pm the neon and the windows light up and the headlights come on, and between midnight and 6am the street goes quiet along with the sound. The sound and the picture share one set of phases, so they can't drift apart.</p>
+    <img class="shot wide" src="shots/6-street-night.webp" alt="The same street at night with lit windows, glowing neon signs, headlights and street lamps, and a crowd gathering at the kerb" width="848" height="476" loading="lazy">
+    <p class="cap">The same street at 10pm, with the crowd gathering while the lights change. Try ?hour=22.</p>
+    <p class="say"><b>Rule:</b> one clock for the sound and the picture, so they can't drift apart.</p>
+  </section>
+
+  <section>
+    <div class="n">07</div>
     <h2>Quiet hours</h2>
     <p>From midnight to 6am, local time, it stays silent and says so. A sound built to help one person cross is noise to everyone sleeping above the road, so at night it gets the night off. There is a Mute button for the rest of the day.</p>
     <p>Browsers won't play sound before you touch the page, so the ticking starts the first time you press the button. After that, the red man keeps ticking between crossings. <code>?hour=2</code> pretends it's 2am if you want to see the note.</p>
@@ -138,9 +151,9 @@ dialog.real::backdrop { background: rgba(4,4,6,.82); }
   </section>
 
   <section>
-    <div class="n">07</div>
+    <div class="n">08</div>
     <h2>What I could and couldn't check</h2>
-    <p>I built this with Claude, which can't hear any of it. The code and timing were checked in a headless browser: the phases run in order, ticks land 0.1 seconds apart inside a burst with a 0.71 second gap, and the red man ticks once a second. Whether it sounds right was my call by ear, against a recording, on my Mac, and then on my phone, where it works.</p>
+    <p>I built this with Claude, which can't hear any of it. The code and timing were checked in a headless browser: the phases run in order, ticks land 0.1 seconds apart inside a burst with a 0.71 second gap, and the red man ticks once a second. Whether it sounds right was my call by ear, against a recording, on my Mac, and then on my phone, where it works. The street was checked in a headless browser (the phases, the crowd gathering and crossing, the traffic stopping, the night look) and has not been tried on a real phone yet.</p>
     <p>It is a first pass. I want to refine it more, but it is good enough to share.</p>
     <p class="say"><b>Rule:</b> say who made which call.</p>
   </section>
