@@ -1,0 +1,286 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 190" shape-rendering="crispEdges">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1424"/><stop offset="1" stop-color="#5a3a2a"/></linearGradient><radialGradient id="g" cx="50%" cy="100%" r="60%"><stop offset="0" stop-color="#ffb03c" stop-opacity=".35"/><stop offset="1" stop-color="#ffb03c" stop-opacity="0"/></radialGradient></defs>
+<rect width="400" height="190" fill="url(#s)"/><rect width="400" height="190" fill="url(#g)"/>
+<rect y="150" width="400" height="40" fill="#3a3126"/>
+<rect y="152" width="400" height="38" fill="#6d6a72"/>
+<rect x="2" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="14" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="26" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="38" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="50" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="62" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="74" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="86" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="98" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="110" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="122" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="134" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="146" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="158" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="170" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="182" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="194" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="206" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="218" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="230" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="242" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="254" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="266" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="278" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="290" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="302" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="314" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="326" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="338" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="350" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="362" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="374" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="386" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="398" y="146" width="8" height="6" fill="#7d7a84"/>
+<rect x="170" y="146" width="60" height="44" fill="#5a3d22"/><rect x="199" y="146" width="2" height="44" fill="#1c150f"/>
+<rect x="20.0" y="110" width="2" height="4" fill="#1f3320"/>
+<rect x="18.5" y="114" width="5" height="4" fill="#1f3320"/>
+<rect x="17.0" y="118" width="8" height="4" fill="#1f3320"/>
+<rect x="15.5" y="122" width="11" height="4" fill="#1f3320"/>
+<rect x="14.0" y="126" width="14" height="4" fill="#1f3320"/>
+<rect x="12.5" y="130" width="17" height="4" fill="#1f3320"/>
+<rect x="11.0" y="134" width="20" height="4" fill="#1f3320"/>
+<rect x="9.5" y="138" width="23" height="4" fill="#1f3320"/>
+<rect x="50.0" y="110" width="2" height="4" fill="#1f3320"/>
+<rect x="48.5" y="114" width="5" height="4" fill="#1f3320"/>
+<rect x="47.0" y="118" width="8" height="4" fill="#1f3320"/>
+<rect x="45.5" y="122" width="11" height="4" fill="#1f3320"/>
+<rect x="44.0" y="126" width="14" height="4" fill="#1f3320"/>
+<rect x="42.5" y="130" width="17" height="4" fill="#1f3320"/>
+<rect x="41.0" y="134" width="20" height="4" fill="#1f3320"/>
+<rect x="39.5" y="138" width="23" height="4" fill="#1f3320"/>
+<rect x="350.0" y="110" width="2" height="4" fill="#1f3320"/>
+<rect x="348.5" y="114" width="5" height="4" fill="#1f3320"/>
+<rect x="347.0" y="118" width="8" height="4" fill="#1f3320"/>
+<rect x="345.5" y="122" width="11" height="4" fill="#1f3320"/>
+<rect x="344.0" y="126" width="14" height="4" fill="#1f3320"/>
+<rect x="342.5" y="130" width="17" height="4" fill="#1f3320"/>
+<rect x="341.0" y="134" width="20" height="4" fill="#1f3320"/>
+<rect x="339.5" y="138" width="23" height="4" fill="#1f3320"/>
+<rect x="380.0" y="110" width="2" height="4" fill="#1f3320"/>
+<rect x="378.5" y="114" width="5" height="4" fill="#1f3320"/>
+<rect x="377.0" y="118" width="8" height="4" fill="#1f3320"/>
+<rect x="375.5" y="122" width="11" height="4" fill="#1f3320"/>
+<rect x="374.0" y="126" width="14" height="4" fill="#1f3320"/>
+<rect x="372.5" y="130" width="17" height="4" fill="#1f3320"/>
+<rect x="371.0" y="134" width="20" height="4" fill="#1f3320"/>
+<rect x="369.5" y="138" width="23" height="4" fill="#1f3320"/>
+<rect x="330.0" y="110" width="2" height="4" fill="#1f3320"/>
+<rect x="328.5" y="114" width="5" height="4" fill="#1f3320"/>
+<rect x="327.0" y="118" width="8" height="4" fill="#1f3320"/>
+<rect x="325.5" y="122" width="11" height="4" fill="#1f3320"/>
+<rect x="324.0" y="126" width="14" height="4" fill="#1f3320"/>
+<rect x="322.5" y="130" width="17" height="4" fill="#1f3320"/>
+<rect x="321.0" y="134" width="20" height="4" fill="#1f3320"/>
+<rect x="319.5" y="138" width="23" height="4" fill="#1f3320"/>
+<rect x="130" y="130" width="2" height="4" fill="#2a2420"/><rect x="134" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="129" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="131" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="140" y="130" width="2" height="4" fill="#2a2420"/><rect x="144" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="139" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="141" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="150" y="130" width="2" height="4" fill="#2a2420"/><rect x="154" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="149" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="151" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="160" y="130" width="2" height="4" fill="#2a2420"/><rect x="164" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="159" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="161" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="170" y="130" width="2" height="4" fill="#2a2420"/><rect x="174" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="169" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="171" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="180" y="130" width="2" height="4" fill="#2a2420"/><rect x="184" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="179" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="181" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="190" y="130" width="2" height="4" fill="#2a2420"/><rect x="194" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="189" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="191" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="200" y="130" width="2" height="4" fill="#2a2420"/><rect x="204" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="199" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="201" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="210" y="130" width="2" height="4" fill="#2a2420"/><rect x="214" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="209" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="211" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="220" y="130" width="2" height="4" fill="#2a2420"/><rect x="224" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="219" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="221" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="230" y="130" width="2" height="4" fill="#2a2420"/><rect x="234" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="229" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="231" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="240" y="130" width="2" height="4" fill="#2a2420"/><rect x="244" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="239" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="241" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="250" y="130" width="2" height="4" fill="#2a2420"/><rect x="254" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="249" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="251" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="260" y="130" width="2" height="4" fill="#2a2420"/><rect x="264" y="130" width="2" height="4" fill="#2a2420"/>
+<rect x="259" y="124" width="8" height="6" fill="#3d6ab0"/><rect x="261" y="120" width="4" height="4" fill="#9aa4b2"/>
+<rect x="128" y="139" width="2" height="4" fill="#2a2420"/><rect x="132" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="127" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="129" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="138" y="139" width="2" height="4" fill="#2a2420"/><rect x="142" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="137" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="139" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="148" y="139" width="2" height="4" fill="#2a2420"/><rect x="152" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="147" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="149" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="158" y="139" width="2" height="4" fill="#2a2420"/><rect x="162" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="157" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="159" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="168" y="139" width="2" height="4" fill="#2a2420"/><rect x="172" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="167" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="169" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="178" y="139" width="2" height="4" fill="#2a2420"/><rect x="182" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="177" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="179" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="188" y="139" width="2" height="4" fill="#2a2420"/><rect x="192" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="187" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="189" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="198" y="139" width="2" height="4" fill="#2a2420"/><rect x="202" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="197" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="199" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="208" y="139" width="2" height="4" fill="#2a2420"/><rect x="212" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="207" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="209" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="218" y="139" width="2" height="4" fill="#2a2420"/><rect x="222" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="217" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="219" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="228" y="139" width="2" height="4" fill="#2a2420"/><rect x="232" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="227" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="229" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="238" y="139" width="2" height="4" fill="#2a2420"/><rect x="242" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="237" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="239" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="248" y="139" width="2" height="4" fill="#2a2420"/><rect x="252" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="247" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="249" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="258" y="139" width="2" height="4" fill="#2a2420"/><rect x="262" y="139" width="2" height="4" fill="#2a2420"/>
+<rect x="257" y="133" width="8" height="6" fill="#3d6ab0"/><rect x="259" y="129" width="4" height="4" fill="#9aa4b2"/>
+<rect x="126" y="148" width="2" height="4" fill="#2a2420"/><rect x="130" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="125" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="127" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="136" y="148" width="2" height="4" fill="#2a2420"/><rect x="140" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="135" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="137" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="146" y="148" width="2" height="4" fill="#2a2420"/><rect x="150" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="145" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="147" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="156" y="148" width="2" height="4" fill="#2a2420"/><rect x="160" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="155" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="157" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="166" y="148" width="2" height="4" fill="#2a2420"/><rect x="170" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="165" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="167" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="176" y="148" width="2" height="4" fill="#2a2420"/><rect x="180" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="175" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="177" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="186" y="148" width="2" height="4" fill="#2a2420"/><rect x="190" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="185" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="187" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="196" y="148" width="2" height="4" fill="#2a2420"/><rect x="200" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="195" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="197" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="206" y="148" width="2" height="4" fill="#2a2420"/><rect x="210" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="205" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="207" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="216" y="148" width="2" height="4" fill="#2a2420"/><rect x="220" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="215" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="217" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="226" y="148" width="2" height="4" fill="#2a2420"/><rect x="230" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="225" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="227" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="236" y="148" width="2" height="4" fill="#2a2420"/><rect x="240" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="235" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="237" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="246" y="148" width="2" height="4" fill="#2a2420"/><rect x="250" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="245" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="247" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="256" y="148" width="2" height="4" fill="#2a2420"/><rect x="260" y="148" width="2" height="4" fill="#2a2420"/>
+<rect x="255" y="142" width="8" height="6" fill="#3d6ab0"/><rect x="257" y="138" width="4" height="4" fill="#9aa4b2"/>
+<rect x="128" y="76" width="2" height="4" fill="#2a2420"/><rect x="132" y="76" width="2" height="4" fill="#2a2420"/>
+<rect x="127" y="70" width="8" height="6" fill="#8a3a2c"/><rect x="129" y="66" width="4" height="4" fill="#7da35a"/>
+<rect x="60" y="88" width="2" height="4" fill="#2a2420"/><rect x="64" y="88" width="2" height="4" fill="#2a2420"/>
+<rect x="59" y="82" width="8" height="6" fill="#8a3a2c"/><rect x="61" y="78" width="4" height="4" fill="#7da35a"/>
+<rect x="253" y="57" width="2" height="4" fill="#2a2420"/><rect x="257" y="57" width="2" height="4" fill="#2a2420"/>
+<rect x="252" y="51" width="8" height="6" fill="#8a3a2c"/><rect x="254" y="47" width="4" height="4" fill="#7da35a"/>
+<rect x="54" y="46" width="2" height="4" fill="#2a2420"/><rect x="58" y="46" width="2" height="4" fill="#2a2420"/>
+<rect x="53" y="40" width="8" height="6" fill="#8a3a2c"/><rect x="55" y="36" width="4" height="4" fill="#7da35a"/>
+<rect x="18" y="89" width="2" height="4" fill="#2a2420"/><rect x="22" y="89" width="2" height="4" fill="#2a2420"/>
+<rect x="17" y="83" width="8" height="6" fill="#8a3a2c"/><rect x="19" y="79" width="4" height="4" fill="#7da35a"/>
+<rect x="289" y="75" width="2" height="4" fill="#2a2420"/><rect x="293" y="75" width="2" height="4" fill="#2a2420"/>
+<rect x="288" y="69" width="8" height="6" fill="#8a3a2c"/><rect x="290" y="65" width="4" height="4" fill="#7da35a"/>
+<rect x="38" y="66" width="2" height="4" fill="#2a2420"/><rect x="42" y="66" width="2" height="4" fill="#2a2420"/>
+<rect x="37" y="60" width="8" height="6" fill="#8a3a2c"/><rect x="39" y="56" width="4" height="4" fill="#7da35a"/>
+<rect x="274" y="106" width="2" height="4" fill="#2a2420"/><rect x="278" y="106" width="2" height="4" fill="#2a2420"/>
+<rect x="273" y="100" width="8" height="6" fill="#8a3a2c"/><rect x="275" y="96" width="4" height="4" fill="#7da35a"/>
+<rect x="192" y="73" width="2" height="4" fill="#2a2420"/><rect x="196" y="73" width="2" height="4" fill="#2a2420"/>
+<rect x="191" y="67" width="8" height="6" fill="#8a3a2c"/><rect x="193" y="63" width="4" height="4" fill="#7da35a"/>
+<rect x="96" y="51" width="2" height="4" fill="#2a2420"/><rect x="100" y="51" width="2" height="4" fill="#2a2420"/>
+<rect x="95" y="45" width="8" height="6" fill="#8a3a2c"/><rect x="97" y="41" width="4" height="4" fill="#7da35a"/>
+<rect x="142" y="65" width="2" height="4" fill="#2a2420"/><rect x="146" y="65" width="2" height="4" fill="#2a2420"/>
+<rect x="141" y="59" width="8" height="6" fill="#8a3a2c"/><rect x="143" y="55" width="4" height="4" fill="#7da35a"/>
+<rect x="21" y="71" width="2" height="4" fill="#2a2420"/><rect x="25" y="71" width="2" height="4" fill="#2a2420"/>
+<rect x="20" y="65" width="8" height="6" fill="#8a3a2c"/><rect x="22" y="61" width="4" height="4" fill="#7da35a"/>
+<rect x="147" y="62" width="2" height="4" fill="#2a2420"/><rect x="151" y="62" width="2" height="4" fill="#2a2420"/>
+<rect x="146" y="56" width="8" height="6" fill="#8a3a2c"/><rect x="148" y="52" width="4" height="4" fill="#7da35a"/>
+<rect x="92" y="77" width="2" height="4" fill="#2a2420"/><rect x="96" y="77" width="2" height="4" fill="#2a2420"/>
+<rect x="91" y="71" width="8" height="6" fill="#8a3a2c"/><rect x="93" y="67" width="4" height="4" fill="#7da35a"/>
+<rect x="156" y="85" width="2" height="4" fill="#2a2420"/><rect x="160" y="85" width="2" height="4" fill="#2a2420"/>
+<rect x="155" y="79" width="8" height="6" fill="#8a3a2c"/><rect x="157" y="75" width="4" height="4" fill="#7da35a"/>
+<rect x="52" y="81" width="2" height="4" fill="#2a2420"/><rect x="56" y="81" width="2" height="4" fill="#2a2420"/>
+<rect x="51" y="75" width="8" height="6" fill="#8a3a2c"/><rect x="53" y="71" width="4" height="4" fill="#7da35a"/>
+<rect x="351" y="87" width="2" height="4" fill="#2a2420"/><rect x="355" y="87" width="2" height="4" fill="#2a2420"/>
+<rect x="350" y="81" width="8" height="6" fill="#8a3a2c"/><rect x="352" y="77" width="4" height="4" fill="#7da35a"/>
+<rect x="267" y="69" width="2" height="4" fill="#2a2420"/><rect x="271" y="69" width="2" height="4" fill="#2a2420"/>
+<rect x="266" y="63" width="8" height="6" fill="#8a3a2c"/><rect x="268" y="59" width="4" height="4" fill="#7da35a"/>
+<rect x="99" y="69" width="2" height="4" fill="#2a2420"/><rect x="103" y="69" width="2" height="4" fill="#2a2420"/>
+<rect x="98" y="63" width="8" height="6" fill="#8a3a2c"/><rect x="100" y="59" width="4" height="4" fill="#7da35a"/>
+<rect x="250" y="73" width="2" height="4" fill="#2a2420"/><rect x="254" y="73" width="2" height="4" fill="#2a2420"/>
+<rect x="249" y="67" width="8" height="6" fill="#8a3a2c"/><rect x="251" y="63" width="4" height="4" fill="#7da35a"/>
+<rect x="53" y="108" width="2" height="4" fill="#2a2420"/><rect x="57" y="108" width="2" height="4" fill="#2a2420"/>
+<rect x="52" y="102" width="8" height="6" fill="#8a3a2c"/><rect x="54" y="98" width="4" height="4" fill="#7da35a"/>
+<rect x="161" y="38" width="2" height="4" fill="#2a2420"/><rect x="165" y="38" width="2" height="4" fill="#2a2420"/>
+<rect x="160" y="32" width="8" height="6" fill="#8a3a2c"/><rect x="162" y="28" width="4" height="4" fill="#7da35a"/>
+<rect x="157" y="77" width="2" height="4" fill="#2a2420"/><rect x="161" y="77" width="2" height="4" fill="#2a2420"/>
+<rect x="156" y="71" width="8" height="6" fill="#8a3a2c"/><rect x="158" y="67" width="4" height="4" fill="#7da35a"/>
+<rect x="268" y="62" width="2" height="4" fill="#2a2420"/><rect x="272" y="62" width="2" height="4" fill="#2a2420"/>
+<rect x="267" y="56" width="8" height="6" fill="#8a3a2c"/><rect x="269" y="52" width="4" height="4" fill="#7da35a"/>
+<rect x="219" y="92" width="2" height="4" fill="#2a2420"/><rect x="223" y="92" width="2" height="4" fill="#2a2420"/>
+<rect x="218" y="86" width="8" height="6" fill="#8a3a2c"/><rect x="220" y="82" width="4" height="4" fill="#7da35a"/>
+<rect x="314" y="74" width="2" height="4" fill="#2a2420"/><rect x="318" y="74" width="2" height="4" fill="#2a2420"/>
+<rect x="313" y="68" width="8" height="6" fill="#8a3a2c"/><rect x="315" y="64" width="4" height="4" fill="#7da35a"/>
+<rect x="228" y="95" width="2" height="4" fill="#2a2420"/><rect x="232" y="95" width="2" height="4" fill="#2a2420"/>
+<rect x="227" y="89" width="8" height="6" fill="#8a3a2c"/><rect x="229" y="85" width="4" height="4" fill="#7da35a"/>
+<rect x="90" y="67" width="2" height="4" fill="#2a2420"/><rect x="94" y="67" width="2" height="4" fill="#2a2420"/>
+<rect x="89" y="61" width="8" height="6" fill="#8a3a2c"/><rect x="91" y="57" width="4" height="4" fill="#7da35a"/>
+<rect x="164" y="71" width="2" height="4" fill="#2a2420"/><rect x="168" y="71" width="2" height="4" fill="#2a2420"/>
+<rect x="163" y="65" width="8" height="6" fill="#8a3a2c"/><rect x="165" y="61" width="4" height="4" fill="#7da35a"/>
+<rect x="30" y="48" width="2" height="4" fill="#2a2420"/><rect x="34" y="48" width="2" height="4" fill="#2a2420"/>
+<rect x="29" y="42" width="8" height="6" fill="#8a3a2c"/><rect x="31" y="38" width="4" height="4" fill="#7da35a"/>
+<rect x="31" y="97" width="2" height="4" fill="#2a2420"/><rect x="35" y="97" width="2" height="4" fill="#2a2420"/>
+<rect x="30" y="91" width="8" height="6" fill="#8a3a2c"/><rect x="32" y="87" width="4" height="4" fill="#7da35a"/>
+<rect x="328" y="73" width="2" height="4" fill="#2a2420"/><rect x="332" y="73" width="2" height="4" fill="#2a2420"/>
+<rect x="327" y="67" width="8" height="6" fill="#8a3a2c"/><rect x="329" y="63" width="4" height="4" fill="#7da35a"/>
+<rect x="273" y="106" width="2" height="4" fill="#2a2420"/><rect x="277" y="106" width="2" height="4" fill="#2a2420"/>
+<rect x="272" y="100" width="8" height="6" fill="#8a3a2c"/><rect x="274" y="96" width="4" height="4" fill="#7da35a"/>
+<rect x="339" y="98" width="2" height="4" fill="#2a2420"/><rect x="343" y="98" width="2" height="4" fill="#2a2420"/>
+<rect x="338" y="92" width="8" height="6" fill="#8a3a2c"/><rect x="340" y="88" width="4" height="4" fill="#7da35a"/>
+<rect x="366" y="81" width="2" height="4" fill="#2a2420"/><rect x="370" y="81" width="2" height="4" fill="#2a2420"/>
+<rect x="365" y="75" width="8" height="6" fill="#8a3a2c"/><rect x="367" y="71" width="4" height="4" fill="#7da35a"/>
+<rect x="82" y="63" width="2" height="4" fill="#2a2420"/><rect x="86" y="63" width="2" height="4" fill="#2a2420"/>
+<rect x="81" y="57" width="8" height="6" fill="#8a3a2c"/><rect x="83" y="53" width="4" height="4" fill="#7da35a"/>
+<rect x="42" y="90" width="2" height="4" fill="#2a2420"/><rect x="46" y="90" width="2" height="4" fill="#2a2420"/>
+<rect x="41" y="84" width="8" height="6" fill="#8a3a2c"/><rect x="43" y="80" width="4" height="4" fill="#7da35a"/>
+<rect x="111" y="94" width="2" height="4" fill="#2a2420"/><rect x="115" y="94" width="2" height="4" fill="#2a2420"/>
+<rect x="110" y="88" width="8" height="6" fill="#8a3a2c"/><rect x="112" y="84" width="4" height="4" fill="#7da35a"/>
+<rect x="149" y="61" width="2" height="4" fill="#2a2420"/><rect x="153" y="61" width="2" height="4" fill="#2a2420"/>
+<rect x="148" y="55" width="8" height="6" fill="#8a3a2c"/><rect x="150" y="51" width="4" height="4" fill="#7da35a"/>
+<rect x="190" y="93" width="2" height="4" fill="#2a2420"/><rect x="194" y="93" width="2" height="4" fill="#2a2420"/>
+<rect x="189" y="87" width="8" height="6" fill="#8a3a2c"/><rect x="191" y="83" width="4" height="4" fill="#7da35a"/>
+<rect x="390" y="79" width="2" height="4" fill="#2a2420"/><rect x="394" y="79" width="2" height="4" fill="#2a2420"/>
+<rect x="389" y="73" width="8" height="6" fill="#8a3a2c"/><rect x="391" y="69" width="4" height="4" fill="#7da35a"/>
+<rect x="332" y="63" width="2" height="4" fill="#2a2420"/><rect x="336" y="63" width="2" height="4" fill="#2a2420"/>
+<rect x="331" y="57" width="8" height="6" fill="#8a3a2c"/><rect x="333" y="53" width="4" height="4" fill="#7da35a"/>
+<rect x="173" y="50" width="2" height="4" fill="#2a2420"/><rect x="177" y="50" width="2" height="4" fill="#2a2420"/>
+<rect x="172" y="44" width="8" height="6" fill="#8a3a2c"/><rect x="174" y="40" width="4" height="4" fill="#7da35a"/>
+<rect x="39" y="67" width="2" height="4" fill="#2a2420"/><rect x="43" y="67" width="2" height="4" fill="#2a2420"/>
+<rect x="38" y="61" width="8" height="6" fill="#8a3a2c"/><rect x="40" y="57" width="4" height="4" fill="#7da35a"/>
+<rect x="150" y="68" width="2" height="4" fill="#2a2420"/><rect x="154" y="68" width="2" height="4" fill="#2a2420"/>
+<rect x="149" y="62" width="8" height="6" fill="#8a3a2c"/><rect x="151" y="58" width="4" height="4" fill="#7da35a"/>
+<rect x="70" y="80" width="2" height="4" fill="#2a2420"/><rect x="74" y="80" width="2" height="4" fill="#2a2420"/>
+<rect x="69" y="74" width="8" height="6" fill="#8a3a2c"/><rect x="71" y="70" width="4" height="4" fill="#7da35a"/>
+<rect x="98" y="75" width="2" height="4" fill="#2a2420"/><rect x="102" y="75" width="2" height="4" fill="#2a2420"/>
+<rect x="97" y="69" width="8" height="6" fill="#8a3a2c"/><rect x="99" y="65" width="4" height="4" fill="#7da35a"/>
+<rect x="243" y="41" width="2" height="4" fill="#2a2420"/><rect x="247" y="41" width="2" height="4" fill="#2a2420"/>
+<rect x="242" y="35" width="8" height="6" fill="#8a3a2c"/><rect x="244" y="31" width="4" height="4" fill="#7da35a"/>
+<rect x="29" y="83" width="2" height="4" fill="#2a2420"/><rect x="33" y="83" width="2" height="4" fill="#2a2420"/>
+<rect x="28" y="77" width="8" height="6" fill="#8a3a2c"/><rect x="30" y="73" width="4" height="4" fill="#7da35a"/>
+<rect x="365" y="48" width="2" height="4" fill="#2a2420"/><rect x="369" y="48" width="2" height="4" fill="#2a2420"/>
+<rect x="364" y="42" width="8" height="6" fill="#8a3a2c"/><rect x="366" y="38" width="4" height="4" fill="#7da35a"/>
+<rect x="154" y="79" width="2" height="4" fill="#2a2420"/><rect x="158" y="79" width="2" height="4" fill="#2a2420"/>
+<rect x="153" y="73" width="8" height="6" fill="#8a3a2c"/><rect x="155" y="69" width="4" height="4" fill="#7da35a"/>
+<rect x="17" y="79" width="2" height="4" fill="#2a2420"/><rect x="21" y="79" width="2" height="4" fill="#2a2420"/>
+<rect x="16" y="73" width="8" height="6" fill="#8a3a2c"/><rect x="18" y="69" width="4" height="4" fill="#7da35a"/>
+<rect x="155" y="79" width="2" height="4" fill="#2a2420"/><rect x="159" y="79" width="2" height="4" fill="#2a2420"/>
+<rect x="154" y="73" width="8" height="6" fill="#8a3a2c"/><rect x="156" y="69" width="4" height="4" fill="#7da35a"/>
+<rect x="86" y="90" width="2" height="4" fill="#2a2420"/><rect x="90" y="90" width="2" height="4" fill="#2a2420"/>
+<rect x="85" y="84" width="8" height="6" fill="#8a3a2c"/><rect x="87" y="80" width="4" height="4" fill="#7da35a"/>
+<rect x="325" y="47" width="2" height="4" fill="#2a2420"/><rect x="329" y="47" width="2" height="4" fill="#2a2420"/>
+<rect x="324" y="41" width="8" height="6" fill="#8a3a2c"/><rect x="326" y="37" width="4" height="4" fill="#7da35a"/>
+<rect x="158" y="62" width="2" height="4" fill="#2a2420"/><rect x="162" y="62" width="2" height="4" fill="#2a2420"/>
+<rect x="157" y="56" width="8" height="6" fill="#8a3a2c"/><rect x="159" y="52" width="4" height="4" fill="#7da35a"/>
+<rect x="235" y="75" width="2" height="4" fill="#2a2420"/><rect x="239" y="75" width="2" height="4" fill="#2a2420"/>
+<rect x="234" y="69" width="8" height="6" fill="#8a3a2c"/><rect x="236" y="65" width="4" height="4" fill="#7da35a"/>
+<rect x="77" y="70" width="2" height="4" fill="#2a2420"/><rect x="81" y="70" width="2" height="4" fill="#2a2420"/>
+<rect x="76" y="64" width="8" height="6" fill="#8a3a2c"/><rect x="78" y="60" width="4" height="4" fill="#7da35a"/>
+<rect x="203" y="58" width="2" height="4" fill="#2a2420"/><rect x="207" y="58" width="2" height="4" fill="#2a2420"/>
+<rect x="202" y="52" width="8" height="6" fill="#8a3a2c"/><rect x="204" y="48" width="4" height="4" fill="#7da35a"/>
+<rect x="177" y="39" width="2" height="4" fill="#2a2420"/><rect x="181" y="39" width="2" height="4" fill="#2a2420"/>
+<rect x="176" y="33" width="8" height="6" fill="#8a3a2c"/><rect x="178" y="29" width="4" height="4" fill="#7da35a"/>
+<rect x="196" y="100" width="2" height="30" fill="#5a3d22"/><rect x="198" y="101" width="14" height="9" fill="#3d6ab0"/><rect x="202" y="103" width="5" height="5" fill="#e0b04a"/>
+</svg>
