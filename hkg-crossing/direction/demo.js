@@ -1,7 +1,7 @@
 // Demo player for the "Behind the design" page: replays the sound at each stage of the build.
 // The synthesis below is copied from ../index.html (voiceTick, the space effects, ensureAudio); keep them in step if the voice changes.
 'use strict';
-const CONFIG = { volume: 0.2 };   // same level as the lab's CONFIG.volume, so demos aren't louder than the lab
+const CONFIG = { volume: 0.15 };   // same level as the lab's CONFIG.volume, so demos aren't louder than the lab
 const DEFAULTS = { voice: 'blend', pitch: 1600, ms: 30, drop: 0.8, snap: 0.5, bell: 0, hi: 1600, hiMix: 0, lo: 700, loMix: 0,
   human: 0, drift: 0, shift: 0, verb: 0, room: 0.5, hollow: 0, hollowMs: 4 };
 const state = { ...DEFAULTS, ctx: null };
