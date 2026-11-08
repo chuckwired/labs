@@ -15,7 +15,7 @@ const LABS = new Function(html.slice(a, b).replace('var LABS =', 'return') + ';'
 const indexable = f => existsSync(p(f)) && !/noindex/.test(readFileSync(p(f), 'utf8'));
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
-const labs = LABS.filter(l => !l.secret && indexable(l.path + 'index.html'));
+const labs = LABS.filter(l => !l.secret && indexable(l.path + 'index.html')).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));   // newest first, like the index
 const extra = [['performance/', null], ['impact/', null], ['made-to-be-played/direction/', '2026-10-26']].filter(([u]) => indexable(u + 'index.html')); // site pages that are not labs (the index hero's write-up has no lab of its own)
 
 // sitemap.xml

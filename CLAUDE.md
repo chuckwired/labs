@@ -3,7 +3,7 @@
 Chuck's monorepo of small interactive experiments. Owner: Chuck (product designer, portfolio on Ghost at chuckwired.com).
 
 ## Shape
-- `index.html`: landing page and nav. Labs are listed in the `LABS` array in its script; add an entry per lab.
+- `index.html`: landing page and nav. Labs are listed in the `LABS` array in its script; add an entry per lab. The index shows them newest first by `date` (the hidden lab always last), so array order doesn't matter; `tools/sync-seo.mjs` sorts the same way.
 - `<lab-name>/index.html`: one folder per lab, each a self-contained static page. Link back to the index with `<a href="../">`.
 - No build step, no dependencies. Vanilla HTML/CSS/JS. Use relative paths only (labs are served from subpaths).
 - Visual system (colour, type scale, links, motion, voice) lives in `DESIGN.md`: read it before adding or restyling anything on the index or a text page, and update it when a token changes.
