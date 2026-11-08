@@ -54,7 +54,7 @@ function buildSheet() {
     + [0, 1].map(t => `<button type="button" class="card merge" data-merge="${k}:${t}" hidden><b>Merge ${CFG.mergeN} into ${UD[k].one} ${tierName[t + 1]}</b><span class="st">${CFG.mergeN} ${t ? UD[k].name + ' ' + tierName[t] : UD[k].name} become one that is ${CFG.tierMul[t + 1] / CFG.tierMul[t]}x as strong. Frees ${CFG.mergeN - 1} places.</span><span class="cost na">Free</span></button>`).join('')).join('');
   const defend = Object.keys(SD).map(k => `<button type="button" class="card" data-tool="${k}"><b>${SD[k].name}</b><span class="st">${SD[k].note}</span><span class="ct" data-ct></span><span class="cost" data-cost></span></button>`).join('') + `<button type="button" class="card" id="repair"><b>Repair</b><span class="st">Doors and defences back to full</span><span class="cost" data-cost></span></button>`;
   const sell = `<div class="taken">Hover or tap anything on the field to sell it. New purchases refund in full, the rest 60%. Or sell one from here.</div>` + Object.keys(UD).map(k => `<button type="button" class="card" data-sellu="${k}"><b>${UD[k].name}</b><span class="st">Sells the weakest one</span><span class="ct" data-ct></span><span class="cost" data-cost></span></button>`).join('') + Object.keys(SD).map(k => `<button type="button" class="card" data-sell1="${k}"><b>${SD[k].name}</b><span class="st">Sells the newest one</span><span class="ct" data-ct></span><span class="cost" data-cost></span></button>`).join('');
-  sheet.innerHTML = `<div class="sh-fc">Threat feed ${forecastHTML(f)} · Army <b data-armyct></b></div>
+  sheet.innerHTML = `<div class="sh-fc"><button type="button" class="link" id="saveExit">Save &amp; exit</button>Threat feed ${forecastHTML(f)} · Army <b data-armyct></b></div>
   <div class="sh-top">
     <div class="sh-gold" id="shGold"><i>Gold</i><b id="sGold">0</b></div>
     <div class="sh-tabs" role="tablist">${tab('boon', 'Boon', '<i class="dot"></i>')}${tab('recruit', 'Recruit')}${tab('defend', 'Defend')}${tab('sell', 'Sell')}</div>
@@ -173,6 +173,9 @@ addEventListener('keydown', e => {
   else if ((e.key === 'Enter' || e.key === ' ') && !picking && G.phase === 'build' && document.activeElement === document.body) { e.preventDefault(); sendWave(); }
 });
 $('#pause').addEventListener('click', () => togglePause());
+/* between waves: keep the run and go back to the title, where Continue picks it up */
+function saveAndExit() { if (!G || G.phase !== 'build') return; sfx.play('click'); store.run = snapshot(); persist(); showTitle(); }
+$('#exitb').addEventListener('click', saveAndExit); sheet.addEventListener('click', e => { if (e.target.closest('#saveExit')) saveAndExit(); });
 const muteBtn = $('#mute'); muteBtn.setAttribute('aria-pressed', String(sfx.muted)); muteBtn.addEventListener('click', () => muteBtn.setAttribute('aria-pressed', String(sfx.toggle())));
 for (const ev of ['pointerdown', 'keydown', 'touchend']) addEventListener(ev, () => sfx.unlock(), { passive: true });
 document.addEventListener('visibilitychange', () => { sfx.hold(document.hidden); if (document.hidden && G && G.phase === 'battle' && !G.demo && !paused) togglePause(true); });

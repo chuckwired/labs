@@ -39,13 +39,15 @@ body.menu #top .chips, body.menu #top #pause, body.menu #gate { opacity:0; point
 .chip i { font-style:normal; font-size:8.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); line-height:1; }
 .chip b { font-weight:500; font-size:14px; line-height:1.15; font-variant-numeric:tabular-nums; }
 .chip.gold b { color:var(--gold); }
-#pause, #mute { min-width:40px; padding:0; border-radius:50%; background:rgba(7,7,10,.72); transition:opacity .3s; display:grid; place-items:center; }
+#pause, #mute, #exitb { min-width:40px; padding:0; border-radius:50%; background:rgba(7,7,10,.72); transition:opacity .3s; display:grid; place-items:center; }
 #mute .x { display:none; } #mute[aria-pressed="true"] .x { display:inline; } #mute[aria-pressed="true"] .w { display:none; } #mute[aria-pressed="true"] { color:var(--dim); }
 #send { position:absolute; z-index:6; right:calc(var(--sar) + 14px); bottom:calc(var(--shopH,0px) + 14px); min-height:54px; padding:0 20px 0 24px; border-radius:999px; border:0; background:var(--gold); color:#1a1206; font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; display:none; align-items:center; gap:10px; box-shadow:0 8px 28px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.28); transition:bottom .3s cubic-bezier(.2,.7,.2,1), transform .15s; }
 #send svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
 body.build #send { display:flex; animation:fab 2.4s ease-in-out infinite; }
 @keyframes fab { 50% { box-shadow:0 8px 28px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.28), 0 0 0 7px rgba(224,176,74,.18); } }
 body.build #pause { display:none; }
+#exitb { display:none; } body.build #exitb { display:grid; }
+.sh-fc .link { float:right; margin-left:10px; }
 body.build #mute { margin-left:auto; }
 #kills { position:absolute; z-index:3; right:calc(var(--sar) + 12px); top:calc(var(--sat) + 72px); font:500 10px var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--dim); pointer-events:none; transition:opacity .3s; text-shadow:0 1px 0 #000; }
 #kills b { display:inline-block; font-weight:500; font-size:16px; letter-spacing:.04em; color:var(--ink); font-variant-numeric:tabular-nums; transition:color .8s; }
@@ -237,6 +239,7 @@ button.danger { background:#7a1c1c; border-color:#b02a2a; color:#fff; letter-spa
     </div>
     <button type="button" id="mute" aria-label="Sound" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z"/><path class="w" d="M11.5 5.5c1 1.4 1 3.6 0 5M13.2 3.8c2 2.4 2 6 0 8.4"/><path class="x" d="M11.5 6l3.5 4M15 6l-3.5 4"/></svg></button>
     <button type="button" id="pause" aria-label="Pause"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><rect x="3" y="2" width="3" height="10"/><rect x="8" y="2" width="3" height="10"/></svg></button>
+    <button type="button" id="exitb" aria-label="Save and exit to the title screen" title="Save and exit"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 2.5h-3v11h3M7 8h6.5M11 5.5L13.5 8 11 10.5"/></svg></button>
   </header>
   <div id="gate" role="progressbar" aria-label="Data centre health"><i></i></div>
   <div id="att" hidden><div class="cap"><b></b><span></span></div><em>Tap to play</em></div>

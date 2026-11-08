@@ -18,7 +18,7 @@ const SCENES = [
   { cap: 'Defend Humanity', sub: 'Hold the line. Defend the data centre.', dur: 7500,
     setup() { demoWorld({ wave: 12, army: { spear: 16, shield: 6, archer: 10, horse: 3, cat: 2 }, structs: TWR, boons: { plate: 2, fletch: 1 } }); return [
       { dur: 3800, tx: 0, tz: -15, yaw: .35, pitch: .42, dist: 54, dy: .00008, dd: -.0025 },
-      { dur: 3700, tx: wx(G.bx), ty: .8, tz: wz(G.by), yaw: -.9, pitch: .16, dist: 11, dy: .00022 }]; } },
+      { dur: 3700, tx: wx(G.bx), ty: 1.3, tz: wz(G.by), yaw: Math.PI - .45, pitch: .2, dist: 12, dy: .00018 }]; } },
   { cap: 'Know your enemy', sub: 'Vibe coders, crawlers, chatbots, AI-native workers, foundation models, AGIs.', dur: 10000,
     setup() { demoWorld({ wave: 10, still: true, army: {}, foes: [['raider', 1, 40, 40, 520, 520], ['hound', 1, 40, 40, 520, 520], ['slinger', 1, 40, 40, 520, 520], ['brute', 1, 40, 40, 520, 520], ['giant', 1, 40, 40, 520, 520], ['warlord', 1, 40, 40, 520, 520]] });
       const ks = ['raider', 'hound', 'slinger', 'brute', 'giant', 'warlord']; U.forEach((u, i) => { u.x = 36 + i * 69; u.y = 500; }); return [
@@ -26,24 +26,24 @@ const SCENES = [
       { dur: 3800, tx: 0, ty: .6, tz: wz(500), yaw: .6, pitch: .45, dist: 24, dy: -.00018 }]; } },
   { cap: 'Wave 12', sub: 'Spears and archers hold. Towers do the heavy lifting.', dur: 17000,
     setup() { demoWorld({ wave: 12, army: { spear: 20, shield: 6, archer: 14, horse: 4, cat: 2 }, structs: TWR, boons: { plate: 1, fletch: 1, drill: 1 }, foes: [['raider', 26, 30, 390, 330, 520], ['hound', 10, 20, 400, 260, 380], ['slinger', 8, 60, 360, 360, 500], ['brute', 4, 100, 320, 280, 400], ['giant', 1, 190, 230, 240, 260]] }); return [
-      { dur: 4200, tx: wx(G.bx), ty: .5, tz: wz(G.by) - 5, yaw: 0, pitch: .2, dist: 15 },
-      { dur: 4400, tx: 0, ty: .4, tz: wz(560), yaw: 1.25, pitch: .22, dist: 22, dy: -.00008 },
+      { dur: 4200, tx: 0, ty: .5, tz: -15, yaw: 0, pitch: .45, dist: 14, dy: .00005 },
+      { dur: 4400, tx: 0, ty: .4, tz: wz(560), yaw: .5, pitch: .55, dist: 20, dy: -.00006 },
       { dur: 4200, tx: 0, tz: wz(600), yaw: .1, pitch: 1.05, dist: 36, dy: .0001 },
-      { dur: 4200, tx: wx(G.bx), ty: .6, tz: wz(640), yaw: Math.PI - .3, pitch: .2, dist: 15, dy: .00012 }]; } },
+      { dur: 4200, tx: 0, ty: .6, tz: wz(620), yaw: Math.PI - .5, pitch: .75, dist: 26, dy: .00008 }]; } },
   { boss: 1, dur: 14000,
     setup() { const keys = ['claw', 'layoff', 'mythos', 'ipo', 'hype'], k = keys[ATT.boss++ % keys.length]; demoWorld({ wave: 15, army: { spear: 18, shield: 6, archer: 12, horse: 3, cat: 2 }, structs: TWR, boons: { plate: 1 }, foes: [['raider', 14, 40, 380, 260, 380]] });
       const b = spawnEnemy(k, 210, 330, 11); ATT.b = b; this.cap = 'Boss'; this.sub = ED[k].name; const f = () => b.dead ? null : [wx(b.x), wz(b.y)], sc = figScale(k, b.scale), hh = sc * 1.1; return [
       { dur: 5200, f, ty: hh, yaw: .55, pitch: .24, dist: sc * 6.2, dy: -.00008 },
-      { dur: 4400, f, ty: hh, yaw: 1.3, pitch: .25, dist: sc * 6.4 },
+      { dur: 4400, f, ty: hh, yaw: Math.PI - .35, pitch: .22, dist: sc * 5.2, dy: .00006 },
       { dur: 4400, f, ty: sc * .6, yaw: -.25, pitch: .7, dist: sc * 8 }]; } },
   { cap: 'Wave 21', sub: 'Cleared.', dur: 12500,
     setup() { this.cap = 'Wave 21'; this.sub = 'The line holds.'; this.won = false; demoWorld({ wave: 21, army: { 'spear#1': 6, spear: 10, shield: 8, 'archer#1': 4, archer: 8, horse: 4, cat: 3 }, structs: TWR, boons: { plate: 3, sharp: 2, fletch: 2 }, kills: 300, foes: [['raider', 22, 40, 380, 470, 600], ['hound', 8, 20, 400, 400, 500], ['slinger', 6, 80, 340, 450, 560]] }); return [
-      { dur: 4800, tx: wx(G.bx), ty: .6, tz: wz(600), yaw: -.4, pitch: .22, dist: 17, dy: .00012 },
-      { dur: 7700, tx: wx(G.bx), ty: .9, tz: wz(G.by) - 1, yaw: .2, pitch: .3, dist: 12, dy: .00022, dd: -.0003 }]; },
+      { dur: 4800, tx: 0, ty: .6, tz: -16, yaw: -.3, pitch: .62, dist: 17, dy: .00012 },
+      { dur: 7700, tx: 0, ty: 1.3, tz: -6, yaw: Math.PI - .5, pitch: .26, dist: 18, dy: .00012 }]; },
     tick(el) { if (!this.won && el > 3000 && G.enemies === 0) { this.won = true; this.cap = 'Wave cleared'; this.sub = '+gold, and a breath.'; attCap.firstElementChild.textContent = this.cap; attCap.lastElementChild.textContent = this.sub; sfx.play('fanfare'); } } },
   { cap: 'Some nights it falls', sub: 'Every wave is worse than the last.', dur: 11500,
     setup() { demoWorld({ wave: 26, gate: 120, kills: 1800, army: { spear: 5, archer: 2 }, structs: [['tower', 90, 690]], foes: [['raider', 60, 20, 400, 560, 780], ['hound', 24, 20, 400, 600, 800], ['brute', 10, 40, 380, 520, 760], ['giant', 3, 120, 300, 540, 700]] }); return [
-      { dur: 4200, tx: 0, ty: 1.2, tz: -4, yaw: .45, pitch: .5, dist: 26, dy: -.0001 },
+      { dur: 4200, tx: 0, ty: 1.5, tz: -8, yaw: Math.PI - .55, pitch: .5, dist: 30, dy: .00012 },
       { dur: 3800, tx: 0, ty: 1, tz: -2, yaw: Math.PI + .25, pitch: .42, dist: 38, dy: .00012 },
       { dur: 3500, tx: 0, tz: -4, yaw: -.3, pitch: 1.0, dist: 28, dy: .00012 }]; } },
 ];
