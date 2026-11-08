@@ -89,7 +89,7 @@ button:active { transform:scale(.97); }
   <p class="lede">The tick of a Hong Kong pedestrian crossing, built from the Web Audio API: oscillators and noise, no samples. Press the button, wait, and cross.</p>
 
   <section class="pole" id="pole" data-lamp="red">
-    <canvas id="scene" width="512" height="288" role="img" aria-label="An isometric pixel-art street in Hong Kong with a pedestrian crossing."></canvas>
+    <canvas id="scene" width="512" height="384" role="img" aria-label="An isometric pixel-art street in Hong Kong with a pedestrian crossing."></canvas>
     <div class="dock">
       <button type="button" class="press" id="press" aria-label="Press to cross"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
       <p class="plate" id="plate">Press to cross</p>
@@ -341,7 +341,7 @@ function ensureAudio() {
   if (state.ctx) { if (state.ctx.state === 'suspended') state.ctx.resume(); return; }
   const AC = window.AudioContext || window.webkitAudioContext;
   const ctx = state.ctx = new AC({ latencyHint: 'interactive' });
-  state.master = ctx.createGain(); state.master.gain.value = CONFIG.volume;
+  state.master = ctx.createGain(); state.master.gain.value = document.hidden || !document.hasFocus() ? 0 : CONFIG.volume;
   const comp = ctx.createDynamicsCompressor();
   comp.connect(ctx.destination);
   // Space: dry + convolution reverb (generated room) + a short feedback delay for a hollow, boxy/tube ring.
@@ -599,7 +599,14 @@ function stopCycle() {
   $('cycle').setAttribute('aria-pressed', false); $('cycle').textContent = 'Run full crossing';
 }
 
-document.addEventListener('visibilitychange', () => { if (document.hidden && state.ctx) state.ctx.suspend(); else if (state.ctx && $('power').getAttribute('aria-pressed') === 'true') state.ctx.resume(); });
+// Mute (don't pause) whenever the tab or window isn't focused, so it never ticks over whatever you're actually listening to.
+function focusLevel() { return document.hidden || !document.hasFocus() ? 0 : CONFIG.volume; }
+function applyFocus() {
+  if (!state.ctx) return;
+  if (!document.hidden && state.ctx.state === 'suspended' && $('power').getAttribute('aria-pressed') === 'true') state.ctx.resume().catch(() => {});
+  state.master.gain.setTargetAtTime(focusLevel(), state.ctx.currentTime, 0.04);
+}
+document.addEventListener('visibilitychange', applyFocus); window.addEventListener('blur', applyFocus); window.addEventListener('focus', applyFocus);
 
 build();
 { const q = new URLSearchParams(location.search);

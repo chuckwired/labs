@@ -11,8 +11,8 @@ const g = cv.getContext('2d');
 
 // ---------------------------------------------------------------- config
 const CFG = {
-  W: 512, H: 288, OX: 243, OY: 36,      // canvas size and where world (0,0,0) lands (the crossing sits near the centre)
-  UL: -12, UR: 26,                       // the street runs past both edges of the canvas; these are where vehicles enter and leave
+  W: 512, H: 384, OX: 197, OY: 121, cx: 210,   // 4:3 canvas; where world (0,0,0) lands (the crossing sits left of and below centre, so buildings fill the view); cx = crossing x
+  UL: -14, UR: 28,                       // the street runs past both edges of the canvas; these are where vehicles enter and leave
   plazaV: 25,                            // the near-side plaza runs off the bottom-left of the canvas
   kerb: 3, base: 10,                     // kerb height and diorama thickness in px
   farB: 2.5, farP: 4.5, road: 9, nearP: 11, // v boundaries: buildings | far pavement | road | near pavement
@@ -140,13 +140,14 @@ function drawSky(ctx, sk) {
   ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
 }
 function drawSkyline(ctx) {            // transparent canvas: the peak and the hazy far towers
-  const r = rng(7);
+  const r = rng(7); ctx.save(); ctx.translate(0, OY - 36);
   poly(ctx, [0, 150, 70, 96, 130, 120, 210, 70, 300, 112, 380, 84, 470, 118, 512, 100, 512, 200, 0, 200], '#a9bdb8');
   for (let x = -10; x < W; x += 14 + Math.floor(r() * 16)) {
     const w = 12 + Math.floor(r() * 16), h = 40 + Math.floor(r() * 90);
     ctx.fillStyle = mix('#b6c4cc', '#9eb0bc', r()); ctx.fillRect(x, 175 - h, w, h + 60);
     ctx.fillStyle = 'rgba(255,255,255,.18)'; for (let yy = 175 - h + 4; yy < 175; yy += 6) ctx.fillRect(x + 2, yy, w - 4, 1);
   }
+  ctx.restore();
 }
 
 function drawGround(ctx) {
@@ -225,8 +226,8 @@ const lanterns = [];
 function buildStatic() {
   const sk = skyFor(), [c, x] = canvasOf(W, H), [sl, sx] = canvasOf(W, H), [wc, wx] = canvasOf(W, H);
   drawSky(x, sk); drawSkyline(sx); x.drawImage(sl, 0, 0);
-  const hz = x.createLinearGradient(0, 120, 0, 215); hz.addColorStop(0, 'rgba(0,0,0,0)'); hz.addColorStop(1, sk.low); x.fillStyle = hz; x.fillRect(0, 120, W, 95);
-  x.fillStyle = sk.low; x.fillRect(0, 215, W, H - 215);
+  const dy = OY - 36, hz = x.createLinearGradient(0, 120 + dy, 0, 215 + dy); hz.addColorStop(0, 'rgba(0,0,0,0)'); hz.addColorStop(1, sk.low); x.fillStyle = hz; x.fillRect(0, 120 + dy, W, 95);
+  x.fillStyle = sk.low; x.fillRect(0, 215 + dy, W, H - 215 - dy);
   drawGround(wx);
   lit.length = 0; signs.length = 0; lanterns.length = 0;
   buildings.forEach((b, i) => drawBuilding(wx, b, i));
@@ -480,7 +481,7 @@ function pedSpriteDir(li, facing, frame, flip) {
   return (pedCache[key] = { c, ax: 18 - base.ax, ay: base.ay });
 }
 
-const PU0 = -9, PU1 = 24;   // pedestrians enter and leave just outside the canvas
+const PU0 = -11, PU1 = 25;   // pedestrians enter and leave just outside the canvas
 const PED = { nearV: [9.3, 10.6], farV: [3.0, 4.2], kerbNear: 9.25, kerbFar: 4.35, cap: 80 };
 function newPed(o) { return Object.assign({ u: 0, v: 0, look: Math.floor(rnd() * LOOKS.length), spd: 1.3, mode: 'walkU', du: 1, dv: 0, delay: 0, a: 0, t: rnd() * 10, sway: rnd() * 6.28, side: 'near' }, o); }
 function baseSpeed(look) { const k = LOOKS[look].kind; return k === 'auntie' ? 0.85 + rnd() * 0.3 : k === 'school' ? 1.5 + rnd() * 0.5 : k === 'rider' ? 1.7 + rnd() * 0.5 : k === 'tourist' ? 1.0 + rnd() * 0.3 : 1.3 + rnd() * 0.5; }
@@ -627,8 +628,8 @@ function buildEmissive() {
   if (state.period === 'late') {
     const open = (px, py) => px >= 0 && px < W && py >= 0 && py < H && !maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3];
     const r = rng(5); let n = 0;
-    for (let i = 0; i < 400 && n < 46; i++) { const px = Math.floor(r() * W), py = Math.floor(r() * 150); if (open(px, py)) { x.fillStyle = r() < 0.25 ? '#ffffff' : 'rgba(255,255,255,.7)'; x.fillRect(px, py, 1, 1); n++; } }
-    for (const [mx, my] of [[455, 52], [420, 40], [480, 70], [380, 30]]) if (open(mx, my) && open(mx + 8, my + 8) && open(mx - 8, my - 8)) {
+    for (let i = 0; i < 700 && n < 60; i++) { const px = Math.floor(r() * W), py = Math.floor(r() * 230); if (open(px, py)) { x.fillStyle = r() < 0.25 ? '#ffffff' : 'rgba(255,255,255,.7)'; x.fillRect(px, py, 1, 1); n++; } }
+    for (const [mx, my] of [[440, 70], [470, 120], [400, 45], [300, 40], [450, 170]]) if (open(mx, my) && open(mx + 8, my + 8) && open(mx - 8, my - 8)) {
       x.globalCompositeOperation = 'lighter'; glow(x, mx, my, 26, 'rgba(235,240,255,A)', 0.35); x.globalCompositeOperation = 'source-over';
       x.fillStyle = '#f4f1de'; for (let yy = -7; yy <= 7; yy++) { const hw = Math.round(Math.sqrt(49 - yy * yy)); x.fillRect(mx - hw, my + yy, hw * 2, 1); }
       x.fillStyle = '#d9d5bd'; x.fillRect(mx - 3, my - 3, 2, 2); x.fillRect(mx + 2, my + 2, 3, 2); break;
@@ -751,7 +752,7 @@ function describe() { const t = { morning: 'in the morning', afternoon: 'in the 
 // phones get a tighter crop of the same scene so the pixels stay close to 1:1
 function fit() {
   const w = cv.parentElement.clientWidth, vw = w >= 600 ? W : 360;
-  if (cv.width !== vw) { cv.width = vw; camX = (W - vw) / 2; g.imageSmoothingEnabled = false; render(); }
+  if (cv.width !== vw) { cv.width = vw; cv.height = H; camX = Math.max(0, Math.min(W - vw, CFG.cx - vw / 2)); g.imageSmoothingEnabled = false; render(); }
 }
 function rebuildClock() {          // the look follows the clock: rebuild when the period or season changes
   treeCache && Object.keys(treeCache).forEach((k) => delete treeCache[k]); Object.keys(pedCache).forEach((k) => delete pedCache[k]);
