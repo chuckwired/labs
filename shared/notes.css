@@ -26,3 +26,5 @@ footer { display: flex; justify-content: flex-end; margin-top: 40px; color: var(
 .more { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
 .more span { color: var(--dim); } .more a { text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); } .more a:hover { border-color: var(--ink); }
 @media (max-width: 560px) { .top { padding-bottom: 30px; margin-bottom: -18px; } }   /* more fade room under the sticky bar on phones; the margin keeps the layout where it was */
+
+@media (max-width: 600px) { .actions { display: grid; grid-template-columns: 1fr; } .go { width: 100%; justify-content: center; } }   /* phones: buttons fill the row */

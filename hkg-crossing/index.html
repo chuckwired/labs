@@ -41,6 +41,15 @@ html.bare .pole { margin:0; border:0; border-radius:0; }
 .looks { display:flex; flex-direction:column; align-items:center; gap:8px; margin:0 0 14px; }
 .seg { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px; }
 .seg > span { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); min-width:7ch; text-align:right; margin-right:4px; }
+.mute[data-now] { border-color:rgba(255,255,255,.55); color:var(--ink); }
+@media (max-width: 600px) {   /* phones: buttons fill the row */
+  .looks { align-self:stretch; width:100%; }
+  .seg { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; width:100%; }
+  .seg > span { grid-column:1 / -1; text-align:left; margin:0; }
+  .seg button { width:100%; padding-left:4px; padding-right:4px; }
+  .tools { display:grid; grid-template-columns:1fr 1fr; width:100%; }
+  .tools .mute { width:100%; padding-left:4px; padding-right:4px; }
+}
 .hint { text-align:center; color:var(--dim); font-size:12px; margin:-12px 0 16px; }
 .box { background:#16161c; border:1px solid var(--line); border-radius:12px; padding:12px 14px 10px; display:flex; flex-direction:column; align-items:center; gap:8px; width:132px; }
 .press { width:64px; height:64px; min-height:0; padding:0; border-radius:50%; border:2px solid #55555e; background:radial-gradient(circle at 35% 30%, #8a8a94, #3a3a42); display:grid; place-items:center; transition:transform .08s, background .15s, border-color .15s; }
@@ -99,8 +108,8 @@ button:active { transform:scale(.97); }
     </div>
   </section>
   <div class="looks" role="group" aria-label="Preview the street">
-    <div class="seg" data-looks="time"><span>Time</span><button type="button" class="mute" data-v="auto" aria-pressed="true">Auto</button><button type="button" class="mute" data-v="9" aria-pressed="false">Morning</button><button type="button" class="mute" data-v="15" aria-pressed="false">Afternoon</button><button type="button" class="mute" data-v="20" aria-pressed="false">Evening</button><button type="button" class="mute" data-v="2" aria-pressed="false">Late night</button></div>
-    <div class="seg" data-looks="season"><span>Season</span><button type="button" class="mute" data-v="auto" aria-pressed="true">Auto</button><button type="button" class="mute" data-v="spring" aria-pressed="false">Spring</button><button type="button" class="mute" data-v="summer" aria-pressed="false">Summer</button><button type="button" class="mute" data-v="autumn" aria-pressed="false">Autumn</button><button type="button" class="mute" data-v="winter" aria-pressed="false">Winter</button></div>
+    <div class="seg" data-looks="time"><span>Time</span><button type="button" class="mute" data-v="auto" aria-pressed="true">Auto</button><button type="button" class="mute" data-v="cycle" aria-pressed="false">Cycle</button><button type="button" class="mute" data-v="9" aria-pressed="false">Morning</button><button type="button" class="mute" data-v="15" aria-pressed="false">Afternoon</button><button type="button" class="mute" data-v="20" aria-pressed="false">Evening</button><button type="button" class="mute" data-v="2" aria-pressed="false">Late night</button></div>
+    <div class="seg" data-looks="season"><span>Season</span><button type="button" class="mute" data-v="auto" aria-pressed="true">Auto</button><button type="button" class="mute" data-v="cycle" aria-pressed="false">Cycle</button><button type="button" class="mute" data-v="spring" aria-pressed="false">Spring</button><button type="button" class="mute" data-v="summer" aria-pressed="false">Summer</button><button type="button" class="mute" data-v="autumn" aria-pressed="false">Autumn</button><button type="button" class="mute" data-v="winter" aria-pressed="false">Winter</button></div>
   </div>
   <output id="status" aria-live="polite">Red man</output>
   <p id="hint" class="hint" role="status" hidden>Tap anywhere to start the sound.</p>
@@ -557,10 +566,32 @@ function build() {
   $('cycle').onclick = () => { state.cycling ? stopCycle() : startCycle(); };
   setVoice('blend'); setPhase('off'); $('status').textContent = 'Red man'; $('press').onclick = () => { showQuiet(); startCrossing(); }; showQuiet();
   // Preview the street at any time of day or season (the sound's quiet hours still follow the real clock).
+  // Cycle: a new look every 5 seconds; every full day (4 looks) the season moves on.
+  const HOURS = [9, 15, 20, 2], SEASONS = ['spring', 'summer', 'autumn', 'winter'], PERIODS = ['morning', 'afternoon', 'evening', 'late'];
+  const segs = { time: document.querySelector('[data-looks="time"]'), season: document.querySelector('[data-looks="season"]') };
+  const cyc = { time: false, season: false, ti: 0, si: 0, n: 0, timer: 0 };
+  const press = (seg, v) => seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.v === String(v)));
+  const showNow = () => { segs.time.querySelectorAll('button').forEach((x) => x.toggleAttribute('data-now', cyc.time && x.dataset.v === String(HOURS[cyc.ti]))); segs.season.querySelectorAll('button').forEach((x) => x.toggleAttribute('data-now', cyc.season && x.dataset.v === SEASONS[cyc.si])); };
+  const apply = (t, se) => { if (window.HKG_SCENE) HKG_SCENE.setClock(t === null ? undefined : HOURS[t], se === null ? undefined : SEASONS[se]); if (t !== null) cyc.ti = t; if (se !== null) cyc.si = se; showNow(); };
+  function tick() {
+    cyc.n++; let t = null, se = null;
+    if (cyc.time) { t = (cyc.ti + 1) % 4; if (t === 0 && cyc.season) se = (cyc.si + 1) % 4; }
+    else if (cyc.season && cyc.n % 4 === 0) se = (cyc.si + 1) % 4;
+    if (t !== null || se !== null) apply(t, se);
+  }
+  const idle = () => { if (!cyc.time && !cyc.season && cyc.timer) { clearInterval(cyc.timer); cyc.timer = 0; } };
   document.querySelectorAll('.seg button').forEach((b) => { b.onclick = () => {
-    const seg = b.closest('.seg'), v = b.dataset.v; seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    const seg = b.closest('.seg'), kind = seg.dataset.looks, v = b.dataset.v;
     if (!window.HKG_SCENE) return;
-    if (seg.dataset.looks === 'time') HKG_SCENE.setClock(v === 'auto' ? null : +v, undefined); else HKG_SCENE.setClock(undefined, v === 'auto' ? null : v);
+    press(seg, v);
+    if (v === 'cycle') {
+      const st = HKG_SCENE.state; cyc.ti = Math.max(0, PERIODS.indexOf(st.period)); cyc.si = Math.max(0, SEASONS.indexOf(st.season)); cyc.n = 0;
+      cyc[kind] = true; if (!cyc.timer) cyc.timer = setInterval(tick, 5000);
+      if (kind === 'time') apply((cyc.ti + 1) % 4, null); else if (!cyc.time) apply(null, (cyc.si + 1) % 4); else showNow();   // show something straight away
+      return;
+    }
+    cyc[kind] = false; idle(); showNow();
+    if (kind === 'time') HKG_SCENE.setClock(v === 'auto' ? null : +v, undefined); else HKG_SCENE.setClock(undefined, v === 'auto' ? null : v);
   }; });
   // Start the idle tick on load. Browsers keep audio suspended until the first tap, so unlock on that and say so.
   state.quietStart = true; $('power').click(); state.quietStart = false;

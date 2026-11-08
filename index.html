@@ -114,6 +114,11 @@ footer a:hover { color: var(--ink); }
   .deck { right: auto; left: 6%; width: 88%; }
   .art { aspect-ratio: 1.55; }
 }
+@media (max-width: 600px) {   /* phones: the hero and card buttons fill the row */
+  .actions { display: grid; grid-template-columns: 1fr; }
+  .actions .btn { width: 100%; justify-content: center; }
+  .actions button { justify-self: start; margin-left: 0; }
+}
 @media (max-width: 560px) {
   .nav { flex-wrap: wrap; gap: 12px 0; padding-bottom: 36px; margin-bottom: -36px; }   /* two lines of nav need a deeper fade; the negative margin keeps the layout where it was */
   .mark { font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
@@ -157,6 +162,7 @@ footer a:hover { color: var(--ink); }
 #mtbp .mt-more:hover { background: #fff; border-color: #fff; }
 #mtbp .mt-more.alt { background: transparent; color: var(--ink); border-color: rgba(255,255,255,.28); }   /* secondary: outline */
 #mtbp .mt-more.alt:hover { border-color: var(--ink); background: rgba(255,255,255,.07); }
+@media (max-width: 600px) { #mtbp .mt-actions { grid-template-columns: 1fr; } }   /* phones: full-width buttons */
 @media (max-width: 860px) {
   #mtbp .mt-grid { grid-template-columns: 1fr; gap: 0; padding-top: 8px; min-height: 0; }
   #mtbp .mt-copy { order: 0; }

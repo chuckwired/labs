@@ -42,6 +42,7 @@ a { color: var(--ink); }
 ::view-transition-group(lab-art) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (min-width: 761px) { body { padding-left: max(20px, 7vw); } }
+@media (max-width: 600px) { .links { display: grid; grid-template-columns: 1fr; } .links a { justify-content: center; } }   /* phones: buttons fill the row */
 @media (max-width: 760px) {
   body { align-items: end; padding-bottom: max(32px, env(safe-area-inset-bottom, 0px)); }
   p { font-size: 15px; }
