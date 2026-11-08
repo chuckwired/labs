@@ -73,11 +73,12 @@ const PAL = {
   pave1: '#cdc7b8', pave2: '#c4bead', kerb: '#aaa492', soil: '#8b8676', soil2: '#6e6a5d',
   glass: '#4d6671', glass2: '#6b8996', shop: '#2b2f37',
 };
-const NEON = ['#ff3d7f', '#29d3ff', '#ffd23d', '#7dff6b', '#ff7a2e'];
+const NEON = ['#ff3d7f', '#29d3ff', '#ffd23d', '#7dff6b', '#ff7a2e', '#b36bff', '#3dffd0', '#ff4d4d', '#ffffff', '#ffe66d', '#ff9fd0', '#4d7bff'];
+const INKS = ['#ffffff', '#fff1a8', '#ffd0e0', '#d8ffe6', '#cfe9ff'];
 
 
 const peds = [];
-const state = { phase: 'off', t: 0, from: 'off', car: 'green', ped: 'red', flashT: 0, pulse: 0, night: false, quietHours: false };
+const state = { clock: 0, phase: 'off', t: 0, from: 'off', car: 'green', ped: 'red', flashT: 0, pulse: 0, night: false, quietHours: false };
 
 // ---------------------------------------------------------------- time of day and season
 // Four 6-hour looks (morning 6-12, afternoon 12-18, evening 18-24, late night 0-6) and four seasons.
@@ -124,7 +125,7 @@ const buildings = (function () {
   const r = rng(2026), cols = ['#cfc1a2', '#b9cfc3', '#dbb9b1', '#b8c3d3', '#d8d2b2', '#d6c3b8', '#c3d0b8', '#cabfd0'], aws = ['#b5342a', '#2e7d6b', '#e0a030', '#c8342b', '#3b6fb0', '#7a4a9a'];
   const out = []; let u = UL - 5;
   while (u < UR + 5) {
-    const w = 2.3 + r() * 1.2, fl = 6 + Math.floor(r() * 7);
+    const w = 2.3 + r() * 1.2, fl = 10 + Math.floor(r() * 7) + (r() < 0.18 ? 6 : 0);
     out.push({ u0: u, u1: u + w, fl, c: cols[Math.floor(r() * cols.length)], aw: aws[Math.floor(r() * aws.length)], roof: r() < 0.55 ? 'tank' : 'ant', scaf: r() < 0.12 });
     u += w;
   }
@@ -192,7 +193,7 @@ function drawBuilding(ctx, b, idx) {
       const k = r(), col = k < 0.55 ? PAL.glass : k < 0.8 ? PAL.glass2 : k < 0.92 ? '#a99a78' : '#c9c2ad';
       faceL(ctx, O, uu, uu + 0.52, v, zz, zz + 3.6, col);
       if (r() < 0.5) box(ctx, O, uu + 0.1, v, zz - 2.2, uu + 0.42, v + 0.22, zz - 0.4, { t: '#d6d6d2', l: '#b9b9b6', r: '#8d8d8b' }); // air-con unit
-      if (r() < 0.55) lit.push({ k: 'win', u0: uu, u1: uu + 0.52, v, z0: zz, z1: zz + 3.6 });
+      if (r() < 0.42) lit.push({ k: 'win', u0: uu, u1: uu + 0.52, v, z0: zz, z1: zz + 3.6 });
     }
   }
   // bamboo scaffolding
@@ -206,19 +207,50 @@ function drawBuilding(ctx, b, idx) {
   // roof
   if (b.roof === 'tank') { box(ctx, O, b.u0 + 0.6, 0.5, zt, b.u0 + 1.2, 1.1, zt + 6, '#8aa3b0'); box(ctx, O, b.u0 + 0.7, 0.6, zt + 6, b.u0 + 1.1, 1.0, zt + 8, '#6c8190'); }
   else { box(ctx, O, b.u0 + 0.5, 0.6, zt, b.u0 + 1.4, 1.5, zt + 3, '#a8a49a'); const A = P(O, b.u0 + 1.8, 1.0, zt), B = P(O, b.u0 + 1.8, 1.0, zt + 14); pline(ctx, A[0], A[1], B[0], B[1], '#555a60'); }
-  // neon signs sticking out of the wall
-  const ns = 1 + Math.floor(r() * 2);
+  // neon signs: blades sticking out, fascia boards over the shop, and tall hanging banners; each with its own colours and pseudo-lettering
+  const bw = b.u1 - b.u0, ns = 1 + Math.floor(r() * 3), top = Math.max(8, Math.min(34, (b.fl - 1) * FH * 0.6));
   for (let i = 0; i < ns; i++) {
-    const u = b.u0 + 0.5 + r() * (b.u1 - b.u0 - 1.1), zc = z0 + GF + 2 + r() * 14, h = 9 + Math.floor(r() * 8), col = NEON[Math.floor(r() * NEON.length)];
-    signs.push({ u, z0: zc, z1: zc + h, col, v0: v, v1: v + 1.0 + r() * 0.5 });
+    const k = r(), col = NEON[Math.floor(r() * NEON.length)], ink = INKS[Math.floor(r() * INKS.length)], frame = r() < 0.4 ? NEON[Math.floor(r() * NEON.length)] : null;
+    const sg = { col, ink, frame, seed: Math.floor(r() * 1e6), flick: r() < 0.2 };
+    if (k < 0.42) Object.assign(sg, { kind: 'blade', u: b.u0 + 0.4 + r() * Math.max(0.1, bw - 0.9), t: 0.12 + r() * 0.18, v0: v, v1: v + 0.8 + r() * 0.9, z0: z0 + GF + 2 + r() * top, h: 7 + Math.floor(r() * 22) });
+    else if (k < 0.75) Object.assign(sg, { kind: 'fascia', w: Math.min(bw - 0.4, 1.2 + r() * 1.5), v0: v + 0.02, z0: z0 + GF + 0.8 + r() * 5, h: 5 + Math.floor(r() * 3) });
+    else Object.assign(sg, { kind: 'banner', w: 0.45 + r() * 0.3, v0: v + 0.02, z0: z0 + GF + 4 + r() * 10, h: 13 + Math.floor(r() * 14) });
+    if (sg.kind !== 'blade') sg.u = b.u0 + 0.2 + r() * Math.max(0.05, bw - sg.w - 0.4);
+    sg.z1 = sg.z0 + sg.h;
+    signs.push(sg);
   }
 }
 
+function signCentre(sg) { return sg.kind === 'blade' ? P(O, sg.u + sg.t, (sg.v0 + sg.v1) / 2, (sg.z0 + sg.z1) / 2) : P(O, sg.u + sg.w / 2, sg.v0, (sg.z0 + sg.z1) / 2); }
+function glyphCell(ctx, face, fixed, a0, a1, z0, z1, seed, col) {          // a few strokes that read as lettering without being any
+  const r = rng(seed), q = (x0, x1, y0, y1) => (face === 'R' ? faceR(ctx, O, x0, x1, fixed, y0, y1, col) : faceL(ctx, O, x0, x1, fixed, y0, y1, col)), w = a1 - a0, h = z1 - z0, n = 2 + Math.floor(r() * 3);
+  for (let i = 0; i < n; i++) {
+    const t = r();
+    if (t < 0.4) { const yy = z0 + Math.floor(r() * 3) * h / 3; q(a0 + w * 0.08, a1 - w * 0.08, yy + 0.2, yy + 1.0); }
+    else if (t < 0.8) { const xx = a0 + w * (0.15 + r() * 0.55); q(xx, xx + Math.max(0.06, w * 0.14), z0 + 0.2, z1 - 0.2); }
+    else q(a0 + w * 0.3, a0 + w * 0.6, z0 + h * 0.35, z0 + h * 0.35 + 1.1);
+  }
+}
 function drawSign(ctx, s, glow) {
-  const c = glow ? s.col : shade(s.col, 0.78);
-  box(ctx, O, s.u, s.v0, s.z0, s.u + 0.16, s.v1, s.z1, { t: c, l: shade(c, 0.86), r: shade(c, 0.7) });
-  // lettering (illegible by design): little light bars on the +u face
-  for (let z = s.z0 + 2; z < s.z1 - 1; z += 3) { const a = P(O, s.u + 0.16, s.v0 + 0.15, z), b = P(O, s.u + 0.16, s.v1 - 0.15, z); pline(ctx, a[0], a[1], b[0], b[1], glow ? '#ffffff' : shade(s.col, 0.45)); }
+  const body = glow ? s.col : shade(s.col, 0.78), frame = glow ? (s.frame || s.col) : shade(s.frame || s.col, 0.7), ink = glow ? s.ink : shade(s.ink, 0.5), panel = shade(s.col, glow ? 0.32 : 0.28);
+  if (s.kind === 'blade') {
+    const uf = s.u + s.t;
+    box(ctx, O, s.u, s.v0, s.z0, uf, s.v1, s.z1, { t: body, l: shade(body, 0.86), r: shade(body, 0.7) });
+    faceR(ctx, O, s.v0 + 0.07, s.v1 - 0.07, uf, s.z0 + 1, s.z1 - 1, panel);
+    faceR(ctx, O, s.v0, s.v1, uf, s.z0, s.z0 + 1, frame); faceR(ctx, O, s.v0, s.v1, uf, s.z1 - 1, s.z1, frame);
+    const rows = Math.max(1, Math.floor((s.h - 2) / 4.4)), ch = (s.h - 2) / rows;
+    for (let i = 0; i < rows; i++) glyphCell(ctx, 'R', uf, s.v0 + 0.14, s.v1 - 0.14, s.z0 + 1 + i * ch + 0.5, s.z0 + 1 + (i + 1) * ch - 0.5, s.seed + i, ink);
+  } else if (s.kind === 'fascia') {
+    faceL(ctx, O, s.u, s.u + s.w, s.v0, s.z0, s.z1, frame);
+    faceL(ctx, O, s.u + 0.06, s.u + s.w - 0.06, s.v0, s.z0 + 0.9, s.z1 - 0.9, panel);
+    const cols = Math.max(1, Math.floor((s.w - 0.2) / 0.42)), cw = (s.w - 0.2) / cols;
+    for (let i = 0; i < cols; i++) glyphCell(ctx, 'L', s.v0, s.u + 0.1 + i * cw + 0.04, s.u + 0.1 + (i + 1) * cw - 0.04, s.z0 + 1.2, s.z1 - 1.2, s.seed + i, ink);
+  } else {
+    faceL(ctx, O, s.u, s.u + s.w, s.v0, s.z0, s.z1, body);
+    faceL(ctx, O, s.u + 0.07, s.u + s.w - 0.07, s.v0, s.z0 + 1, s.z1 - 1, panel);
+    const rows = Math.max(1, Math.floor((s.h - 2) / 4.4)), ch = (s.h - 2) / rows;
+    for (let i = 0; i < rows; i++) glyphCell(ctx, 'L', s.v0, s.u + 0.1, s.u + s.w - 0.1, s.z0 + 1 + i * ch + 0.5, s.z0 + 1 + (i + 1) * ch - 0.5, s.seed + i, ink);
+  }
 }
 
 let staticDay = null, maskSky = null, maskWorld = null;
@@ -604,7 +636,7 @@ function carSignal() {
   return 'green';
 }
 function stepPhase(dt) {
-  state.t += dt; state.car = carSignal();
+  state.clock += dt; state.t += dt; state.car = carSignal();
   state.ped = state.phase === 'walk' ? 'green' : state.phase === 'clear' ? ((Math.floor(state.t * 2.5) & 1) ? 'off' : 'green') : 'red';
   if (state.pulse > 0) state.pulse -= dt;
 }
@@ -620,10 +652,10 @@ function buildEmissive() {
   lanterns.forEach((l) => { const [px, py] = P(O, l.u + 0.21, CFG.farB + 0.25, l.z + 3.2); x.fillStyle = l.col; x.fillRect(Math.round(px) - 4, Math.round(py) - 3, 8, 7); });
   x.globalCompositeOperation = 'lighter';
   lanterns.forEach((l) => { const [px, py] = P(O, l.u + 0.21, CFG.farB + 0.25, l.z + 3.2), h = hex(l.col); glow(x, px, py, 18, `rgba(${h[0]},${h[1]},${h[2]},A)`, 0.55); });
-  signs.forEach((sg) => { const [px, py] = P(O, sg.u + 0.1, (sg.v0 + sg.v1) / 2, (sg.z0 + sg.z1) / 2); const h = hex(sg.col); glow(x, px, py, 26, `rgba(${h[0]},${h[1]},${h[2]},A)`, 0.45); });
+  signs.forEach((sg) => { const [px, py] = signCentre(sg); const h = hex(sg.col); glow(x, px, py, Math.max(20, sg.h * 0.9), `rgba(${h[0]},${h[1]},${h[2]},A)`, 0.52); });
   lamps.forEach(([u, v]) => { const [px, py] = P(O, u, v, CFG.kerb + 27); glow(x, px, py, 22, 'rgba(255,240,190,A)', 0.55); const [gx, gy] = P(O, u, v, CFG.kerb); glow(x, gx, gy + 2, 34, 'rgba(255,236,170,A)', 0.22); });
   x.globalCompositeOperation = 'source-over';
-  signs.forEach((sg) => drawSign(x, sg, true));
+  signs.forEach((sg) => { if (!sg.flick) drawSign(x, sg, true); });
   // late night: a moon and a few stars, only where the sky is actually showing
   if (state.period === 'late') {
     const open = (px, py) => px >= 0 && px < W && py >= 0 && py < H && !maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3];
@@ -637,7 +669,9 @@ function buildEmissive() {
   }
   emis = c;
 }
+function flickOn(sg) { return ((Math.floor(state.clock * 9 + sg.seed) * 2654435761) >>> 0) % 100 > 14; }
 function drawLights() {
+  g.save(); g.translate(-camX, 0); signs.forEach((sg) => { if (sg.flick && flickOn(sg)) drawSign(g, sg, true); }); g.restore();
   g.globalCompositeOperation = 'lighter';
   lanes.forEach((l) => l.list.forEach((c) => {
     const umin = l.dir > 0 ? UL + c.s - c.len : UR - c.s, vc = l.v, fu = l.dir > 0 ? umin + c.len : umin;

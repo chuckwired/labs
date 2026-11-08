@@ -341,7 +341,7 @@ function ensureAudio() {
   if (state.ctx) { if (state.ctx.state === 'suspended') state.ctx.resume(); return; }
   const AC = window.AudioContext || window.webkitAudioContext;
   const ctx = state.ctx = new AC({ latencyHint: 'interactive' });
-  state.master = ctx.createGain(); state.master.gain.value = document.hidden || !document.hasFocus() ? 0 : CONFIG.volume;
+  state.master = ctx.createGain(); state.master.gain.value = document.hidden ? 0 : CONFIG.volume;
   const comp = ctx.createDynamicsCompressor();
   comp.connect(ctx.destination);
   // Space: dry + convolution reverb (generated room) + a short feedback delay for a hollow, boxy/tube ring.
@@ -599,14 +599,20 @@ function stopCycle() {
   $('cycle').setAttribute('aria-pressed', false); $('cycle').textContent = 'Run full crossing';
 }
 
-// Mute (don't pause) whenever the tab or window isn't focused, so it never ticks over whatever you're actually listening to.
-function focusLevel() { return document.hidden || !document.hasFocus() ? 0 : CONFIG.volume; }
+// Mute (don't pause) whenever the tab is hidden or the window reports it lost focus (a 'blur' event), so it never ticks over whatever
+// you're actually listening to. It does NOT ask document.hasFocus(): embedded views and some browsers report false even while you're
+// using the page, which silenced the sound. Any tap or key press counts as being back.
+state.blurred = false;
+function focusLevel() { return document.hidden || state.blurred ? 0 : CONFIG.volume; }
 function applyFocus() {
   if (!state.ctx) return;
   if (!document.hidden && state.ctx.state === 'suspended' && $('power').getAttribute('aria-pressed') === 'true') state.ctx.resume().catch(() => {});
   state.master.gain.setTargetAtTime(focusLevel(), state.ctx.currentTime, 0.04);
 }
-document.addEventListener('visibilitychange', applyFocus); window.addEventListener('blur', applyFocus); window.addEventListener('focus', applyFocus);
+document.addEventListener('visibilitychange', applyFocus);
+window.addEventListener('blur', () => { state.blurred = true; applyFocus(); });
+window.addEventListener('focus', () => { state.blurred = false; applyFocus(); });
+['pointerdown', 'keydown', 'touchstart'].forEach((ev) => addEventListener(ev, () => { if (state.blurred) { state.blurred = false; applyFocus(); } }, { passive: true }));
 
 build();
 { const q = new URLSearchParams(location.search);
