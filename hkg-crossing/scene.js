@@ -212,7 +212,7 @@ function drawBuilding(ctx, b, idx) {
       const k = r(), col = k < 0.55 ? PAL.glass : k < 0.8 ? PAL.glass2 : k < 0.92 ? '#a99a78' : '#c9c2ad';
       faceL(ctx, O, uu, uu + 0.52, v, zz, zz + 3.6, col);
       if (r() < 0.5) box(ctx, O, uu + 0.1, v, zz - 2.2, uu + 0.42, v + 0.22, zz - 0.4, { t: '#d6d6d2', l: '#b9b9b6', r: '#8d8d8b' }); // air-con unit
-      if (r() < 0.42) lit.push({ k: 'win', u0: uu, u1: uu + 0.52, v, z0: zz, z1: zz + 3.6 });
+      if (r() < 0.42) lit.push({ k: 'win', bi: idx, u0: uu, u1: uu + 0.52, v, z0: zz, z1: zz + 3.6 });
     }
   }
   // bamboo scaffolding
@@ -236,7 +236,7 @@ function drawBuilding(ctx, b, idx) {
     else Object.assign(sg, { kind: 'banner', w: 0.45 + r() * 0.3, v0: v + 0.02, z0: z0 + GF + 4 + r() * 10, h: 13 + Math.floor(r() * 14) });
     if (sg.kind !== 'blade') sg.u = b.u0 + 0.2 + r() * Math.max(0.05, bw - sg.w - 0.4);
     sg.z1 = sg.z0 + sg.h;
-    signs.push(sg);
+    sg.bi = idx; signs.push(sg);
   }
 }
 
@@ -696,19 +696,23 @@ function stepPhase(dt) {
 // ---------------------------------------------------------------- night layer: lit windows, neon, lamps (pre-rendered), plus per-frame lights
 let emis = null;
 function glow(ctx, x, y, r, col, a) { const gr = ctx.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col.replace('A', a)); gr.addColorStop(1, col.replace('A', 0)); ctx.fillStyle = gr; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+const hash01 = (n) => rng(Math.floor(n * 1000) + 12345)();
 function buildEmissive() {
-  const [c, x] = canvasOf(W, H);
-  lit.forEach((w) => faceL(x, O, w.u0, w.u1, w.v, w.z0, w.z1, '#ffd98a'));
-  buildings.forEach((b) => { faceL(x, O, b.u0 + 0.2, b.u1 - 0.2, CFG.farB, CFG.kerb + 0.5, CFG.kerb + GF - 2, '#ffcf80'); for (let u = b.u0 + 0.45; u < b.u1 - 0.5; u += 0.7) faceL(x, O, u, u + 0.28, CFG.farB, CFG.kerb + 1, CFG.kerb + GF - 3, '#ffe9b8'); });
+  const [c, x] = canvasOf(W, H), late = state.period === 'late';
+  // late night: about 40% of the buildings go fully dark, the rest keep only a few windows, and about half the shops and neon signs are off
+  const bOff = (i) => late && hash01(i + 0.5) < 0.4;
+  signs.forEach((sg) => { sg.off = late && (bOff(sg.bi) || hash01(sg.seed * 0.001) < 0.5); });
+  lit.forEach((w) => { if (late && (bOff(w.bi) || hash01(w.u0 * 37 + w.z0 * 11 + w.bi) > 0.16)) return; faceL(x, O, w.u0, w.u1, w.v, w.z0, w.z1, '#ffd98a'); });
+  buildings.forEach((b, bi) => { if (late && (bOff(bi) || hash01(bi + 0.9) < 0.5)) return; faceL(x, O, b.u0 + 0.2, b.u1 - 0.2, CFG.farB, CFG.kerb + 0.5, CFG.kerb + GF - 2, '#ffcf80'); for (let u = b.u0 + 0.45; u < b.u1 - 0.5; u += 0.7) faceL(x, O, u, u + 0.28, CFG.farB, CFG.kerb + 1, CFG.kerb + GF - 3, '#ffe9b8'); });
   lanterns.forEach((l) => { const [px, py] = P(O, l.u + 0.21, CFG.farB + 0.25, l.z + 3.2); x.fillStyle = l.col; x.fillRect(Math.round(px) - 4, Math.round(py) - 3, 8, 7); });
   x.globalCompositeOperation = 'lighter';
   lanterns.forEach((l) => { const [px, py] = P(O, l.u + 0.21, CFG.farB + 0.25, l.z + 3.2), h = hex(l.col); glow(x, px, py, 18, `rgba(${h[0]},${h[1]},${h[2]},A)`, 0.55); });
-  signs.forEach((sg) => { const [px, py] = signCentre(sg); const h = hex(sg.col); glow(x, px, py, Math.max(20, sg.h * 0.9), `rgba(${h[0]},${h[1]},${h[2]},A)`, 0.52); });
+  signs.forEach((sg) => { if (sg.off) return; const [px, py] = signCentre(sg); const h = hex(sg.col); glow(x, px, py, Math.max(20, sg.h * 0.9), `rgba(${h[0]},${h[1]},${h[2]},A)`, 0.52); });
   lamps.forEach(([u, v]) => { const [px, py] = P(O, u, v, CFG.kerb + 27); glow(x, px, py, 22, 'rgba(255,240,190,A)', 0.55); const [gx, gy] = P(O, u, v, CFG.kerb); glow(x, gx, gy + 2, 34, 'rgba(255,236,170,A)', 0.22); });
   x.globalCompositeOperation = 'source-over';
-  signs.forEach((sg) => { if (!sg.flick) drawSign(x, sg, true); });
+  signs.forEach((sg) => { if (!sg.off && !sg.flick) drawSign(x, sg, true); });
   // the far towers' lit windows
-  { const r2 = rng(17); x.fillStyle = 'rgba(255,224,150,.8)'; for (let i = 0, n = 0; i < 1400 && n < 260; i++) { const px = Math.floor(r2() * W), py = Math.floor(r2() * H); if (maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3] && r2() < 0.8) { x.fillRect(px, py, 1, 1); n++; } } }
+  { const r2 = rng(17); x.fillStyle = 'rgba(255,224,150,.8)'; for (let i = 0, n = 0; i < 1400 && n < (late ? 90 : 260); i++) { const px = Math.floor(r2() * W), py = Math.floor(r2() * H); if (maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3] && r2() < 0.8) { x.fillRect(px, py, 1, 1); n++; } } }
   // late night: a moon and a few stars, only where the sky is actually showing
   if (state.period === 'late') {
     const open = (px, py) => px >= 0 && px < W && py >= 0 && py < H && !maskSky[(py * W + px) * 4 + 3] && !maskWorld[(py * W + px) * 4 + 3];
@@ -724,7 +728,7 @@ function buildEmissive() {
 }
 function flickOn(sg) { return ((Math.floor(state.clock * 9 + sg.seed) * 2654435761) >>> 0) % 100 > 14; }
 function drawLights() {
-  g.save(); g.translate(-camX, 0); signs.forEach((sg) => { if (sg.flick && flickOn(sg)) drawSign(g, sg, true); }); g.restore();
+  g.save(); g.translate(-camX, 0); signs.forEach((sg) => { if (!sg.off && sg.flick && flickOn(sg)) drawSign(g, sg, true); }); g.restore();
   g.globalCompositeOperation = 'lighter';
   lanes.forEach((l) => l.list.forEach((c) => {
     const umin = l.dir > 0 ? UL + c.s - c.len : UR - c.s, vc = l.v, fu = l.dir > 0 ? umin + c.len : umin;
@@ -789,6 +793,8 @@ function collect() {
   }));
   items.sort((a, b) => a.k - b.k);
 }
+let fade = null;      // a snapshot of the previous look that fades out over the new one
+function startFade() { if (reduce || !backC) return; const [c, x] = canvasOf(cv.width, cv.height); x.drawImage(cv, 0, 0); fade = { c, t: 0, dur: 0.9 }; }
 function render() {
   g.drawImage(backC, -camX, 0); drawClouds(); g.drawImage(worldC, -camX, 0);
   collect();
@@ -800,12 +806,13 @@ function render() {
     for (const it of headItems) g.drawImage(it.c, it.x - camX, it.y);
     drawLights();
   }
+  if (fade) { g.globalAlpha = Math.max(0, 1 - fade.t / fade.dur); g.drawImage(fade.c, 0, 0); g.globalAlpha = 1; }
 }
 
 // ---------------------------------------------------------------- loop
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let last = 0, raf = 0, visible = true;
-function step(dt) { stepPhase(dt); stepTraffic(dt); stepPeds(dt); stepFx(dt); }
+function step(dt) { stepPhase(dt); stepTraffic(dt); stepPeds(dt); stepFx(dt); if (fade) { fade.t += dt; if (fade.t >= fade.dur) fade = null; } }
 function frame(now) {
   raf = 0; if (!visible || document.hidden) { last = 0; return; }
   const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016; last = now;
@@ -841,9 +848,12 @@ function fit() {
   const w = cv.parentElement.clientWidth, vw = w >= 600 ? W : 360;
   if (cv.width !== vw) { cv.width = vw; cv.height = H; camX = Math.max(0, Math.min(W - vw, CFG.cx - vw / 2)); g.imageSmoothingEnabled = false; render(); }
 }
-function rebuildClock() {          // the look follows the clock: rebuild when the period or season changes
+function rebuildClock() {          // the look follows the clock: rebuild when the period or season changes (and fade from the old look)
+  startFade();
   treeCache && Object.keys(treeCache).forEach((k) => delete treeCache[k]); Object.keys(pedCache).forEach((k) => delete pedCache[k]);
-  LOOKS = makeLooks(); buildProps(); resetFx(); buildStatic(); buildEmissive(); describe(); render();
+  LOOKS = makeLooks(); buildProps(); resetFx(); buildStatic(); buildEmissive(); describe();
+  if (state.quietHours) { lanes.forEach((l) => { l.list = l.list.filter((c, i) => i % 3 === 0); }); for (let i = peds.length - 1; i >= 0; i--) if (i % 3) peds.splice(i, 1); }   // the small hours: thin out what's already on the street (the fade hides the cut)
+  render();
 }
 setInterval(() => { if (applyClock()) rebuildClock(); }, 30000);
 if ('ResizeObserver' in window) new ResizeObserver(fit).observe(cv.parentElement); fit(); describe();
