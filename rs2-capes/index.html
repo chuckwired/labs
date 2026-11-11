@@ -183,7 +183,7 @@ body {
   z-index: 50;
   font-family: var(--mono);
 }
-#pickerBtn, #trimBtn {
+#pickerBtn, #trimBtn, #fireBtn, #tuneBtn {
   font: 500 11px/1 var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -195,8 +195,8 @@ body {
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
 }
-#trimBtn[aria-pressed="true"] #trimState { color: var(--ink); }
-#pickerBtn:hover, #trimBtn:hover, #pickerBtn[aria-expanded="true"] { color: var(--ink); border-color: rgba(255,255,255,0.3); }
+#trimBtn[aria-pressed="true"] #trimState, #fireBtn[aria-pressed="true"] #fireState { color: var(--ink); }
+#pickerBtn:hover, #trimBtn:hover, #fireBtn:hover, #tuneBtn:hover, #tuneBtn[aria-expanded="true"], #pickerBtn[aria-expanded="true"] { color: var(--ink); border-color: rgba(255,255,255,0.3); }
 #pickerBtn:focus-visible, #trimBtn:focus-visible, .row:focus-within, #allBtn:focus-visible, #noneBtn:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 #panel {
   position: absolute;
@@ -237,6 +237,19 @@ body {
 .flat { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; }
 .cape.gone { display: none; }
 .glow { will-change: opacity; }
+/* fire cape lava: a seamless tile of cells scrolls down the body (lavaCells) */
+.lavaflow { animation: lavaflow var(--ls, 9s) linear infinite; }
+@keyframes lavaflow { from { transform: translateY(-240px); } to { transform: translateY(0); } }
+/* the lava only flows where it is cheap and visible: always when focused, in the overview only while few capes are up, never behind a focused cape */
+body.crowded .cape:not(.front) .lavaflow, body.is-focus .cape:not(.front) .lavaflow { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .lavaflow { animation: none; } }
+/* fire cape tuning sliders (shown with ?only= or ?tune) */
+#tuneBtn { position: fixed; right: 16px; bottom: 16px; z-index: 31; }
+#lavaTune { position: fixed; right: 16px; bottom: 60px; z-index: 30; width: 190px; padding: 10px 12px; border: 1px solid var(--line, #2a2a33); border-radius: 12px; background: rgba(10,10,14,.82); color: var(--dim, #8b8a93); font: 11px/1.2 'JetBrains Mono', monospace; }
+#lavaTune label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin: 6px 0 0; }
+#lavaTune input { grid-column: 1 / -1; width: 100%; accent-color: #ff7a1a; }
+#lavaTune b { font-weight: 400; color: #e8e6df; }
+#lavaTune button { margin-top: 8px; font: inherit; color: var(--accent, #ff981f); background: none; border: 0; padding: 0; cursor: pointer; }
 </style>
 <style>[hidden]{display:none!important}</style>
 <script type="speculationrules">{"prefetch":[{"urls":["../"],"eagerness":"moderate"}]}</script>
@@ -257,12 +270,27 @@ body {
 </div>
 
 <div id="picker">
+  <button id="fireBtn" type="button" aria-pressed="false" title="Show the animated fire cape (heavy with many capes up)">Fire cape <span id="fireState">Off</span></button>
   <button id="trimBtn" type="button" aria-pressed="true" title="Coloured edges on or off">Trim <span id="trimState">On</span></button>
   <button id="pickerBtn" type="button" aria-expanded="false" aria-controls="panel">Capes <span id="count"></span></button>
   <div id="panel" hidden>
     <div id="rows"></div>
     <div class="panel-foot"><span>Shown on the canvas</span><span class="btns"><button id="allBtn" type="button">All</button><button id="noneBtn" type="button">None</button></span></div>
   </div>
+</div>
+
+<button id="tuneBtn" type="button" aria-expanded="false" aria-controls="lavaTune" hidden>Lava tweaks</button>
+<div id="lavaTune" hidden>
+  <div>Fire cape lava</div>
+  <label>Cell size <b id="v-size"></b><input id="lt-size" type="range" min="0.6" max="2.2" step="0.05"></label>
+  <label>Stretch (tall) <b id="v-stretch"></b><input id="lt-stretch" type="range" min="0.5" max="2.5" step="0.05"></label>
+  <label>Vein width <b id="v-vein"></b><input id="lt-vein" type="range" min="0.6" max="0.96" step="0.01"></label>
+  <label>Edge fade <b id="v-fade"></b><input id="lt-fade" type="range" min="0" max="2" step="0.05"></label>
+  <label>Corner round <b id="v-round"></b><input id="lt-round" type="range" min="0" max="10" step="0.5"></label>
+  <label>Centre dark <b id="v-core"></b><input id="lt-core" type="range" min="0" max="1" step="0.05"></label>
+  <label>Vein brightness <b id="v-bright"></b><input id="lt-bright" type="range" min="0" max="1" step="0.05"></label>
+  <label>Flow seconds <b id="v-speed"></b><input id="lt-speed" type="range" min="3" max="20" step="0.5"></label>
+  <button id="lt-reset" type="button">Reset</button>
 </div>
 
 <script>
@@ -290,7 +318,7 @@ const CONFIG = {
   glowFocus: 0.8,
   starGap: [6, 15],       // seconds between shooting stars
   defaultShown: 'all',   // capes shown on first visit: 'all', or a list of ids
-  storageKey: 'cape-void:shown:v2'
+  storageKey: 'cape-void:shown:v3'
 };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // coarse pointer, few cores or little memory: build a lighter 3D stack. A frame-rate governor can also drop effects at runtime.
@@ -410,6 +438,107 @@ function emFarming() {
   return `<g fill-rule="evenodd" stroke-width=".3" stroke-linejoin="round"><path d="M61.3,108.4 63.0,108.4 75.1,113.0 76.7,121.4 81.8,126.2 82.1,128.1 82.1,128.9 81.3,128.7 76.7,124.6 75.1,129.5 82.1,132.7 82.7,134.1 82.7,135.4 82.1,135.4 76.7,132.7 76.7,145.4 82.7,142.4 83.2,142.4 83.5,143.2 83.2,144.8 75.1,148.6 75.1,153.5 83.2,148.3 83.7,148.3 84.0,150.8 76.7,155.1 76.7,158.6 69.4,161.6 56.5,161.6 47.6,158.6 46.0,150.2 37.9,142.4 36.5,136.2 36.0,135.7 36.3,133.8 37.9,134.1 39.5,140.8 47.6,148.6 49.2,157.0 56.8,159.9 69.2,159.9 71.9,158.6 75.1,157.0 73.5,153.7 73.5,148.6 75.1,145.9 75.1,130.8 73.5,129.2 75.1,126.5 75.1,122.7 71.9,121.1 62.2,121.1 54.1,122.7 52.4,122.5 54.1,116.3 61.6,113.3 63.0,113.3 70.2,116.3 71.9,119.8 75.1,121.1 73.5,114.6 62.7,110.1 60.8,110.3 50.8,114.6 47.6,128.7 47.6,142.1 44.6,138.1 41.1,131.1 42.7,124.3 38.7,123.0 37.6,123.0 36.8,123.8 36.8,122.2 37.6,121.4 44.4,122.7 42.7,131.1 46.0,135.7 46.0,128.7 49.2,113.0ZM55.7,117.9 54.3,121.1 62.2,119.5 70.0,119.5 68.6,117.9 62.7,114.9 61.6,114.9Z" fill="#151111" stroke="#151111"/><path d="M49.5,157.0 47.6,148.6 39.5,140.8 39.5,140.0 40.9,131.9 41.4,131.1 44.6,138.1 47.6,142.1 47.6,128.7 50.6,115.4 50.8,114.6 61.6,113.3 54.1,116.3 52.4,122.5 52.4,127.9 57.3,130.8 57.3,159.9ZM74.8,121.1 71.9,119.8 70.2,116.5 71.3,115.7 72.9,114.9 73.8,115.2 75.1,120.6ZM42.7,124.6 41.1,131.1 38.2,134.1 36.5,133.8 36.5,129.5ZM82.4,133.0 75.1,129.5 76.2,125.7 77.0,124.6 82.1,128.9ZM69.7,159.7 68.6,159.9 68.6,157.8 70.2,130.8 72.9,129.5 73.8,129.5 74.6,130.3 75.1,130.8 75.1,145.9 73.5,148.6 73.5,153.7 75.1,157.0ZM75.4,153.5 75.1,148.6 83.5,144.6 83.7,148.3Z" fill="#908573" stroke="#908573"/><path d="M73.2,114.6 73.5,114.9 70.8,116.3 69.7,116.3 63.0,113.3 51.4,114.6 52.2,114.1 60.8,110.3 62.7,110.1ZM41.7,124.1 42.7,124.6 36.5,129.5 36.8,123.8 37.6,123.0 38.7,123.0ZM57.3,159.7 57.3,130.8 70.2,131.1 68.6,159.9ZM39.2,140.0 37.9,134.1 40.3,131.6 41.1,131.1 39.8,140.0Z" fill="#9b8f7b" stroke="#9b8f7b"/><path d="M70.2,124.6 67.0,127.9 58.1,130.8 56.5,130.6 52.4,127.6 52.4,122.7 54.1,122.5 63.0,121.4Z" fill="#1585b7" stroke="#1585b7"/><path d="M71.9,121.1 75.1,122.7 75.1,126.5 73.5,129.5 70.8,130.8 58.1,130.8 61.6,129.5 67.0,127.9 70.2,124.6 62.2,121.1Z" fill="#6aa3bb" stroke="#6aa3bb"/></g>`;
 }
 
+/* Fire cape: one layer only (no trim plate), no pads, a wider hem with a W-shaped bottom. The whole body is lava: a Voronoi tile that wraps both ways
+   (cells shrunk by `vein` so the bright vein shows between them), scaled by the sliders and scrolled down forever (.lavaflow).
+   A brown strap runs across the shoulders at the top. Work in progress. */
+// outline: three points along the hem, the two outer bottom corners softened with a short curve
+const FIREP = (() => {
+  const P = [[32, 22], [88, 22], [114, 212], [102, 250], [81, 238], [60, 250], [39, 238], [18, 250], [6, 212]];
+  const soft = new Set([2, 8]);   // the outer bottom corners
+  const out = [];
+  P.forEach((c, i) => {
+    if (!soft.has(i)) { out.push(c); return; }
+    const a = P[(i + P.length - 1) % P.length], b = P[(i + 1) % P.length];
+    const toward = (q, d) => { const dx = q[0] - c[0], dy = q[1] - c[1], l = Math.hypot(dx, dy); return [c[0] + dx / l * d, c[1] + dy / l * d]; };
+    const s0 = toward(a, 14), s1 = toward(b, 9);
+    for (let k = 0; k <= 5; k++) { const t = k / 5; out.push([(1 - t) * (1 - t) * s0[0] + 2 * t * (1 - t) * c[0] + t * t * s1[0], (1 - t) * (1 - t) * s0[1] + 2 * t * (1 - t) * c[1] + t * t * s1[1]]); }
+  });
+  return out.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ');
+})();
+const LAVA_DEF = { size: 1.65, stretch: 0.6, vein: 0.89, fade: 1.2, round: 2.5, core: 0.35, bright: 1, speed: 9 };
+const LAVA_KEY = 'cape-void:lava';
+const lava = { ...LAVA_DEF };
+try { Object.assign(lava, JSON.parse(localStorage.getItem(LAVA_KEY)) || {}); } catch (e) { /* storage unavailable */ }
+const lavaCache = {};
+function lavaTile(vein, fade, round, core) {
+  const key = [vein.toFixed(2), fade.toFixed(2), round.toFixed(1), core.toFixed(2)].join('/');
+  if (lavaCache[key]) return lavaCache[key];
+  let seed = 5;
+  const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const H = 240, TW = 108, COLS = 6, ROWS = 12, X0 = 6, pts = [];
+  for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS; i++) {
+    const cx = (((i + 0.5 + (j % 2 ? 0.5 : 0) + (r() - 0.5) * 0.7) % COLS) + COLS) % COLS;
+    pts.push([X0 + cx * TW / COLS, (j + 0.5 + (r() - 0.5) * 0.7) * H / ROWS]);
+  }
+  const all = [];
+  for (const kx of [-1, 0, 1]) for (const ky of [-1, 0, 1]) pts.forEach(q => all.push([q[0] + kx * TW, q[1] + ky * H]));
+  const clip = (poly, a, b, c) => { // keep a*x + b*y <= c
+    const out = [];
+    for (let i = 0; i < poly.length; i++) {
+      const P = poly[i], Q = poly[(i + 1) % poly.length], dp = a * P[0] + b * P[1] - c, dq = a * Q[0] + b * Q[1] - c;
+      if (dp <= 0) out.push(P);
+      if ((dp < 0 && dq > 0) || (dp > 0 && dq < 0)) { const t = dp / (dp - dq); out.push([P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t]); }
+    }
+    return out;
+  };
+  const dark = ['#ff5516', '#f2480f', '#ff6a1a', '#e83f0c', '#ff7a1e'];
+  let cells = '';
+  pts.forEach(p => {
+    let poly = [[p[0] - 50, p[1] - 50], [p[0] + 50, p[1] - 50], [p[0] + 50, p[1] + 50], [p[0] - 50, p[1] + 50]];
+    for (const q of all) {
+      if (q === p || Math.abs(q[0] - p[0]) > 60 || Math.abs(q[1] - p[1]) > 60) continue;
+      const dx = q[0] - p[0], dy = q[1] - p[1];
+      poly = clip(poly, dx, dy, (q[0] * q[0] - p[0] * p[0] + q[1] * q[1] - p[1] * p[1]) / 2);
+    }
+    const sh = f => poly.map(v => `${(p[0] + (v[0] - p[0]) * f).toFixed(1)},${(p[1] + (v[1] - p[1]) * f).toFixed(1)}`).join(' ');
+    // soft edge: stacked copies of the cell, growing in opacity towards the middle (fade = how far the feathering reaches)
+    const col = dark[Math.floor(r() * dark.length)], sp = fade * 0.14;
+    [[0.8, 0.22], [0.1, 0.3], [-0.6, 0.45], [-1.3, 1]].forEach(([k, a]) => { cells += `<polygon points="${sh(vein + sp * k)}" fill="${col}" stroke="${col}" stroke-width="${round}" opacity="${a}"/>`; });
+    // darker centre fading out to the rim: five stacked steps from near the edge down to a core whose size varies per cell (some tiny, some almost edge to edge)
+    const cs = 0.2 + Math.pow(r(), 1.4) * 0.8, base = vein - sp * 1.3, STEPS = 5;
+    for (let t = 0; t < STEPS; t++) {
+      const f = base * (0.95 - (0.95 - cs * 0.45) * t / (STEPS - 1));
+      cells += `<polygon points="${sh(Math.max(0.06, f))}" fill="#a82204" stroke="#a82204" stroke-width="${round * 0.8}" opacity="${Math.min(1, core * 0.4).toFixed(2)}"/>`;
+    }
+  });
+  return (lavaCache[key] = { H, TW, X0, cells: `<g stroke-linejoin="round">${cells}</g>` });
+}
+// Live = the scrolling SVG (always used when few capes are up and in the focused 3D view). Snapshot = the same picture frozen at `phase` (0..1 through the
+// scroll) and drawn as an <image>, which the browser rasterises once: identical to the live one but with no per-frame cost, for the crowded overview.
+let lavaPhase = 0;
+// vein colour: 0 = deep orange, 0.5 = the original gold, 1 = near-white yellow
+function veinColour(b) {
+  const stops = [[0, '#e8801a'], [0.5, '#ffd23c'], [1, '#fff6c0']];
+  const k = b < 0.5 ? 0 : 1, a = hex2rgb(stops[k][1]), z = hex2rgb(stops[k + 1][1]), t = (b - stops[k][0]) / 0.5;
+  return rgb2hex(a.map((v, i) => v + (z[i] - v) * t));
+}
+function lavaCells(snapshot) {
+  const t = lavaTile(lava.vein, lava.fade, lava.round, lava.core), sx = lava.size, sy = lava.size * lava.stretch;
+  const ny = Math.ceil(260 / sy / t.H) + 1;   // one tile for the window, one more for the scroll
+  const m0 = Math.floor((60 - 62 / sx - t.X0) / t.TW), m1 = Math.floor((60 + 62 / sx - t.X0) / t.TW);
+  let copies = '';
+  for (let j = 0; j < ny; j++) for (let i = m0; i <= m1; i++) copies += `<g transform="translate(${i * t.TW} ${j * t.H})">${t.cells}</g>`;
+  const wrap = flow => `<rect x="0" y="0" width="120" height="260" fill="${veinColour(lava.bright)}"/><g transform="translate(60 0) scale(${sx} ${sy}) translate(-60 0)">${flow}</g>`;
+  if (!snapshot) return wrap(`<g class="lavaflow" style="--ls:${(lava.speed * sy).toFixed(2)}s">${copies}</g>`);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 260" preserveAspectRatio="none">${wrap(`<g transform="translate(0 ${(-t.H + lavaPhase * t.H).toFixed(2)})">${copies}</g>`)}</svg>`;
+  return `<image href="data:image/svg+xml,${encodeURIComponent(svg)}" x="0" y="0" width="120" height="260" preserveAspectRatio="none"/>`;
+}
+
+/* Construction: traced by eye from the OSRS Wiki's 3D render (reference only): a grey hammer head, light handle and a round wooden log end, black outline. */
+function emConstruction() {
+  const T = pts => pts.map(([x, y]) => `${(60 + (x - 396) * 0.19).toFixed(1)},${(135 + (y - 591) * 0.19).toFixed(1)}`).join(' ');
+  const P = (pts, fill) => `<polygon points="${T(pts)}" fill="${fill}"/>`;
+  return P([[432,412],[518,430],[524,548],[500,572],[528,636],[528,706],[462,770],[408,730],[355,735],[312,768],[262,748],[262,670],[275,562],[340,560],[372,500]], '#16110f') +
+    P([[275,570],[350,590],[322,670],[350,700],[270,690]], '#54483a') +
+    P([[350,590],[400,585],[465,590],[520,640],[520,700],[462,760],[400,735],[350,700],[322,670]], '#7d6b4e') +
+    P([[402,590],[465,592],[500,640],[498,700],[460,742],[402,722]], '#8d7a5a') +
+    P([[440,430],[512,438],[518,520],[488,540],[425,555],[378,545],[400,490]], '#6b6458') +
+    P([[440,432],[470,440],[430,490],[395,505],[402,478]], '#8a8c86') +
+    P([[452,462],[500,462],[496,495],[450,470]], '#16110f') +
+    P([[425,555],[488,540],[440,580],[330,690],[300,750],[265,740],[268,700],[380,580]], '#9a9d97') +
+    P([[425,555],[380,580],[268,700],[265,740],[290,720],[340,640]], '#cfd2cc');
+}
+
 const CAPE_STYLES = {
   herblore: {
     rs3:  { body: '#1d5a2e', collar: '#246a37', trim: '#a8891f', trim2: '#d2b233', pad: '#d2b233', padEdge: '#9a7d1a', emblem: emHerbRs3 },
@@ -430,8 +559,13 @@ const CAPES = [
   { id: 'fishing', name: 'Fishing', glow: '#5cb4ff', body: '#7d9dba', collar: '#83a4c2', trim: '#93781c', trim2: '#c4a026', plain: { trim: '#b4c8da', trim2: '#6fb4f2' }, pad: '#c4a026', padEdge: '#8a8281', emblem: emFishing },
   { id: 'firemaking', name: 'Firemaking', glow: '#ff8a1c', body: '#d56e1a', collar: '#da7e1a', trim: '#8c7c15', trim2: '#bba51c', plain: { trim: '#e8982a', trim2: '#f0a838' }, pad: '#bba51c', padEdge: '#8a8281', emblem: emFiremaking },
   { id: 'woodcutting', name: 'Woodcutting', glow: '#5fb82a', body: '#94793f', collar: '#9a7f4a', trim: '#0b5030', trim2: '#0f6a40', plain: { trim: '#a99262', trim2: '#a07f38' }, pad: '#0f6a40', padEdge: '#8a8281', emblem: emWoodcutting },
+  { id: 'firecape', name: 'Fire', glow: '#ff7a1a', body: '#ff7a1e', collar: '#9a6414', trim: '#9a6414', trim2: '#4a3524', pad: '#4a3524', padEdge: '#2a1a10', fire: true, emblem: () => '' },
+  { id: 'construction', name: 'Construction', glow: '#d9c796', body: '#9d9378', collar: '#a89e84', trim: '#a8700f', trim2: '#e09a1c', pad: '#e09a1c', padEdge: '#8a8a90', emblem: emConstruction },
   { id: 'farming', name: 'Farming', glow: '#4fc760', body: '#265626', collar: '#2f5e30', trim: '#657642', trim2: '#879d58', plain: { trim: '#3f7140', trim2: '#0a6a18' }, pad: '#879d58', padEdge: '#8a8281', emblem: emFarming }
 ];
+// display order = the order Chuck got them in
+const ORDER = ['firemaking', 'mining', 'agility', 'fishing', 'cooking', 'smithing', 'herblore', 'woodcutting', 'fletching', 'thieving', 'farming', 'firecape', 'magic', 'construction'];
+CAPES.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
 CAPES.forEach(d => { if (!d.plain) d.plain = { trim: shade(d.body, 0.12), trim2: shade(d.body, -0.14) }; });
 
 // dev-only: ?stress=N (up to 60) shows N capes at load, padding the real ones with recoloured copies, to test crowded scenes. Test capes are never saved to localStorage.
@@ -455,6 +589,9 @@ function testDefs(from, to) {
   return out;
 }
 if (STRESS) CAPES.push(...testDefs(REAL.length, STRESS));
+// debug: ?only=fire (any part of an id or name, comma separated) shows just those capes; never saved
+const ONLY = (new URLSearchParams(location.search).get('only') || '').toLowerCase().split(',').filter(Boolean);
+if (ONLY.length) { const keep = CAPES.filter(d => ONLY.some(o => d.id.includes(o) || d.name.toLowerCase().includes(o))); if (keep.length) CAPES.splice(0, CAPES.length, ...keep); }
 
 // Everything that does not depend on a cape's colours lives here once: clip paths, the hem gradient and the six-section light shading.
 // Capes reference it with <use>, so each cape only carries its own colours and emblem. --lx is inherited into the <use> from the cape element.
@@ -468,6 +605,7 @@ function sharedDefs() {
   }
   return `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
     <clipPath id="cp-inn"><polygon points="${INN}"/></clipPath>
+    <clipPath id="cp-fire"><polygon points="${FIREP}"/></clipPath>
     <clipPath id="cp-outb"><polygon points="${OUTB}"/></clipPath>
     <linearGradient id="gr-body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/></linearGradient>
     <g id="shade-body">${strips}${folds}</g>
@@ -481,25 +619,33 @@ function buildLayers(d, id) {
   const L = (z, inner, flat = true) => { layers.push({ z, inner, flat }); };
   const Z = { plate: -2.2, body: 1.2 };
   const SLICES = LOWPOWER ? 3 : 6, WALLS = LOWPOWER ? 2 : 3;
+  const IN = d.fire ? FIREP : INN, CP = d.fire ? 'cp-fire' : 'cp-inn';   // the fire cape is one layer: no trim plate behind it, its own wider outline
   // BACK PLATE: the trim colour is the back of the cape, sitting deeper than the body, with extrusion slices behind it for thickness.
-  for (let k = SLICES; k >= 1; k--) L(Z.plate - (6 / SLICES) * 0.7 * k, `<polygon points="${OUTB}" fill="${shade(d.trim, -0.62 + k * 0.03 * (6 / SLICES))}"/>`, false);
-  L(Z.plate, `<polygon points="${OUTB}" fill="${d.trim}"/>`);
-  L(Z.plate + 0.3, `<polygon points="${MIDB}" fill="${d.trim2}"/>`);
+  if (!d.fire) for (let k = SLICES; k >= 1; k--) L(Z.plate - (6 / SLICES) * 0.7 * k, `<polygon points="${OUTB}" fill="${shade(d.trim, -0.62 + k * 0.03 * (6 / SLICES))}"/>`, false);
+  if (!d.fire) L(Z.plate, `<polygon points="${OUTB}" fill="${d.trim}"/>`);
+  if (!d.fire) L(Z.plate + 0.3, `<polygon points="${MIDB}" fill="${d.trim2}"/>`);
   // contact shadow the body casts onto the back plate
-  L(Z.plate + 0.6, `<g clip-path="url(#cp-outb)" fill="none" stroke-linejoin="round"><polygon points="${INN}" stroke="rgba(0,0,0,.10)" stroke-width="8"/><polygon points="${INN}" stroke="rgba(0,0,0,.14)" stroke-width="4.5"/><polygon points="${INN}" stroke="rgba(0,0,0,.2)" stroke-width="2"/></g>`);
+  if (!d.fire) L(Z.plate + 0.6, `<g clip-path="url(#cp-outb)" fill="none" stroke-linejoin="round"><polygon points="${INN}" stroke="rgba(0,0,0,.10)" stroke-width="8"/><polygon points="${INN}" stroke="rgba(0,0,0,.14)" stroke-width="4.5"/><polygon points="${INN}" stroke="rgba(0,0,0,.2)" stroke-width="2"/></g>`);
   // side walls of the body panel, so it reads as a thick sheet floating above the plate (hidden behind the body when flat)
-  for (let k = WALLS; k >= 1; k--) L(Z.body - (3 / WALLS) * 0.7 * k, `<polygon points="${INN}" fill="${shade(d.body, -0.55 + (WALLS - k) * 0.03)}"/>`, false);
+  for (let k = WALLS; k >= 1; k--) L(Z.body - (3 / WALLS) * 0.7 * k, `<polygon points="${IN}" fill="${shade(d.body, -0.55 + (WALLS - k) * 0.03)}"/>`, false);
   // body panel: base colour plus six sections (shared shading, driven by --lx: the cape's position relative to screen centre,
   // stepping steadily from the edge facing the centre to the far edge, with a faint falloff so the middle is brightest).
-  L(Z.body, `<g clip-path="url(#cp-inn)"><polygon points="${INN}" fill="${d.body}"/><use href="#shade-body"/><polygon points="${INN}" fill="url(#gr-body)"/></g>`);
+  L(Z.body, `<g clip-path="url(#${CP})"><polygon points="${IN}" fill="${d.body}"/>${d.fire ? lavaCells(crowded && id.endsWith('-f')) : ''}<use href="#shade-body"/><polygon points="${IN}" fill="url(#gr-body)"/></g>`);
   // optional coloured hem band along the bottom edge
   if (d.hem) L(Z.body + 0.4, `<polygon points="10,236 60,256 110,236 109.2,228 60,248 10.8,228" fill="${d.hem}"/><polyline points="10.8,228 60,248 109.2,228" fill="none" stroke="${shade(d.hem, 0.22)}" stroke-width="1"/>`);
   L(Z.body + 0.6, d.emblem(id));
   // shoulder pads: slanted slabs flaring out from behind the collar
   const pad = `<polygon points="${PAD.thick}" fill="${shade(d.pad, -0.4)}"/><polygon points="${PAD.face}" fill="${d.pad}"/><polygon points="${PAD.edge}" fill="${d.padEdge}"/>`;
-  L(4, pad + `<g transform="translate(120,0) scale(-1,1)">${pad}</g>`);
+  if (!d.fire) L(4, pad + `<g transform="translate(120,0) scale(-1,1)">${pad}</g>`);
   // V collar
+  if (d.fire) {
+    // brown collar, from the in-game cape: two parallelograms, each with a flat bottom edge sitting on the cape's top corner and the sides slanting gently up and outward.
+    // They lie on the cape at its own depth, so they stay lined up as it tilts.
+    const tri = `<path d="M53,22 L47,4 L29,4 Q25,4 26.3,7.8 L29.7,18.2 Q31,22 35,22 Z" fill="${shade(d.collar, -0.2)}"/><path d="M36,22 L30,4 L29,4 Q25,4 26.3,7.8 L29.7,18.2 Q31,22 35,22 Z" fill="${d.collar}"/><polyline points="35,22 53,22" fill="none" stroke="${shade(d.collar, -0.5)}" stroke-width="1"/>`;
+    L(1.9, tri + `<g transform="translate(120,0) scale(-1,1)">${tri}</g>`);
+  } else
   L(5.8, `<polygon points="${COLLAR}" fill="${d.collar}"/><use href="#shade-collar"/>`);
+  if (d.fire) layers.sort((a, b) => a.z - b.z);   // the flat view draws in array order, so match the 3D depth order
   return layers;
 }
 
@@ -532,10 +678,18 @@ function ensureStack(c) {
   c.sheenEl = c.tiltEl.querySelector('.sheen'); c.stackBuilt = true;
 }
 function dropStack(c) { if (!c.stackBuilt) return; c.tiltEl.innerHTML = ''; c.sheenEl = null; c.stackBuilt = false; }
+// fire cape, crowded: re-take the flat snapshot at the stack's current phase so the hand-over from live to frozen shows the same picture
+function syncFlatPhase(c) {
+  if (!c.def.fire || !crowded || !c.flatBuilt) return;
+  const an = c.stackBuilt && c.tiltEl.querySelector('.lavaflow') && c.tiltEl.querySelector('.lavaflow').getAnimations()[0];
+  if (an) { const dur = an.effect.getComputedTiming().duration; lavaPhase = ((an.currentTime || 0) % dur) / dur; }
+  dropFlat(c); ensureFlat(c);
+}
 function dropFlat(c) { if (!c.flatBuilt) return; c.flatEl.innerHTML = ''; c.flatBuilt = false; }
 function makeCape(d, i, born) {
   const el = document.createElement('div');
   el.className = 'cape';
+  if (d.fire) el.style.setProperty('--cape-mask', `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 260" preserveAspectRatio="none"><polygon points="${FIREP}" fill="#000"/></svg>`)}")`);
   el.tabIndex = 0;
   el.setAttribute('role', 'button');
   el.setAttribute('aria-label', d.name + ' cape');
@@ -547,7 +701,7 @@ function makeCape(d, i, born) {
   const c = {
     def: d, el, i,
     glowEl: el.querySelector('.glow'), flatEl: el.querySelector('.flat'), tiltEl: el.querySelector('.tilt'), sheenEl: null, flatBuilt: false, stackBuilt: false,
-    enabled: STRESS ? true : saved ? saved.includes(d.id) : CONFIG.defaultShown === 'all' || CONFIG.defaultShown.includes(d.id),
+    enabled: STRESS || ONLY.length ? true : saved ? saved.includes(d.id) : (CONFIG.defaultShown === 'all' ? !d.fire : CONFIG.defaultShown.includes(d.id)),
     x: 0, y: 0, s: 0.3, r: 0, vx: 0, vy: 0, vs: 0, vr: 0,
     home: { x: 0, y: 0, s: 0.3 },
     mix: 0, op: 0, rx: 0, ry: 0, hover: false, born: born === undefined ? 0.4 + i * 0.22 : born,
@@ -659,9 +813,10 @@ function setMode(c, m) {
   c.mode = m; clearTimeout(c.modeT);
   const show = m === 'stack' ? c.tiltEl : c.flatEl, hide = m === 'stack' ? c.flatEl : c.tiltEl;
   show.style.display = ''; show.style.transition = 'none'; show.style.opacity = 1; show.style.zIndex = 1;
-  hide.style.zIndex = 2; hide.style.transition = 'opacity .25s ease'; hide.style.opacity = 0;
+  hide.style.zIndex = 2; const fade = c.def.fire ? 0.8 : 0.25;
+  hide.style.transition = `opacity ${fade}s ease`; hide.style.opacity = 0;
   if (m === 'stack') c.stackVisible = true;
-  c.modeT = setTimeout(() => { hide.style.display = 'none'; if (m === 'flat') { c.stackVisible = false; dropStack(c); } }, 300);
+  c.modeT = setTimeout(() => { hide.style.display = 'none'; if (m === 'flat') { c.stackVisible = false; dropStack(c); } }, fade * 1000 + 50);
 }
 function focusCape(c) {
   state.focus = c;
@@ -670,6 +825,7 @@ function focusCape(c) {
   document.body.classList.add('is-focus', 'seen');
   nameEl.innerHTML = `${c.def.name} cape<small>Click anywhere to return</small>`;
   capes.forEach(o => { o.el.style.zIndex = o === c ? 10 : 1; o.el.classList.toggle('front', o === c); });
+  syncTune();
 }
 function unfocus() {
   const c = state.focus;
@@ -677,9 +833,10 @@ function unfocus() {
   state.focus = null;
   document.body.classList.remove('is-focus');
   c.el.style.zIndex = 5;
-  clearTimeout(c.backT); c.backT = setTimeout(() => { if (state.focus !== c) setMode(c, 'flat'); }, 950);
+  clearTimeout(c.backT); c.backT = setTimeout(() => { if (state.focus !== c) { syncFlatPhase(c); setMode(c, 'flat'); } }, 950);
   setTimeout(() => { if (state.focus !== c) c.el.style.zIndex = 1; }, 1000);
   c.el.classList.remove('front');
+  syncTune();
 }
 
 document.addEventListener('click', e => {
@@ -716,14 +873,21 @@ const panel = document.getElementById('panel');
 const pickerBtn = document.getElementById('pickerBtn');
 const rowsEl = document.getElementById('rows');
 const countEl = document.getElementById('count');
+const fireBtn = document.getElementById('fireBtn'), fireState = document.getElementById('fireState');
 function setPanel(open) { panel.hidden = !open; pickerBtn.setAttribute('aria-expanded', String(open)); }
 pickerBtn.addEventListener('click', e => { e.stopPropagation(); setPanel(panel.hidden); });
 function persist() {
-  if (!STRESS) try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(capes.filter(c => c.enabled && !c.def.id.startsWith('test-')).map(c => c.def.id))); } catch (e) { /* storage unavailable */ }
+  if (!STRESS && !ONLY.length) try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(capes.filter(c => c.enabled && !c.def.id.startsWith('test-')).map(c => c.def.id))); } catch (e) { /* storage unavailable */ }
   const on = capes.filter(c => c.enabled).length;
+  const wasCrowded = crowded;
   crowded = on > CONFIG.crowdAt;
+  // the fire cape's idle picture depends on crowding (live scroll vs frozen snapshot): rebuild it when that flips, including at load
+  if (wasCrowded !== crowded) capes.forEach(c => { if (c.def.fire && c.flatBuilt) { dropFlat(c); ensureFlat(c); } });
+  document.body.classList.toggle('crowded', crowded);
   document.body.classList.toggle('empty', on === 0);
   countEl.textContent = `${on}/${capes.length}`;
+  const fc = capes.find(c => c.def.fire);
+  if (fc) { fireBtn.setAttribute('aria-pressed', String(fc.enabled)); fireState.textContent = fc.enabled ? 'On' : 'Off'; }
 }
 function setEnabled(c, on) {
   if (c.enabled === on) return;
@@ -745,6 +909,12 @@ function addRow(c) {
   rowsEl.appendChild(row);
 }
 capes.forEach(addRow);
+fireBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const c = capes.find(x => x.def.fire); if (!c) return;
+  setEnabled(c, !c.enabled); document.getElementById('cape-' + c.def.id).checked = c.enabled;
+  layout(); persist();
+});
 /* Trim on/off: rebuild the artwork of every built cape with the other edge colours */
 const trimBtn = document.getElementById('trimBtn'), trimState = document.getElementById('trimState');
 function syncTrimBtn() { trimBtn.setAttribute('aria-pressed', String(trimOn)); trimState.textContent = trimOn ? 'On' : 'Off'; }
@@ -762,6 +932,29 @@ syncTrimBtn();
   capes.forEach(c => { setEnabled(c, on); document.getElementById('cape-' + c.def.id).checked = on; });
   layout(); persist();
 }));
+
+/* fire cape lava sliders: rebuild the built artwork of any fire cape as they move */
+const tune = document.getElementById('lavaTune'), tuneBtn = document.getElementById('tuneBtn');
+let tuneOpen = new URLSearchParams(location.search).has('tune');
+// the button shows while a fire cape is in front; it opens and closes the panel
+function syncTune() {
+  const on = !!(state.focus && state.focus.def.fire);
+  tuneBtn.hidden = !on; tune.hidden = !on || !tuneOpen;
+  tuneBtn.setAttribute('aria-expanded', String(on && tuneOpen));
+}
+tuneBtn.addEventListener('click', e => { e.stopPropagation(); tuneOpen = !tuneOpen; syncTune(); });
+{
+  const ids = { size: 'size', stretch: 'stretch', vein: 'vein', fade: 'fade', round: 'round', core: 'core', bright: 'bright', speed: 'speed' };
+  const sync = () => Object.keys(ids).forEach(k => { document.getElementById('lt-' + k).value = lava[k]; document.getElementById('v-' + k).textContent = (+lava[k]).toFixed(2).replace(/\.?0+$/, ''); });
+  const rebuild = () => {
+    try { localStorage.setItem(LAVA_KEY, JSON.stringify(lava)); } catch (e) { /* storage unavailable */ }
+    capes.forEach(c => { if (!c.def.fire) return; if (c.flatBuilt) { dropFlat(c); ensureFlat(c); } if (c.stackBuilt) { dropStack(c); ensureStack(c); } });
+  };
+  Object.keys(ids).forEach(k => document.getElementById('lt-' + k).addEventListener('input', e => { lava[k] = +e.target.value; sync(); rebuild(); }));
+  document.getElementById('lt-reset').addEventListener('click', () => { Object.assign(lava, LAVA_DEF); sync(); rebuild(); });
+  tune.addEventListener('click', e => e.stopPropagation());
+  sync();
+}
 
 /* ---------- shooting stars ---------- */
 const stars = [];
