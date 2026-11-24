@@ -30,7 +30,8 @@ Fonts: `Instrument Serif` (italic only), `JetBrains Mono` 400/500. Self-hosted w
 | Card title | Serif italic | 28px / 1.1 | |
 | **Lede** (intro under a headline) | Mono | **17px desktop, 15px at ≤560px** / 1.55 | `--dim`, max ~54ch. Every page-level intro uses this |
 | Body | Mono | 14px / 1.6 | `--ink` on text pages |
-| Secondary / caption | Mono | 12px | `--dim`: card blurbs, rule lines |
+| Secondary / caption | Mono | 12px | `--dim`: rule lines |
+| Card blurb | Mono | 17px (15px under 860px), 1.55 | `--dim`: same as the hero lede. Keep to one or two short sentences |
 | Label | Mono, UPPERCASE | 11px, tracking `.16em` | nav, links, back links, footer-ish UI. Phones: 10 to 11px, `.12em` |
 | Tag pill | Mono, UPPERCASE | 10px, tracking `.14em` | |
 

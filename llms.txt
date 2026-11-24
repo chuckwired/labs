@@ -3,10 +3,10 @@
 > Interactive experiments by Chuck Rice, a product designer who ships production code. Each lab is a small, dependency-free web page; every one has a "Behind the design" write-up explaining the choices. Source: https://github.com/chuckwired/labs
 
 ## Labs
-- [HKG Crossing](https://labs.chuckwired.com/hkg-crossing/): The tick of a Hong Kong pedestrian crossing, built from oscillators and noise, with a pixel-art street to watch. Press the button, wait for the green man, and join the crowd. It goes quiet from midnight to 6am.
-- [Ocean](https://labs.chuckwired.com/ocean/): As realistic a sea as I could get without a single library, at golden hour or sunset. Somewhere out there, a penguin. Look for it.
-- [Pipes](https://labs.chuckwired.com/windows-pipes/): The Windows XP screensaver I could have watched for hours. Copper and cyan pipes grow, turn and fill the void.
-- [RuneScape Capes of Accomplishment](https://labs.chuckwired.com/rs2-capes/): As a kid, I spent hours fawning over digital capes you get from making unreasonable commitments to clicking stuff. Now I can just code 'em up. Who'd have thought!?
+- [HKG Crossing](https://labs.chuckwired.com/hkg-crossing/): A Hong Kong crossing tick, built from oscillators and noise, with a pixel-art street. Press the button. Wait for the green man.
+- [Ocean](https://labs.chuckwired.com/ocean/): A realistic sea, no libraries. Golden hour or sunset. A penguin is out there somewhere.
+- [Pipes](https://labs.chuckwired.com/windows-pipes/): The XP screensaver I could watch for hours. Pipes grow, turn, fill the void.
+- [RuneScape Capes of Accomplishment](https://labs.chuckwired.com/rs2-capes/): The digital capes I chased as a kid. Now I just code 'em up.
 
 ## Behind the design
 - [HKG Crossing: behind the design](https://labs.chuckwired.com/hkg-crossing/direction/)
