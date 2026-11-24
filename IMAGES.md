@@ -13,7 +13,7 @@ originals/<path>/name.png     full quality, in git, never linked, kept off the d
 1. Put the full-quality PNG or JPEG in `originals/<same path as the page folder>/`.
 2. Run `node tools/optimise-images.mjs`. It encodes anything new or out of date and prints the savings.
 3. Reference the `.webp` in the page. Never reference `originals/`.
-4. Commit both. `node tools/optimise-images.mjs --check` exits 1 if a web copy is missing or older than its original (use it before merging).
+4. Commit both. `node tools/optimise-images.mjs --check` exits 1 if a web copy is missing or its original has changed since it was encoded (content hash, see the header of the tool) (use it before merging).
 
 Needs `cwebp` once: `brew install webp`. Flags: `--force` re-encodes everything, `--q 80` changes the default quality.
 
