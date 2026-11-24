@@ -2,6 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>if(!/\/$/.test(location.pathname))location.replace(location.pathname+"/"+location.search+location.hash)</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f6f3ec">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2317150f%27/%3E%3Ctext x=%2716%27 y=%2723%27 font-family=%27Georgia,serif%27 font-size=%2720%27 font-style=%27italic%27 text-anchor=%27middle%27 fill=%27%23f6f3ec%27%3Ec%3C/text%3E%3C/svg%3E">
@@ -417,7 +418,7 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 })();
 </script>
 <script>
-var xl=document.querySelector('a[href="#experience"]');if(xl)xl.addEventListener('click',function(e){var t=document.getElementById('experience');if(t){e.preventDefault();t.scrollIntoView()}});
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var t=document.getElementById(a.getAttribute('href').slice(1));if(t){e.preventDefault();t.scrollIntoView()}});
 </script>
 <script>
 (function(){

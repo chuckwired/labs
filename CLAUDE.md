@@ -18,6 +18,7 @@ Chuck's monorepo of small interactive experiments. Owner: Chuck (product designe
 - Checks: `node tools/check.mjs` (links, alt text, head tags, no Google Fonts, image copies current, sitemap valid, and `tools/lint-pages.mjs`: every `LABS` entry and every `*/direction/` page is held to a standard. Pages that predate a rule are listed in its `LEGACY` map as warnings; new pages get the full rules. Start a write-up from `tools/templates/direction.html`) and `node tools/weigh.mjs` (per-page weight). The "Performance" page (`performance/`) quotes both plus Lighthouse; update it when they change.
 - Archives: a lab's earlier builds live in `<lab>/archive/` (noindex). The notes page is `<lab>/direction/`.
 - Images: full-quality originals go in `originals/<same path>/`, never linked; run `node tools/optimise-images.mjs` to make the `.webp` that pages use; `--check` before merging. Details and the deploy exclusion in `IMAGES.md`.
+- Unlisted pages (`p/<uuid>/`): keep asset paths relative (`fonts/…`, `logos/…`) and keep the trailing-slash guard script right after `<meta charset>`: DO serves `/p/<uuid>` without redirecting, so relative paths would resolve to `/p/…` and 404. `tools/lint-pages.mjs` enforces the guard. In-page `#anchor` links use a click handler with `scrollIntoView()` so the URL never gains a hash. Commit messages for these stay neutral.
 - Adding a lab: create folder + `index.html`, include the doctype/viewport/theme-color head and a "← Labs" back link, then add it to `LABS`.
 
 ## Hosting

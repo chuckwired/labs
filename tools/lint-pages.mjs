@@ -31,6 +31,8 @@ export function lintPages(err0, warn) {
   for (const f of htmlFiles()) if (!/cloud\.umami\.is\/script\.js[^>]*data-website-id/.test(read(f))) err0(f, 'no Umami script after the Cloudflare beacon (copy it from tools/templates/direction.html)');
   for (const f of htmlFiles()) if (!/src="\/shared\/engage\.js"/.test(read(f))) err0(f, 'no engagement-time script after the Umami script (copy it from tools/templates/direction.html)');
   for (const f of htmlFiles()) if (!/static\.cloudflareinsights\.com\/beacon\.min\.js[^>]*data-cf-beacon/.test(read(f))) err0(f, 'no Cloudflare Web Analytics beacon before </body> (copy it from tools/templates/direction.html)');
+  // Unlisted pages in p/<uuid>/ keep relative asset paths, but the host serves them at /p/<uuid> too, where those paths break. A page with relative assets needs the slash guard first.
+  for (const f of htmlFiles('p')) if (/^p\/[^/]+\/index\.html$/.test(f)) { const h = read(f); if (/(?:src|href)="(?![a-z]+:|\/|#|data:)[^"]+\.(?:woff2?|svg|png|jpe?g|webp|js|css)"|url\((?!['"]?(?:data:|\/|https?:))/.test(h) && !h.includes('location.replace(location.pathname+"/"')) err0(f, 'p/ page uses relative assets without the trailing-slash guard (copy the first <script> after <meta charset> from another p/ page)'); }
   const index = read('index.html');
   const a = index.indexOf('var LABS = ['), b = index.indexOf('];', a) + 1;
   const LABS = new Function(index.slice(a, b).replace('var LABS =', 'return') + ';')();
