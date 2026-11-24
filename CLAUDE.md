@@ -19,6 +19,7 @@ Chuck's monorepo of small interactive experiments. Owner: Chuck (product designe
 - Archives: a lab's earlier builds live in `<lab>/archive/` (noindex). The notes page is `<lab>/direction/`.
 - Images: full-quality originals go in `originals/<same path>/`, never linked; run `node tools/optimise-images.mjs` to make the `.webp` that pages use; `--check` before merging. Details and the deploy exclusion in `IMAGES.md`.
 - Unlisted pages (`p/<uuid>/`): keep asset paths relative (`fonts/…`, `logos/…`) and keep the trailing-slash guard script right after `<meta charset>`: DO serves `/p/<uuid>` without redirecting, so relative paths would resolve to `/p/…` and 404. `tools/lint-pages.mjs` enforces the guard. In-page `#anchor` links use a click handler with `scrollIntoView()` so the URL never gains a hash. Commit messages for these stay neutral.
+- Versions: `.version` holds the number, each release is an annotated tag `vMAJOR.MINOR.PATCH` (v1.0.0 = first commit). Minor = a new public lab, a new `p/` page, or a notable lab update; patch = maintenance. Release with `node tools/version.mjs minor|patch "neutral message" --push` from a clean `main` (`show` and `list` to look). Tag messages go public, so keep them neutral for `p/` pages. No `package.json` on purpose: DO would detect Node and try to build.
 - Adding a lab: create folder + `index.html`, include the doctype/viewport/theme-color head and a "← Labs" back link, then add it to `LABS`.
 
 ## Hosting

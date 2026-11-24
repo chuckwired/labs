@@ -1,5 +1,23 @@
 #!/bin/sh
 # Keep generated files in step, then sanity-check the site. Install once: git config core.hooksPath tools/hooks
-node tools/sync-404.mjs && git add hackers-delight/index.html
-node tools/sync-seo.mjs && git add index.html sitemap.xml llms.txt
-node tools/check.mjs
+# Prints a short monospace overview. The full output is saved to .git/pre-commit-report.txt (untracked).
+GD="$(git rev-parse --git-dir)"; FULL="$GD/pre-commit-report.txt"; : > "$FULL"
+step() { # name, command...
+  n="$1"; shift; out="$("$@" 2>&1)"; c=$?
+  printf '\n== %s (exit %s)\n%s\n' "$n" "$c" "$out" >> "$FULL"
+  [ $c -eq 0 ] && printf '  ok    %s\n' "$n" || printf '  FAIL  %s\n' "$n"
+  return $c
+}
+echo "pre-commit $(date '+%Y-%m-%d %H:%M')"
+step "404 copy in sync"  node tools/sync-404.mjs && git add hackers-delight/index.html
+step "SEO files in sync" node tools/sync-seo.mjs && git add index.html sitemap.xml llms.txt
+step "site checks"       node tools/check.mjs; code=$?
+out="$(sed -n '/^== site checks/,$p' "$FULL")"
+warns=$(printf '%s\n' "$out" | grep -c '^warn')
+printf '        %s warning(s)\n' "$warns"
+if [ $code -ne 0 ]; then
+  printf '%s\n' "$out" | sed -n '/problem(s)/,$p' | sed 's/^/        /' | head -20
+  echo ""
+  echo "  COMMIT BLOCKED. Full report: $FULL"
+fi
+exit $code
