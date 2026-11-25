@@ -85,8 +85,19 @@ nav.rail-nav .tile{width:56px;height:56px;font-size:14px}
 .cols h2{font:500 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:0 0 14px}
 .cols p{max-width:24em}
 .cols p+p{margin-top:.8em}
-.pdf{position:absolute;top:max(18px,2.4vw);left:max(22px,2.4vw);z-index:30;font:500 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);text-decoration:none;padding:6px 0;border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
-.pdf:hover,.pdf:focus-visible{color:var(--ink);border-color:var(--line2)}
+.tl{position:absolute;top:max(18px,2.4vw);left:max(22px,2.4vw);z-index:30;display:flex;align-items:center;gap:22px;font:500 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase}
+.tl a{color:var(--dim);text-decoration:none;transition:color .25s}
+.tl a:focus-visible{color:var(--ink);outline:1px solid var(--line2);outline-offset:6px}
+.mw{display:grid;height:22px;overflow:hidden}
+.mw span{grid-area:1/1;display:flex;align-items:center;white-space:nowrap;transition:transform .5s cubic-bezier(.7,0,.2,1)}
+.mw .m2{transform:translateY(-100%);text-transform:none;letter-spacing:.06em;font-size:12px;transition-delay:.06s}
+.mail.on,.mail:focus-visible{color:var(--ink)}
+.mail.on .m1,.mail:focus-visible .m1{transform:translateY(100%);transition-delay:0s}
+.mail.on .m2,.mail:focus-visible .m2{transform:none}
+@media(hover:hover){.tl a:hover{color:var(--ink)}.mail:hover .m1{transform:translateY(100%);transition-delay:0s}.mail:hover .m2{transform:none}}
+@media(prefers-reduced-motion:reduce){.mw span{transition:none}}
+@font-face{font-family:"Signature";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/signature.woff2) format("woff2")}
+.sum .sig{font:400 clamp(52px,7vw,72px)/1 "Signature",cursive;color:var(--ink);margin:-.1em 0 0 -.05em;opacity:.92;transform:rotate(-2deg);transform-origin:left center}
 footer{padding:12vh 0 14vh;text-align:center;font:400 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
 @supports (animation-timeline:view()){
   @media (prefers-reduced-motion:no-preference){
@@ -172,7 +183,11 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
 <link rel="stylesheet" href="print.css" media="print">
 </head>
 <body>
-<a class="pdf noprint" href="Chuck_Rice_Staff_Product_Designer_CV.pdf" target="_blank" rel="noopener" aria-label="Open the PDF version">PDF</a>
+<div class="tl noprint">
+<a class="pdf" href="Chuck_Rice_Staff_Product_Designer_CV.pdf" target="_blank" rel="noopener" aria-label="Open the PDF version">PDF</a>
+<a class="mail" href="mailto:chuck@chuckwired.com" aria-label="Email chuck@chuckwired.com"><span class="mw" aria-hidden="true"><span class="m1">Email me</span><span class="m2">chuck@chuckwired.com</span></span></a>
+</div>
+<script>(function(){var m=document.querySelector("a.mail"),t=matchMedia("(hover:none)");if(!m)return;m.addEventListener("click",function(v){if(t.matches&&!m.classList.contains("on")){v.preventDefault();m.classList.add("on")}});document.addEventListener("click",function(v){if(!m.contains(v.target))m.classList.remove("on")})})()</script>
 <div class="cord noprint"><div class="cord-inner drop">
   <svg viewBox="0 0 420 250" aria-hidden="true"><path class="cord-line" d="M210 0V176"/><circle class="cord-bead" cx="210" cy="176" r="6.5"/></svg>
   <button class="cord-knob" type="button" aria-label="Switch between light and dark" aria-pressed="false" title="Switch between light and dark"></button>
@@ -182,11 +197,11 @@ nav.rail-nav a[aria-current="true"] .tile.quiet img{opacity:1}
   <h1>Staff Product Designer</h1>
   <p class="l">I work at the intersection of design, code, and product strategy to craft holistic products that emotionally land <em>just</em> right.</p>
   <p class="contact prt"><a href="mailto:chuck@chuckwired.com">chuck@chuckwired.com</a> · <a href="https://www.linkedin.com/in/chuckwired">linkedin.com/in/chuckwired</a> · <a href="https://chuckwired.com">chuckwired.com</a> · <a href="https://labs.chuckwired.com/">labs.chuckwired.com</a></p>
-  <div class="links"><a class="noprint" href="#experience">Experience</a><a href="https://chuckwired.com"><span class="scr">Portfolio</span><span class="prt">chuckwired.com · portfolio</span></a><a href="https://labs.chuckwired.com/"><span class="scr">Labs</span><span class="prt">labs.chuckwired.com · latest experiments</span></a><a class="noprint" href="mailto:chuck@chuckwired.com">Email</a></div>
+  <div class="links"><a class="noprint" href="#experience">Experience</a><a href="https://chuckwired.com"><span class="scr">Portfolio</span><span class="prt">chuckwired.com · portfolio</span></a><a href="https://labs.chuckwired.com/"><span class="scr">Labs</span><span class="prt">labs.chuckwired.com · latest experiments</span></a></div>
 </header>
 <main>
 <div class="wrap">
-  <section class="sum" aria-label="Summary"><p>I thrive on designing for challenges that run across multiple surfaces and channels, working closely with teams across the business to set and align to strategy, deliver on key results, and find the moments worth landing for colleagues and customers alike. I started in DevOps and full-stack engineering because I believe design craft peaks when you intimately understand your canvas.</p></section>
+  <section class="sum" aria-label="Summary"><p>I thrive on designing for challenges that run across multiple surfaces and channels, working closely with teams across the business to set and align to strategy, deliver on key results, and find the moments worth landing for colleagues and customers alike. I started in DevOps and full-stack engineering because I believe design craft peaks when you intimately understand your canvas.</p><p class="sig">—Chuck</p></section>
   <section class="stats" aria-label="Results">
     <div class="stat"><b>+600%</b><div><p>hero click-through rate (CTR), new page against old (2.9M views a month)</p><span class="label">PortSwigger</span></div></div>
     <div class="stat long"><b>Upper six figures</b><div><p>annualised uplift from one CTA colour experiment, run through the design system</p><span class="label">Moonpig</span></div></div>
