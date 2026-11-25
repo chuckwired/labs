@@ -196,7 +196,6 @@ function done(){c.textContent="Copied!";c.classList.add("show");clearTimeout(h);
 function fb(){var x=document.createElement("textarea"),ok=false;x.value=a;x.setAttribute("readonly","");x.style.cssText="position:fixed;opacity:0";document.body.appendChild(x);x.select();try{ok=document.execCommand("copy")}catch(e){}x.remove();return ok}
 m.addEventListener("click",function(v){v.preventDefault();if(!m.classList.contains("on")){on();if(t.matches)return}
 var p=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(a):Promise.reject();p.then(done,function(){fb()?done():location.href="mailto:"+a})})})()</script>
-<script>if(/[?&]tweaks/.test(location.search)){var s=document.createElement("script");s.src="tweaks.js";document.head.appendChild(s)}</script>
 <div class="cord noprint"><div class="cord-inner drop">
   <svg viewBox="0 0 420 250" aria-hidden="true"><path class="cord-line" d="M210 0V176"/><circle class="cord-bead" cx="210" cy="176" r="6.5"/></svg>
   <button class="cord-knob" type="button" aria-label="Switch between light and dark" aria-pressed="false" title="Switch between light and dark"></button>
