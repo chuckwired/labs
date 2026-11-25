@@ -5,6 +5,7 @@
   if (!sig) return;
 
   var FONTS = [
+    ['Waterfall', 'waterfall'],
     ['Mrs Saint Delafield', 'mrs-saint-delafield'],
     ['Herr Von Muellerhoff', 'herr-von-muellerhoff'],
     ['Whisper', 'whisper'],
@@ -18,7 +19,6 @@
     ['Meddon', 'meddon'],
     ['Rouge Script', 'rouge-script'],
     ['Send Flowers', 'send-flowers'],
-    ['Waterfall', 'waterfall'],
     ['Updock', 'updock'],
     ['Sacramento', 'sacramento'],
     ['Mea Culpa', 'mea-culpa'],
