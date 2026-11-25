@@ -55,7 +55,7 @@
   a { color: inherit; text-decoration: underline; text-decoration-thickness: .3pt; text-underline-offset: 1.2pt; text-decoration-color: #777; }
 
   /* things that only exist on screen */
-  .noprint, .cord, nav.rail-nav, .role .side, .hero .links, footer, .scr, .ext, li.x, .cols > div.x, .sum, .role .lead { display: none !important; }
+  .noprint, .cord, nav.rail-nav, .role .side, .hero .links, footer, .scr, .ext, li.x, .cols > div.x, .cols p.x, .sum, .role .lead { display: none !important; }
   .prt { display: inline; }
   .pc { display: inline; }
   .sp { display: none; }
@@ -134,4 +134,5 @@
   .cols > div { display: grid; grid-template-columns: var(--p-label-col) 1fr; gap: 0 3mm; padding: 0 0 .8mm; break-inside: avoid; }
   .cols h2 { margin: .5mm 0 0; }
   .cols p { max-width: none; font: 400 var(--p-body)/var(--p-leading) var(--p-serif); }
+  .cols p + p { margin-top: 0; }
 }
